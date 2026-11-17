@@ -127,7 +127,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | O18 | Recalculation mode | Resolved: button only |
 | O19 | Placement lesson in first release | Resolved: yes, built in stage 4 |
 | **O20** | **Disclaimer and FSRA check** | **Open.** Must be resolved before the URL is shared beyond testers ([Hosting](#hosting-and-repository-author)). |
-| O21 | Splitting the context document | Resolved: file 17 |
+| O21 | Splitting the context document | Resolved: `docs/history/` (file 18) |
 | **O22** | **Volatility and correlation source** | **Open.** FP Canada publishes returns and inflation only. A published long-run Canadian source must be recorded in the config before stage 4. |
 | **O23** | **Probate defaults** | **Open, needs author confirmation.** Registered accounts and TFSAs name beneficiaries and skip probate; the home is optional. |
 
@@ -255,8 +255,14 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 *   **Entry shape:** `{ value, unit, taxYear, indexed, source: { url, locator }, fetchedOn, validation: { status, by, on } }`.
     *   `value` is one of: a number; a bracket table `[{ from, rate }]`; an age-keyed table `{ "71": 0.0528, … }`; a step schedule `[{ from, amount }]`; or, for planning choices only, a structured object (presets, shapes, stress paths).
     *   `unit` is one of `CAD_per_year`, `CAD_per_month`, `rate`, `age`, `years`, `count`, `none`.
-*   **Key tree:** dotted keys, listed in full in `config/SOURCES.md` with each key's source page. Examples: `federal.tax.brackets`, `federal.credits.basic`, `federal.credits.age.amount`, `federal.credits.age.reduction_threshold`, `federal.dividend.eligible.gross_up`, `federal.dividend.eligible.credit_rate`, `federal.oas.base_at_65`, `federal.oas.residence.min_years`, `federal.oas.residence.full_years`, `federal.oas.deferral.per_month`, `federal.oas.deferral.max_months`, `federal.oas.increase_at_75`, `federal.oas.recovery.threshold`, `federal.oas.recovery.rate`, `federal.cpp.start.earliest`, `federal.cpp.start.latest`, `federal.cpp.adjust.early_per_month`, `federal.cpp.adjust.late_per_month`, `federal.cpp.max_at_65`, `federal.cpp.survivor.*`, `federal.rrif.min_factor`, `federal.rrif.latest_conversion_age`, `federal.tfsa.annual_limit`, `federal.split.max_share`, `ontario.tax.brackets`, `ontario.credits.*`, `ontario.dividend.eligible.credit_rate`, `ontario.surtax.thresholds`, `ontario.surtax.rates`, `ontario.health_premium.schedule`, `ontario.tax_reduction.*`, `ontario.probate.threshold`, `ontario.probate.rate`, `ontario.lif.max_factor`, `ontario.lif.conversion.latest_age`, `ontario.lif.unlock_share`, `market.<class>.geometric_return`, `market.<class>.log_volatility`, `market.<class>.yield.{interest,eligible_dividends,foreign_dividends}`, `market.<class>.fee`, `market.<class>.override_limit`, `market.correlation`, `market.inflation`, `market.foreign_withholding_rate`.
-*   **Engine settings** (solver tolerance and step cap, split-search step, invariant tolerance, progress interval) are not config. They live in `src/engine/constants.ts`, the one engine file exempt from the no-magic-numbers lint rule.
+*   **Key tree:** the dotted keys below are the complete, authoritative list of rule-value keys. `config/SOURCES.md` adds each key's unit, source page and location on the page, and must list exactly these keys; `config:check` fails on any key missing from either side. Adding a key means editing this list first. Keys: `federal.tax.brackets`, `federal.credits.basic`, `federal.credits.age.amount`, `federal.credits.age.min_age`, `federal.credits.age.reduction_threshold`, `federal.credits.age.reduction_rate`, `federal.credits.pension.amount`, `federal.credits.pension.min_age_rrif`, `federal.capital_gains.inclusion_rate`, `federal.dividend.eligible.gross_up`, `federal.dividend.eligible.credit_rate`, `federal.oas.base_at_65`, `federal.oas.residence.min_years`, `federal.oas.residence.full_years`, `federal.oas.deferral.per_month`, `federal.oas.deferral.max_months`, `federal.oas.increase_age`, `federal.oas.increase_rate`, `federal.oas.recovery.threshold`, `federal.oas.recovery.rate`, `federal.cpp.start.earliest`, `federal.cpp.start.latest`, `federal.cpp.adjust.early_per_month`, `federal.cpp.adjust.late_per_month`, `federal.cpp.max_at_65`, `federal.cpp.survivor.pct_65_plus`, `federal.cpp.survivor.flat_under_65`, `federal.cpp.survivor.pct_under_65`, `federal.cpp.survivor.max_combined`, `federal.rrif.min_factor`, `federal.rrif.latest_conversion_age`, `federal.tfsa.annual_limit`, `federal.split.max_share`, `federal.split.min_age_rrif`, `ontario.tax.brackets`, `ontario.credits.basic`, `ontario.credits.age.amount`, `ontario.credits.age.reduction_threshold`, `ontario.credits.age.reduction_rate`, `ontario.credits.pension.amount`, `ontario.dividend.eligible.credit_rate`, `ontario.surtax.thresholds`, `ontario.surtax.rates`, `ontario.health_premium.schedule`, `ontario.tax_reduction.*`, `ontario.probate.threshold`, `ontario.probate.rate`, `ontario.lif.min_factor` (fetched from FSRA, not borrowed from the RRIF table), `ontario.lif.max_factor`, `ontario.lif.conversion.latest_age`, `ontario.lif.unlock_share`, `market.<class>.geometric_return`, `market.<class>.log_volatility`, `market.<class>.yield.{interest,eligible_dividends,foreign_dividends}`, `market.<class>.fee`, `market.<class>.override_limit`, `market.correlation`, `market.inflation`, `market.foreign_withholding_rate`. Here `<class>` is one of the asset-class ids below.
+*   **Persisted ids** (permanent once version 1 saves plans):
+    *   asset classes: `cad_equity`, `global_equity`, `bonds`;
+    *   shapes: `steady`, `gradual_shift`, `safety_first_regrow`;
+    *   presets: `bonds_sheltered_first`, `growth_tax_free_first` (the baseline `same_mix` is internal and never saved);
+    *   strategies: `registered_last`, `fill_brackets`;
+    *   account ids: `<type>-<owner>-<n>`, for example `rrsp-0-1`, assigned once when the account is created and never reused.
+*   **Engine settings** (solver tolerance and step cap, split-search step, invariant tolerance, progress interval) are not config. They live in `src/engine/constants.ts`, along with the generator's mathematical constants and `MONTHS_PER_YEAR`. It is the one engine file exempt from the no-magic-numbers lint rule.
 *   **Loading:** config files are JSON, imported directly. `config/CURRENT_YEAR` names the tax year; a generated module, `src/engine/config/bundle.ts`, imports every file for that year. The Worker, the Vitest tests and the `tsx` tools all import that one module. Config is never fetched at run time.
 *   **Status:** `configStatus(today)` returns the tax year, the list of unvalidated keys, and `outOfDate = today's year > taxYear`. The app shows the tax year and a notice when anything is unvalidated or out of date.
 *   **OAS** is updated once a year with the other values, using the January amount × 12.
@@ -482,10 +488,11 @@ PlanInputs {
   dbPensions: DbPensionInput[]
   spending: { phases: [{ yearsFromRetirement: number, annualSpendToday }] x3,
               survivorPct [40..100], legacyGoalToday, homeValueToday? }
-  investing: { shapeId, presetId,
+  investing: { shapeId: 'steady' | 'gradual_shift' | 'safety_first_regrow',
+               presetId: 'bonds_sheltered_first' | 'growth_tax_free_first',
                returnOverride?: { [assetClass]: rate },
                feeOverride?:    { [assetClass]: rate } }
-  withdrawal: { strategyId: 'registeredLast' | 'fillBrackets',
+  withdrawal: { strategyId: 'registered_last' | 'fill_brackets',
                 bracketTargetToday: [number, number] }
 }
 SpouseInput {
@@ -495,10 +502,15 @@ SpouseInput {
   yearsInCanadaAt65 [0..47], workingMarginalRate [0..0.6],
   afterTaxPayToday           // used while still working after the first retirement
 }
+assetClass = 'cad_equity' | 'global_equity' | 'bonds'
 AccountInput {
-  id, owner: 0 | 1, type: 'rrsp' | 'lira' | 'tfsa' | 'nonreg',
-  balanceToday, annualContributionToday, holdings: { [assetClass]: share },
-  originalCostToday?,        // non-registered only
+  id: string,                // '<type>-<owner>-<n>', e.g. 'rrsp-0-1'
+  owner: 0 | 1, type: 'rrsp' | 'lira' | 'tfsa' | 'nonreg',
+  balanceToday,              // rrsp, lira, tfsa; holdings are set by the preset
+  annualContributionToday,
+  positions?: { [assetClass]: { valueToday, originalCostToday } },
+                             // nonreg only: needed because the first rebalance
+                             // sells positions and realizes gains
   tfsaRoomToday?,            // TFSA only
   conversionAge?,            // RRSP->RRIF, LIRA->LIF [55..71]
   lifUnlock50?: boolean      // LIRA only
@@ -534,7 +546,7 @@ PathSummary { success, firstShortfallYear?, totalShortfallNom, lifetimeTaxNom,
 
 *   **Public GitHub repository `retirement-planner`, served by GitHub Pages.** GitHub Actions runs lint, type checks and all tests on every push and pull request. Only a green build of the `main` branch is deployed.
 *   **The unlisted URL is the family release (author).** The page carries a `noindex` tag, and the URL is shared only with testers. Before it is shared any wider, O20 (disclaimer and FSRA check) must be resolved and the app moved to its own origin (see Risks).
-*   **No personal data in the repository.** Fixtures and the sample plan use made-up couples. The original prototype context document contains the author's real household figures, so it lives in `private/`, which git ignores. Copies with personal figures removed become the history documents (file 17). The author tests with real numbers by importing their own exported plan file locally; that file also lives in `private/`.
+*   **No personal data in the repository.** Fixtures and the sample plan use made-up couples. The original prototype context document contains the author's real household figures, so it lives in `private/`, which git ignores. Copies with personal figures removed become the history documents in `docs/history/` (file 18). The author tests with real numbers by importing their own exported plan file locally; that file also lives in `private/`.
 *   **Security policy by meta tag, in the built app only.** GitHub Pages can't set response headers, so the content security policy is added as a `<meta>` tag at build time by a small Vite plugin; local development runs without it. The app's page then cannot make network requests (fetch, XHR, WebSocket, form submissions). This does not cover navigation, and it does not cover the Worker, which takes its policy from response headers; the Worker runs only bundled app code. Both gaps are recorded in Risks.
 *   **Supply chain:** `package-lock.json` is committed and CI installs with `npm ci`, so every build uses the reviewed dependency versions. `npm audit` runs in CI as a report-only step.
 *   **No service worker, no analytics, no CDN.** All dependencies are bundled at build time. Built files carry content hashes, so a rollback is a revert commit followed by a redeploy.
@@ -821,14 +833,14 @@ The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.
 
 | Finding | Gap | Close before |
 |---|---|---|
-| M8 | Deploy trigger can run for a fork's branch named `main`; require a push event from this repository | Stage 0 |
-| M10 | `prettier --check` and ESLint need ignore settings (docs, lockfile, generated bundle) and `"type": "module"` | Stage 0 |
-| M12 | File 16 is stale: the reports are already moved; add `implementation_readiness_report_r2.md` | Stage 0 |
-| M9 | Missing config keys (capital gains inclusion rate, pension credit and its ages, others); one list must own the full key tree | Stage 0 |
-| M7 | String values for asset classes, shape, preset and account ids; the role of `holdings` | Stage 0 |
-| M17 | Stale cross-references ("file 17" should be file 18) | Stage 0 |
-| M18 | No-magic-numbers exemptions disagree; the literal `12` | Stage 0 |
-| M16 | Tax fixture format: clawback and split pairs | Stage 0 |
+| ~~M8~~ | Fixed: deploy requires a push event from this repository (file 12) | — |
+| ~~M10~~ | Fixed: `.prettierignore`, ESLint `ignores`, `"type": "module"` (files 3, 9) | — |
+| ~~M12~~ | Fixed: file 16 marked "Exists — keep" with the full list | — |
+| ~~M9~~ | Fixed: the Config contract's key tree is the complete list; `SOURCES.md` must match it | — |
+| ~~M7~~ | Fixed: persisted ids defined; `holdings` replaced by non-registered `positions` | — |
+| ~~M17~~ | Fixed: cross-references now name `docs/history/` (file 18) | — |
+| ~~M18~~ | Fixed: `constants.ts` is the only exempt file and holds `MONTHS_PER_YEAR` and the generator constants; `ignoreNumericLiteralTypes` set (files 9, 23) | — |
+| ~~M16~~ | Fixed: `clawback` and `pairId` fields; `income` is after the split (file 52) | — |
 | M5 | Lifetime tax units ("today's dollars" vs `lifetimeTaxNom`) | Stage 2 |
 | M6 | Registered draws between spouses; LIF-cap overflow; LIRA rules | Stage 2 |
 | M13 | `bestSplit`: which spouse transfers income | Stage 2 |
@@ -892,7 +904,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     | tsx | 4 | dev |
     | @types/react, @types/react-dom, @types/node | matching | dev |
 
-    `"engines": { "node": ">=22" }`. Scripts:
+    `"type": "module"` and `"engines": { "node": ">=22" }`. Scripts:
 
     | Script | Command |
     |---|---|
@@ -951,11 +963,13 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     *   `webServer`: `npm run build && npm run preview -- --port 4173`.
     *   `baseURL: 'http://localhost:4173/retirement-planner/'`.
 
-##### 9. `./eslint.config.js` and `./.prettierrc` (Create)
+##### 9. `./eslint.config.js`, `./.prettierrc`, `./.prettierignore` (Create)
 
 *   **Type / Scope**: Lint and formatting.
 *   **Proposed Changes**:
-    *   `@typescript-eslint/no-magic-numbers` in `src/engine/**`, ignoring `[0, 1, -1, 2, 100]`. Exempt files: `src/engine/constants.ts` and `src/engine/market/generator.ts` (Box–Muller constants).
+    *   `.prettierignore` lists `docs/`, `*.md`, `package-lock.json`, `config/**/*.json`, `src/engine/config/bundle.ts`, `dist/`, `coverage/`, `playwright-report/`, `test-results/`. Markdown and config JSON keep their hand-written layout; Prettier formats code only.
+    *   `@typescript-eslint/no-magic-numbers` in `src/engine/**`, ignoring `[0, 1, -1, 2, 100]`, with `ignoreNumericLiteralTypes: true` (so types such as `250 | 1000` and `schemaVersion: 1` pass) and `ignoreEnums: true`. The only exempt file is `src/engine/constants.ts`, which also holds the generator's constants (for example `TWO_PI`, `UINT53_SCALE`) and `MONTHS_PER_YEAR = 12`.
+    *   `ignores`: `dist/`, `coverage/`, `playwright-report/`, `test-results/`, `src/engine/config/bundle.ts`.
     *   `no-restricted-imports`:
         *   `src/engine/**` may not import `src/ui/**` or `src/state/**`;
         *   `src/engine/{solver,project,simulate}/**` may not import the `TodayDollars` type.
@@ -986,7 +1000,11 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 *   **Type / Scope**: Deployment.
 *   **Proposed Changes**:
-    *   **Trigger:** `workflow_run` on CI, `types: [completed]`, `branches: [main]`, with the job condition `github.event.workflow_run.conclusion == 'success'`.
+    *   **Trigger:** `workflow_run` on CI, `types: [completed]`, `branches: [main]`. The job runs only when all three hold, so a fork's branch named `main` can never deploy:
+        *   `github.event.workflow_run.conclusion == 'success'`;
+        *   `github.event.workflow_run.event == 'push'`;
+        *   `github.event.workflow_run.head_repository.full_name == github.repository`.
+    *   **Action versions:** pinned by major version: `actions/checkout@v4`, `actions/setup-node@v4`, `actions/configure-pages@v5`, `actions/upload-pages-artifact@v3`, `actions/deploy-pages@v4`.
     *   **Steps:** checkout the triggering commit, setup-node, `npm ci`, `npm run build`, then `actions/configure-pages`, `actions/upload-pages-artifact` (path `dist`) and `actions/deploy-pages`.
     *   **Permissions:** `pages: write`, `id-token: write`, `contents: read`; environment `github-pages`.
     *   **Repository setting:** Pages source is "GitHub Actions".
@@ -1022,15 +1040,16 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 *   **Proposed Changes**: This document. Updated when a decision changes.
 
-##### 16. `./docs/reviews/2026-11-17/` (Create by moving files)
+##### 16. `./docs/reviews/2026-11-17/` (Exists — keep)
 
-*   **Type / Scope**: Review history.
-*   **Proposed Changes**: Move these files here from the repository root and commit them:
+*   **Type / Scope**: Review history, already committed.
+*   **Proposed Changes**: None. The folder holds:
     *   `zoom_out_report.md`
     *   `comprehension_report.md`
     *   `critic_report.md`
     *   `intermediate_zoom_out_report.md`
     *   `implementation_readiness_report.md`
+    *   `implementation_readiness_report_r2.md`
     *   `goldfish_review_report.md`
 
     `concepts_brief.md` stays at the root.
@@ -1070,7 +1089,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 ##### 20. `./config/SOURCES.md` (Create)
 
 *   **Type / Scope**: Key list and sources.
-*   **Proposed Changes**: Every dotted key from the [Config contract](#config-contract), with its unit, its official page URL and where on the page the value appears. Planning-choice keys are marked "author decision".
+*   **Proposed Changes**: Exactly the dotted keys in the [Config contract](#config-contract)'s key tree, each with its unit, its official page URL and where on the page the value appears. Planning-choice keys are marked "author decision". `config:check` fails if this file and the key tree disagree.
 
 #### Config (stage 0)
 
@@ -1101,6 +1120,8 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 ##### 23. `./src/engine/constants.ts` (Create, stage 1)
 
 *   **Proposed Changes**:
+    *   `MONTHS_PER_YEAR = 12`
+    *   `TWO_PI`, `UINT53_SCALE` (generator constants; see file 35)
     *   `SOLVER_PRECISION = 0.01`
     *   `SOLVER_MAX_STEPS = 32`
     *   `SPLIT_STEP = 0.05`
@@ -1357,7 +1378,12 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 ##### 52. `./tests/fixtures/tax-cases.json` (Create, stage 0, by the author)
 
-*   **Proposed Changes**: At least 20 cases in the format `{ id, age, income: TaxableIncome, federalTax, ontarioTax, source: "TaxTips.ca Ontario calculator", checkedOn }`. They include:
+*   **Proposed Changes**: At least 20 cases in the format `{ id, pairId?, age, income: TaxableIncome, federalTax, ontarioTax, clawback, source: "TaxTips.ca Ontario calculator", checkedOn }`.
+    *   `federalTax` excludes the OAS recovery tax, which goes in `clawback`, matching how TaxTips.ca reports it.
+    *   `income` is after any pension split.
+    *   The two spouses of a split case share a `pairId`.
+
+    The cases include:
     *   a death-year return;
     *   a clawback case;
     *   a high-dividend case;
