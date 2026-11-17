@@ -1,0 +1,8 @@
+# Personal data: never commit (see docs/designs/retirement-planner.md, Hosting)
+private/
+
+# Build and test output
+node_modules/
+dist/
+coverage/
+playwright-report/
