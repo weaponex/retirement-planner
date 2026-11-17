@@ -1,0 +1,63 @@
+{
+  "warnings.triggers": {
+    "value": {
+      "money_runs_out": {
+        "final_years": 5
+      },
+      "low_success": {
+        "warn_below": 0.85,
+        "alert_below": 0.7
+      },
+      "oas_clawback": {
+        "near_today": 5000
+      },
+      "rrif_forced_income": {
+        "above_need_today": 5000
+      },
+      "large_registered_at_second_death": {
+        "above_today": 250000
+      },
+      "legacy_missed": {},
+      "bridge_years": {},
+      "survivor_tax_jump": {
+        "rate_points": 0.05
+      },
+      "optimistic_returns": {}
+    },
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  },
+  "warnings.nudge_steps": {
+    "value": {
+      "spending_phase_pct": 0.05,
+      "cpp_oas_start_years": 1,
+      "bracket_target_today": 5000,
+      "retirement_year": 1,
+      "survivor_pct_points": 0.05
+    },
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "name": "retirement-planner",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Free, browser-only retirement planner for Canadians",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "test": "vitest run --passWithNoTests",
+    "test:e2e": "playwright test --pass-with-no-tests",
+    "bench": "tsx tests/bench/recalc.bench.ts",
+    "config:bundle": "tsx tools/configBundle.ts",
+    "config:check": "tsx tools/configCheck.ts",
+    "config:compare": "tsx tools/configCompare.ts"
+  },
+  "dependencies": {
+    "pure-rand": "6.1.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "recharts": "2.15.4",
+    "zod": "3.25.76",
+    "zustand": "5.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@playwright/test": "1.65.1",
+    "@types/node": "22.20.5",
+    "@types/react": "18.3.31",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "4.7.0",
+    "@vitest/coverage-v8": "3.2.7",
+    "eslint": "9.39.5",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "fast-check": "3.23.2",
+    "prettier": "3.10.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.73.0",
+    "vite": "6.4.6",
+    "vite-tsconfig-paths": "5.1.4",
+    "vitest": "3.2.7"
+  }
+}

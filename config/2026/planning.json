@@ -1,0 +1,258 @@
+{
+  "planning.life_expectancy.female": {
+    "value": null,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "planning.life_expectancy.male": {
+    "value": null,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "planning.shapes": {
+    "value": {
+      "steady": {
+        "points": [
+          {
+            "yearsFromRetirement": 0,
+            "stockShare": 0.6
+          }
+        ]
+      },
+      "gradual_shift": {
+        "points": [
+          {
+            "yearsFromRetirement": -10,
+            "stockShare": 0.7
+          },
+          {
+            "yearsFromRetirement": 0,
+            "stockShare": 0.5
+          },
+          {
+            "yearsFromRetirement": 15,
+            "stockShare": 0.4
+          }
+        ]
+      },
+      "safety_first_regrow": {
+        "points": [
+          {
+            "yearsFromRetirement": -5,
+            "stockShare": 0.6
+          },
+          {
+            "yearsFromRetirement": 0,
+            "stockShare": 0.4
+          },
+          {
+            "yearsFromRetirement": 15,
+            "stockShare": 0.6
+          }
+        ]
+      }
+    },
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  },
+  "planning.presets": {
+    "value": {
+      "bonds_sheltered_first": {
+        "bonds": [
+          "registered",
+          "tfsa",
+          "nonreg"
+        ],
+        "global_equity": [
+          "tfsa",
+          "registered",
+          "nonreg"
+        ],
+        "cad_equity": [
+          "nonreg",
+          "tfsa",
+          "registered"
+        ]
+      },
+      "growth_tax_free_first": {
+        "bonds": [
+          "registered",
+          "nonreg",
+          "tfsa"
+        ],
+        "global_equity": [
+          "tfsa",
+          "nonreg",
+          "registered"
+        ],
+        "cad_equity": [
+          "nonreg",
+          "registered",
+          "tfsa"
+        ]
+      }
+    },
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  },
+  "planning.stress_paths": {
+    "value": {
+      "early_crash": {
+        "description": "Large stock drop in the first retirement year, then a slow recovery",
+        "years": 5,
+        "stocks": [
+          -0.35,
+          0.05,
+          0.1,
+          0.1,
+          0.1
+        ],
+        "bonds": [
+          0.03,
+          0.03,
+          0.03,
+          0.03,
+          0.03
+        ]
+      },
+      "lost_decade_lite": {
+        "description": "Three bad stock years in a row, then modest gains",
+        "years": 5,
+        "stocks": [
+          -0.15,
+          -0.1,
+          -0.05,
+          0.05,
+          0.05
+        ],
+        "bonds": [
+          0.01,
+          0.01,
+          0.01,
+          0.01,
+          0.01
+        ]
+      }
+    },
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  },
+  "planning.comparison_bracket_target": {
+    "value": {
+      "ref": "federal.tax.brackets",
+      "bracketIndex": 0
+    },
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  },
+  "planning.stock_split.cad_share": {
+    "value": 0.3,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  },
+  "planning.survivor_spending": {
+    "value": 0.7,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1 (square-root household equivalence scale: 1/sqrt(2) ~ 0.71)"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  },
+  "planning.override_margin": {
+    "value": 0.01,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  }
+}

@@ -1,0 +1,338 @@
+{
+  "market.cad_equity.geometric_return": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.cad_equity.log_volatility": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.cad_equity.yield.interest": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.cad_equity.yield.eligible_dividends": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.cad_equity.yield.foreign_dividends": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.cad_equity.fee": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.cad_equity.override_limit": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.global_equity.geometric_return": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.global_equity.log_volatility": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.global_equity.yield.interest": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.global_equity.yield.eligible_dividends": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.global_equity.yield.foreign_dividends": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.global_equity.fee": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.global_equity.override_limit": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.bonds.geometric_return": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.bonds.log_volatility": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.bonds.yield.interest": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.bonds.yield.eligible_dividends": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.bonds.yield.foreign_dividends": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.bonds.fee": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.bonds.override_limit": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.inflation": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.foreign_withholding_rate": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.correlation": {
+    "value": null,
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  }
+}
