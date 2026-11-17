@@ -3,7 +3,7 @@
 *   **Author:** weaponex
 *   **Status:** Proposed
 *   **Date:** 2026-11-17
-*   **Review:** EGM interactive review (Stages 5–9) on 2026-11-17. Findings were resolved with the author in `docs/reviews/2026-11-17/goldfish_review_report.md`, which also holds the stage reports. This version has not been re-reviewed since those fixes.
+*   **Review:** EGM interactive review (Stages 5–9) on 2026-11-17. Round-1 findings were resolved with the author in `docs/reviews/2026-11-17/goldfish_review_report.md`. Stage 9 was re-run once (`implementation_readiness_report_r2.md`): all three reviewers rated the plan "Ready with fixes", with no Blockers. The author concluded the review with the round-2 findings open; they are listed in [Known gaps from review](#known-gaps-from-review) and must be closed before the stage each affects.
 *   **Brief:** [concepts_brief.md](../../concepts_brief.md). Open-question numbers (O1–O23) refer to it; see [Open Questions](#open-questions).
 
 --------------------------------------------------------------------------------
@@ -814,6 +814,31 @@ Decisions marked "author" were made by the document's author and are recorded in
 --------------------------------------------------------------------------------
 
 ## Detailed Implementation Plan
+
+### Known gaps from review
+
+The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.md`) left 18 Major and 21 Nit findings open. Each Major must be fixed in this document before the stage named below starts. Nits are fixed when their file is built.
+
+| Finding | Gap | Close before |
+|---|---|---|
+| M8 | Deploy trigger can run for a fork's branch named `main`; require a push event from this repository | Stage 0 |
+| M10 | `prettier --check` and ESLint need ignore settings (docs, lockfile, generated bundle) and `"type": "module"` | Stage 0 |
+| M12 | File 16 is stale: the reports are already moved; add `implementation_readiness_report_r2.md` | Stage 0 |
+| M9 | Missing config keys (capital gains inclusion rate, pension credit and its ages, others); one list must own the full key tree | Stage 0 |
+| M7 | String values for asset classes, shape, preset and account ids; the role of `holdings` | Stage 0 |
+| M17 | Stale cross-references ("file 17" should be file 18) | Stage 0 |
+| M18 | No-magic-numbers exemptions disagree; the literal `12` | Stage 0 |
+| M16 | Tax fixture format: clawback and split pairs | Stage 0 |
+| M5 | Lifetime tax units ("today's dollars" vs `lifetimeTaxNom`) | Stage 2 |
+| M6 | Registered draws between spouses; LIF-cap overflow; LIRA rules | Stage 2 |
+| M13 | `bestSplit`: which spouse transfers income | Stage 2 |
+| M15 | Cash yield inside sheltered accounts is never reinvested | Stage 2 |
+| M1 | `Result`, `NormalizedInputs`, `warningFacts` fields; `YearRow` estate, forced-draw and contribution fields; CSV column naming | Stage 3 |
+| M11 | Per-path seeding (`seed + k` correlates paths); uniform construction; Box–Muller log(0) guard | Stage 4 |
+| M14 | Comparison scope (first 250 paths) and the ranking used to pick the typical path | Stage 4 |
+| M3 | 70% coverage target for non-engine code is unreachable without UI tests; gate start date disagrees (lines in Vitest config vs Verification Plan) | Stage 5 |
+| M4 | Store and persistence tests need a browser-like test environment (jsdom or happy-dom) | Stage 5 |
+| M2 | CUJ 6 test-config build: how `VITE_CONFIG_SET=test` reaches a statically imported bundle | Stage 5 |
 
 The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`). The working rules for agents (whole-function rewrites, protected files, units) are in file 13, `AGENTS.md`.
 
