@@ -118,7 +118,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | O9 | DC pension as LIF | Resolved: LIF with optional 50% unlock |
 | O10 | CPP estimate for early retirees | Resolved: user estimate plus help note |
 | O11 | Tax items in or out | Resolved: [Tax scope](#tax-scope-o11) |
-| O12 | Probate and home | Resolved, pending O23 |
+| O12 | Probate and home | Resolved: [Death and estate](#death-and-estate-o12-o23) |
 | O13 | Success, typical, bad | Resolved: [Result definitions](#result-definitions) |
 | O14 | Warnings and tips | Resolved: [Warnings](#warnings-o14) |
 | O15 | Empty start, sample plan | Resolved: [Persistence](#persistence) |
@@ -129,7 +129,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | **O20** | **Disclaimer and FSRA check** | **Open.** Must be resolved before the URL is shared beyond testers ([Hosting](#hosting-and-repository-author)). |
 | O21 | Splitting the context document | Resolved: `docs/history/` (file 18) |
 | **O22** | **Volatility and correlation source** | **Open.** FP Canada publishes returns and inflation only. A published long-run Canadian source must be recorded in the config before stage 4. |
-| **O23** | **Probate defaults** | **Open, needs author confirmation.** Registered accounts and TFSAs name beneficiaries and skip probate; the home is optional. |
+| O23 | Probate defaults | Resolved: confirmed by the author on 2026-11-17 ([Death and estate](#death-and-estate-o12-o23)) |
 
 ## Critical User Journeys (CUJs)
 
@@ -385,7 +385,7 @@ Years before the first retirement run in `project/workingYear.ts` instead:
 
 *   **Probate defaults:** RRSP/RRIF/LIF and TFSA accounts are assumed to name a beneficiary (the spouse, then the children), so they skip probate. Non-registered accounts pass through the estate and pay probate.
 *   **The home:** an optional home value. If entered, it counts toward the legacy and probate, is exempt from capital gains tax, and grows at the fixed inflation rate.
-*   These defaults are open question O23.
+*   The author confirmed these defaults on 2026-11-17 (O23). Jointly held accounts are not modelled; every account has one owner.
 
 ### Results, success and representative paths (O13)
 
@@ -782,7 +782,7 @@ Decisions marked "author" were made by the document's author and are recorded in
 | Public URL reachable before O20 | Release beyond family before the FSRA check | `noindex`, URL shared only with testers; O20 before wider sharing |
 | 5-second target missed | Slow recalculation | Two-pass split, 250-path comparisons; parallel Workers as fallback |
 | Schema change after a rollback | Saved plans unreadable | New schema saves under a new key; old save kept |
-| Open questions O16, O20, O22, O23 | Scope or numbers may change | O22 gates stage 4; O16 checked before stage 0 ends; O20 before wider sharing |
+| Open questions O16, O20, O22 | Scope or numbers may change | O22 gates stage 4; O16 checked before stage 0 ends; O20 before wider sharing |
 
 ## Glossary
 
@@ -861,7 +861,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 | 0 | Repository setup, conventions documents, config contract and 2026 values, tax fixtures, placeholder app | O16 checked with the test friends |
 | 1 | Tax for one person (`jurisdiction/*`, `tax/personalTax.ts`) | Stage 0 config validated |
 | 2 | Couple engine with fixed returns: `units`, `accounts/*`, `benefits/*`, `withdraw/*`, `tax/split.ts`, `solver/*`, `project/workingYear.ts`, `project/runPath.ts`, `invest/*`, invariants | — |
-| 3 | Deaths and estate (`project/death.ts`); reference plan test | O23 confirmed |
+| 3 | Deaths and estate (`project/death.ts`); reference plan test | — |
 | 4 | Market generator, simulation, variants, results, Worker, benchmark | O22 resolved |
 | 5 | Store, screens, stale marking, change summary | — |
 | 6 | Warnings and computed tips | — |
