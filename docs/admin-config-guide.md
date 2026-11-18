@@ -39,7 +39,8 @@ two results are compared.
 
 9.  **Commit** the config, `CURRENT_YEAR` and the regenerated `src/engine/config/bundle.ts`.
 
-OAS amounts change each quarter. The config uses the January amount × 12, updated once a year.
+OAS amounts change each quarter. The config stores the January quarter's monthly amount, as
+published (`CAD_per_month`), updated once a year; the loader multiplies monthly amounts by 12.
 
 ## What the app shows
 
