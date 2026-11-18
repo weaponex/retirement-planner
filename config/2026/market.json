@@ -84,17 +84,17 @@
     }
   },
   "market.foreign_withholding_rate": {
-    "value": null,
+    "value": 0.15,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/en/department-finance/programs/tax-policy/tax-treaties/country/united-states-america-convention-consolidated-1980-1983-1984-1995-1997-2007.html",
+      "locator": "Canada-U.S. tax convention, consolidated text as amended by the protocols of 1983, 1984, 1995, 1997 and 2007, Article X (Dividends), paragraph 2(b): 15 per cent of the gross amount of the dividends in all other cases (2(a), 5 percent, is for companies owning at least 10% of the voting stock)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.global_equity.components.us": {

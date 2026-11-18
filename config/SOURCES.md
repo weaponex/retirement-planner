@@ -23,7 +23,6 @@ described. Author decisions are not fetched.
   show it (checked on 2026-11-18, values not recorded). OAS and CPP amounts now come from the
   ESDC quarterly table for January to March 2026, since the OAS payments page only shows the
   current quarter. Ontario probate must be read by the admin; e-Laws refuses automated fetches.
-- **TO CHOOSE:** the treaty withholding rate. It stays unfetched until the admin picks a source.
 - **Default fees (author, 2026-11-18):** the MER of an iShares core index ETF for each class:
   XIC (Canadian stocks), XAW (global stocks), XBB (bonds).
 - **Decided 2026-11-18:**
@@ -118,7 +117,7 @@ described. Author decisions are not fetched.
 | `market.bonds.yield` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf | iShares XBB factsheet, "Portfolio Characteristics", "Weighted Average Coupon" (not the yield to maturity); record the as-of date in the locator |
 | `market.bonds.fee` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf | iShares XBB factsheet, "Fees and Charges", "Management Expense Ratio (MER)"; record the as-of date |
 | `market.inflation` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Inflation rate assumption |
-| `market.foreign_withholding_rate` | rate | **TO CHOOSE** | Canada-U.S. tax treaty, Article X: dividend withholding rate |
+| `market.foreign_withholding_rate` | rate | https://www.canada.ca/en/department-finance/programs/tax-policy/tax-treaties/country/united-states-america-convention-consolidated-1980-1983-1984-1995-1997-2007.html | Canada–U.S. tax convention (consolidated to the 2007 protocol), Article X, paragraph 2(b): rate "in all other cases" (portfolio holdings) |
 ## Planning
 
 | Key | Unit | Source URL | Where on the page |
