@@ -14,31 +14,31 @@
     }
   },
   "market.cad_equity.fee": {
-    "value": null,
+    "value": 0.0006,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xic-ishares-core-s-p-tsx-capped-composite-index-etf-fund-fact-sheet-en-ca.pdf",
+      "locator": "iShares XIC factsheet, October 2026 (as at 31-Oct-2026), Fees and Charges: Management Expense Ratio (MER) 0.06%"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.global_equity.fee": {
-    "value": null,
+    "value": 0.0022,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xaw-ishares-core-msci-all-country-world-ex-canada-index-etf-fund-fact-sheet-en-ca.pdf",
+      "locator": "iShares XAW factsheet, October 2026 (as at 31-Oct-2026), Fees and Charges: Management Expense Ratio (MER) 0.22%"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.bonds.geometric_return": {
@@ -56,17 +56,17 @@
     }
   },
   "market.bonds.fee": {
-    "value": null,
+    "value": 0.001,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf",
+      "locator": "iShares XBB factsheet, October 2026 (as at 31-Oct-2026), Fees and Charges: Management Expense Ratio (MER) 0.10%"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.inflation": {

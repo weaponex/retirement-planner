@@ -23,8 +23,9 @@ described. Author decisions are not fetched.
   show it (checked on 2026-11-18, values not recorded). OAS and CPP amounts now come from the
   ESDC quarterly table for January to March 2026, since the OAS payments page only shows the
   current quarter. Ontario probate must be read by the admin; e-Laws refuses automated fetches.
-- **TO CHOOSE:** the treaty withholding rate and the default fees. These stay unfetched until the
-  admin picks a source.
+- **TO CHOOSE:** the treaty withholding rate. It stays unfetched until the admin picks a source.
+- **Default fees (author, 2026-11-18):** the MER of an iShares core index ETF for each class:
+  XIC (Canadian stocks), XAW (global stocks), XBB (bonds).
 - **Decided 2026-11-18:**
   - Version 1 uses fixed returns, so there are no volatility or correlation keys (O22 withdrawn).
   - Market values are fetched once and spot-checked by the admin; only the federal and Ontario
@@ -107,15 +108,15 @@ described. Author decisions are not fetched.
 |---|---|---|---|
 | `market.cad_equity.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumption: cad_equity (compound, before fees) |
 | `market.cad_equity.yield` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xic-ishares-core-s-p-tsx-capped-composite-index-etf-fund-fact-sheet-en-ca.pdf | iShares XIC factsheet, "Portfolio Characteristics", "Distribution Yield"; record the as-of date in the locator |
-| `market.cad_equity.fee` | rate | **TO CHOOSE** | Default fee source not yet chosen |
+| `market.cad_equity.fee` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xic-ishares-core-s-p-tsx-capped-composite-index-etf-fund-fact-sheet-en-ca.pdf | iShares XIC factsheet, "Fees and Charges", "Management Expense Ratio (MER)"; record the as-of date |
 | `market.global_equity.components.us` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: U.S. equities (compound, before fees) |
 | `market.global_equity.components.intl_developed` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: International developed-market equities (compound, before fees) |
 | `market.global_equity.components.emerging` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: Emerging-market equities (compound, before fees) |
 | `market.global_equity.yield` | rate | https://www.msci.com/documents/10199/255599/msci-usa-index-net.pdf , https://www.msci.com/documents/10199/255599/msci-eafe-index-cad-net.pdf , https://www.msci.com/documents/10199/255599/msci-emerging-markets-index-cad-net.pdf | MSCI index factsheets, "Fundamentals", "Div Yld (%)" for USA, EAFE and Emerging Markets; value = 0.6 × USA + 0.3 × EAFE + 0.1 × EM (`planning.global_equity_weights`). Record the three yields and the as-of date in the locator |
-| `market.global_equity.fee` | rate | **TO CHOOSE** | Default fee source not yet chosen |
+| `market.global_equity.fee` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xaw-ishares-core-msci-all-country-world-ex-canada-index-etf-fund-fact-sheet-en-ca.pdf | iShares XAW (Core MSCI All Country World ex Canada) factsheet, "Fees and Charges", "Management Expense Ratio (MER)"; record the as-of date |
 | `market.bonds.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: Fixed income (compound, before fees) |
 | `market.bonds.yield` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf | iShares XBB factsheet, "Portfolio Characteristics", "Weighted Average Coupon" (not the yield to maturity); record the as-of date in the locator |
-| `market.bonds.fee` | rate | **TO CHOOSE** | Default fee source not yet chosen |
+| `market.bonds.fee` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf | iShares XBB factsheet, "Fees and Charges", "Management Expense Ratio (MER)"; record the as-of date |
 | `market.inflation` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Inflation rate assumption |
 | `market.foreign_withholding_rate` | rate | **TO CHOOSE** | Canada-U.S. tax treaty, Article X: dividend withholding rate |
 ## Planning

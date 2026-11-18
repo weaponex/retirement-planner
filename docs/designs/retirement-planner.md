@@ -327,6 +327,7 @@ CPP and OAS: the user enters each spouse's CPP estimate at 65 and start age, and
     *   Global stocks: foreign dividends, at the 60/30/10 blend of the "Div Yld (%)" on MSCI's USA, EAFE and Emerging Markets index factsheets.
     *   Bonds: interest, at the "Weighted Average Coupon" on the factsheet of the iShares Core Canadian Universe Bond Index ETF (XBB). The coupon is used rather than the yield to maturity because the yield here is the cash paid out.
     *   Yields are snapshots on the fetch date and are refreshed each year with the other values.
+*   **Default fees (author, 2026-11-18):** the management expense ratio (MER) of an iShares core index ETF for each class: XIC for Canadian stocks, XAW (MSCI All Country World ex Canada) for global stocks and XBB for bonds. The user can edit each fee.
 *   **Income and price:** the cash yield is applied to the start-of-year balance and paid as cash. The price return is the year's total return minus that yield; it can be negative, the yield can't. Fees are subtracted from the total return.
 *   **Return overrides (author):** the user can override the expected return for each asset class. The config default is shown next to each override, and the override is saved in the plan. Yields and income types always come from the config. An override more than `planning.override_margin` (0.5 percentage point) above FP Canada's figure for that class triggers the "optimistic returns" warning.
 
