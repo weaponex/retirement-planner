@@ -17,9 +17,9 @@ two results are compared.
     entry format from the design's Config contract, and this instruction: fetch every rule value
     from its listed page and write a candidate file per config file (`candidate-a/` and
     `candidate-b/`, outside `config/`). Neither session may see the other's output.
-    Volatility and correlation are computed rather than read: each session downloads the FP Canada
-    Addendum, copies the return columns named in `SOURCES.md` into a CSV and runs
-    `npm run market:stats` on it (see `SOURCES.md` for the CSV layout).
+    Only the tax and benefit rules (`federal.json`, `ontario.json`) need two sessions. One session
+    fetches the market assumptions (`market.json`), including the global-stock blend described in
+    `SOURCES.md`; you spot-check those against their sources in step 5.
 4.  **Compare.** For each config file:
 
     ```sh

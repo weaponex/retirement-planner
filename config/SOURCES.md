@@ -23,10 +23,11 @@ listed here, from the place described. Author decisions are not fetched.
 - **TO CHOOSE:** the treaty withholding rate and the default fees. These stay unfetched until the
   admin picks a source.
 - **Decided 2026-11-18 (O22 and FSRA):**
-  - Volatility and correlation are **computed**, not read: copy the five annual-return columns
-    named below from the Addendum's "50 Years Data" sheet into a CSV with the header
-    `year,cad_equity,us,intl_developed,emerging,bonds` and run `npm run market:stats`. Each fetch
-    session downloads the Addendum and runs the tool itself; `config:compare` compares the results.
+  - Volatility and correlation are copied from the Addendum's 20-year columns. Global stocks are
+    blended once by hand with the formulas in the rows below; the published standard deviations
+    (of simple returns) are used as the log volatility.
+  - Market values are fetched once and spot-checked by the admin; only the federal and Ontario
+    rules are fetched twice and compared.
   - Yields come from factsheets that change monthly; record each factsheet's as-of date. Yield
     components marked "author decision" are zero by design.
   - The Ontario LIF minimum and the LIRA conversion deadline have no keys of their own: FSRA
@@ -96,12 +97,12 @@ listed here, from the place described. Author decisions are not fetched.
 | `ontario.health_premium.schedule` | CAD_per_year | https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan/t4127-jan-payroll-deductions-formulas-computer-programs.html | Chapter 4, Step 5, Ontario Health Premium (factor V2) |
 | `ontario.lif.max_factor` | rate | https://www.fsrao.ca/industry/pensions/regulatory-framework/guidance-pensions/life-income-fund-lif-and-locked-retirement-income-fund-lrif-maximum-annual-income-payment-amount-table | "Appendix A: maximum annual income payment amount table for an Ontario LIF or LRIF": percentage by age (from 50). The table holds for any year while the CANSIM V122487 rate stays at or below 6.00%. Fetch with curl (see the status notes) |
 
-## Market assumptions (FP Canada returns; O22 volatility and correlation computed from FP Canada's data; yields from factsheets)
+## Market assumptions (FP Canada returns, volatility and correlation; yields from factsheets; fetched once and spot-checked)
 
 | Key | Unit | Source URL | Where on the page |
 |---|---|---|---|
 | `market.cad_equity.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumption: cad_equity (compound, before fees) |
-| `market.cad_equity.log_volatility` | rate | https://institutpf.org/assets/Documents/Normes-projection/InstituteFP-PAG2026-addendum.xlsx | **Computed** by `npm run market:stats`: sheet "50 Years Data", column M (S&P/TSX Composite), years 1965–2025; sample standard deviation of ln(1 + return) |
+| `market.cad_equity.log_volatility` | rate | https://institutpf.org/assets/Documents/Normes-projection/InstituteFP-PAG2026-addendum.xlsx | Sheet "Correlation & Standard Dev.", "Standard deviation 20 years (2006-2025)", row "Canadian equities" |
 | `market.cad_equity.yield.interest` | rate | author decision | Zero: Canadian stocks pay eligible dividends only |
 | `market.cad_equity.yield.eligible_dividends` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xic-ishares-core-s-p-tsx-capped-composite-index-etf-fund-fact-sheet-en-ca.pdf | iShares XIC factsheet, "Portfolio Characteristics", "Distribution Yield"; record the as-of date in the locator |
 | `market.cad_equity.yield.foreign_dividends` | rate | author decision | Zero: Canadian stocks pay eligible dividends only |
@@ -109,20 +110,20 @@ listed here, from the place described. Author decisions are not fetched.
 | `market.global_equity.components.us` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: U.S. equities (compound, before fees) |
 | `market.global_equity.components.intl_developed` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: International developed-market equities (compound, before fees) |
 | `market.global_equity.components.emerging` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: Emerging-market equities (compound, before fees) |
-| `market.global_equity.log_volatility` | rate | https://institutpf.org/assets/Documents/Normes-projection/InstituteFP-PAG2026-addendum.xlsx | **Computed** by `npm run market:stats`: sheet "50 Years Data", columns Q (S&P 500), U (MSCI EAFE) and Y (MSCI Emerging Markets) blended each year by `planning.global_equity_weights`, years 1965–2025; sample standard deviation of ln(1 + return) |
+| `market.global_equity.log_volatility` | rate | https://institutpf.org/assets/Documents/Normes-projection/InstituteFP-PAG2026-addendum.xlsx | Sheet "Correlation & Standard Dev.", 20-year columns (2006-2025): **blend** the U.S., international developed and emerging-market figures with w = `planning.global_equity_weights`: σ_g = √(Σᵢ Σⱼ wᵢ wⱼ ρᵢⱼ σᵢ σⱼ). Record the inputs in the locator |
 | `market.global_equity.yield.interest` | rate | author decision | Zero: global stocks pay foreign dividends only |
 | `market.global_equity.yield.eligible_dividends` | rate | author decision | Zero: global stocks pay foreign dividends only |
 | `market.global_equity.yield.foreign_dividends` | rate | https://www.msci.com/documents/10199/255599/msci-usa-index-net.pdf , https://www.msci.com/documents/10199/255599/msci-eafe-index-cad-net.pdf , https://www.msci.com/documents/10199/255599/msci-emerging-markets-index-cad-net.pdf | MSCI index factsheets, "Fundamentals", "Div Yld (%)" for USA, EAFE and Emerging Markets; value = 0.6 × USA + 0.3 × EAFE + 0.1 × EM (`planning.global_equity_weights`). Record the three yields and the as-of date in the locator |
 | `market.global_equity.fee` | rate | **TO CHOOSE** | Default fee source not yet chosen |
 | `market.bonds.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: Fixed income (compound, before fees) |
-| `market.bonds.log_volatility` | rate | https://institutpf.org/assets/Documents/Normes-projection/InstituteFP-PAG2026-addendum.xlsx | **Computed** by `npm run market:stats`: sheet "50 Years Data", column I (FTSE Canada Universe Bond Index), years 1965–2025; sample standard deviation of ln(1 + return) |
+| `market.bonds.log_volatility` | rate | https://institutpf.org/assets/Documents/Normes-projection/InstituteFP-PAG2026-addendum.xlsx | Sheet "Correlation & Standard Dev.", "Standard deviation 20 years (2006-2025)", row "Fixed income" |
 | `market.bonds.yield.interest` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf | iShares XBB factsheet, "Portfolio Characteristics", "Weighted Average Coupon" (not the yield to maturity); record the as-of date in the locator |
 | `market.bonds.yield.eligible_dividends` | rate | author decision | Zero: bonds pay interest only |
 | `market.bonds.yield.foreign_dividends` | rate | author decision | Zero: bonds pay interest only |
 | `market.bonds.fee` | rate | **TO CHOOSE** | Default fee source not yet chosen |
 | `market.inflation` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Inflation rate assumption |
 | `market.foreign_withholding_rate` | rate | **TO CHOOSE** | Canada-U.S. tax treaty, Article X: dividend withholding rate |
-| `market.correlation` | none | https://institutpf.org/assets/Documents/Normes-projection/InstituteFP-PAG2026-addendum.xlsx | **Computed** by `npm run market:stats` from the same series as the three volatilities: sample correlations of ln(1 + return), order `cad_equity`, `global_equity`, `bonds` |
+| `market.correlation` | none | https://institutpf.org/assets/Documents/Normes-projection/InstituteFP-PAG2026-addendum.xlsx | Sheet "Correlation & Standard Dev.", "Historical correlation 20 years (2006-2025)". Order `cad_equity`, `global_equity`, `bonds`. Canadian equities–fixed income is copied; each correlation with global stocks is **blended**: ρ_gx = (Σᵢ wᵢ ρᵢₓ σᵢ) / σ_g over U.S., international and emerging. Record the inputs in the locator |
 
 ## Planning
 

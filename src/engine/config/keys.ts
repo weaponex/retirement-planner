@@ -95,7 +95,7 @@ export const KEY_SPECS: readonly KeySpec[] = [
   // (federal.rrif.min_factor, federal.rrif.latest_conversion_age); see the design's Accounts.
   ...rule('ontario', 'ageTable', ['ontario.lif.max_factor']),
 
-  // Market assumptions. Volatility is computed by tools/marketStats.ts (O22).
+  // Market assumptions. Volatility and correlation come from FP Canada's Addendum (O22).
   ...rule('market', 'number', perClass(['log_volatility', 'fee'])),
   // Each class pays one income type, read from a factsheet; the other two are
   // zero by the author's decision.

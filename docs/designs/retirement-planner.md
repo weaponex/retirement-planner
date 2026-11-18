@@ -128,7 +128,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | O19 | Placement lesson in first release | Resolved: yes, built in stage 4 |
 | **O20** | **Disclaimer and FSRA check** | **Open.** Must be resolved before the URL is shared beyond testers ([Hosting](#hosting-and-repository-author)). |
 | O21 | Splitting the context document | Resolved: `docs/history/` (file 18) |
-| O22 | Volatility and correlation source | Resolved on 2026-11-18: computed from the annual returns in FP Canada's Projection Assumption Guidelines Addendum ([Asset classes and returns](#asset-classes-and-returns-o3)) |
+| O22 | Volatility and correlation source | Resolved on 2026-11-18: the standard deviations and correlations published in FP Canada's Projection Assumption Guidelines Addendum ([Asset classes and returns](#asset-classes-and-returns-o3)) |
 | O23 | Probate defaults | Resolved: confirmed by the author on 2026-11-17 ([Death and estate](#death-and-estate-o12-o23)) |
 
 ## Critical User Journeys (CUJs)
@@ -166,7 +166,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 ### CUJ 6: Admin updates the yearly values
 
 *   **Given**: A new tax year has started.
-*   **When**: The admin (the author, for now) has two separate AI sessions fetch every value from the official sources, reviews any values where the two disagree, and marks the new config as validated.
+*   **When**: The admin (the author, for now) has two separate AI sessions fetch every tax and benefit rule from the official sources and reviews any values where the two disagree; one session fetches the market assumptions, which the admin spot-checks. The admin then marks the new config as validated.
 *   **Then**: The new config ships with the next build. Until it is validated, the app shows a notice that some values are unvalidated or from the previous year.
 
 ## Technical Plan (Architecture)
@@ -186,7 +186,8 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | Recalculation (O18) | Button only, no live preview | Author (brainstorm) |
 | Retirement timing | A retirement year for each spouse; household spending starts at the first; a still-working spouse enters after-tax pay | Author (review) |
 | Foreign withholding tax | One config rate on foreign dividends in the TFSA and registered accounts | Author (review) |
-| Volatility and correlation (O22) | Computed from FP Canada's published annual returns, 1965–2025, as log returns | Author (2026-11-18) |
+| Volatility and correlation (O22) | FP Canada's published 20-year figures; global stocks blended by hand | Author (2026-11-18) |
+| Fetch checks | Tax and benefit rules fetched twice and compared; market assumptions fetched once and spot-checked | Author (2026-11-18) |
 | Cash yields | Read from index and fund factsheets; each class pays one income type | Author (2026-11-18) |
 | LIF minimum and conversion deadline | The federal RRIF minimum and age-71 rule, which Ontario applies to LIFs and LIRAs; no Ontario keys of their own | Author (2026-11-18) |
 | First-year benefits | Birth month for each spouse; first year pro-rated | Author (review) |
@@ -269,7 +270,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 *   **Loading:** config files are JSON, imported directly. `config/CURRENT_YEAR` names the tax year; a generated module, `src/engine/config/bundle.ts`, imports every file for that year. The Worker, the Vitest tests and the `tsx` tools all import that one module. Config is never fetched at run time.
 *   **Status:** `configStatus(today)` returns the tax year, the list of unvalidated keys, and `outOfDate = today's year > taxYear`. The app shows the tax year and a notice when anything is unvalidated or out of date.
 *   **OAS** is updated once a year with the other values. Amounts the sources publish monthly (OAS, CPP maximum, CPP survivor flat rate and combined maximum) are stored as `CAD_per_month` exactly as published; the loader multiplies by 12. The OAS figure is the January quarter's.
-*   **Computed market values (O22):** `market.<class>.log_volatility` and `market.correlation` are not read off a page. `tools/marketStats.ts` computes them from FP Canada's published annual returns (see [Asset classes and returns](#asset-classes-and-returns-o3)). Each fetch session downloads the Addendum itself, copies the five return columns into the tool's CSV input and runs the tool; `config:compare` then compares the two results like any other values. The locator names the sheet, columns and years used.
+*   **Fetch checks (author):** tax and benefit rules (`federal.json`, `ontario.json`) are fetched twice, independently, and compared, because an error there gives a wrong answer for certain. Market assumptions (`market.json`) are estimates of the future, so one fetch and a spot-check by the admin are enough.
 *   **Market yields** are read from index and fund factsheets, which change monthly; each locator records the factsheet's as-of date. Yield components that are zero by construction (for example interest on Canadian stocks) are author decisions, recorded as such in `market.json`.
 *   The engine never contains a rule value as a number in code.
 
@@ -316,14 +317,13 @@ CPP and OAS: the user enters each spouse's CPP estimate at 65 and start age, and
 
 *   **Three asset classes:** Canadian stocks, global stocks, bonds. Each has config entries for:
     *   expected compound (geometric) return, from FP Canada. FP Canada publishes no single "global" return, so `global_equity` is a blend of its U.S., international developed and emerging-market returns, weighted by `planning.global_equity_weights` (author: 60/30/10);
-    *   volatility of log returns and correlations (O22), computed as described below;
+    *   volatility of log returns and correlations (O22), from FP Canada as described below;
     *   a fixed yearly cash yield, split into interest, eligible dividends and foreign dividends (sources below);
     *   a default yearly fee that the user can edit.
-*   **Volatility and correlations (O22, author):** computed by `tools/marketStats.ts` from the "50 Years Data" sheet of FP Canada's Addendum to the Projection Assumption Guidelines. That sheet gives annual total returns in Canadian dollars for the indexes FP Canada uses: the S&P/TSX Composite (Canadian stocks), the S&P 500, MSCI EAFE and MSCI Emerging Markets (global stocks), and the FTSE Canada Universe Bond Index (bonds).
-    *   Years used: every year in which all five series have a value (1965–2025 in the 2026 Addendum).
-    *   Global stocks: each year's return is the blend 0.6 × U.S. + 0.3 × international + 0.1 × emerging (`planning.global_equity_weights`, rebalanced yearly).
-    *   For each class the tool takes ln(1 + return). The log volatility is the sample standard deviation (dividing by n − 1); the correlations are the sample correlations of the same log returns.
-    *   The Addendum's own standard deviations and correlation matrix (10 and 20 years, of simple returns) are not used: they cover too few years and are not log returns.
+*   **Volatility and correlations (O22, author):** copied from the "Correlation & Standard Dev." sheet of FP Canada's Addendum to the Projection Assumption Guidelines, using its 20-year columns (2006–2025 in the 2026 Addendum). The sheet gives standard deviations and a correlation matrix of annual returns for fixed income, Canadian, U.S., international developed and emerging-market stocks.
+    *   Canadian stocks and bonds: the published figures, as they are.
+    *   Global stocks: blended once by hand from the U.S., international and emerging figures with the weights w = `planning.global_equity_weights`. Volatility σ_g = √(Σᵢ Σⱼ wᵢ wⱼ ρᵢⱼ σᵢ σⱼ); correlation with Canadian stocks or bonds ρ_gx = (Σᵢ wᵢ ρᵢₓ σᵢ) / σ_g.
+    *   The published standard deviations are of simple annual returns; they are used as the log volatility without conversion. The difference is small next to the uncertainty in any forecast.
 *   **Cash yields (author):** each class pays one income type; the others are zero.
     *   Canadian stocks: eligible dividends, at the "Distribution Yield" on the factsheet of the iShares Core S&P/TSX Capped Composite Index ETF (XIC).
     *   Global stocks: foreign dividends, at the 60/30/10 blend of the "Div Yld (%)" on MSCI's USA, EAFE and Emerging Markets index factsheets.
@@ -805,7 +805,7 @@ Decisions marked "author" were made by the document's author and are recorded in
 | 5-second target missed | Slow recalculation | Two-pass split, 250-path comparisons; parallel Workers as fallback |
 | Schema change after a rollback | Saved plans unreadable | New schema saves under a new key; old save kept |
 | Open questions O16, O20 | Scope or numbers may change | O16 checked before stage 0 ends; O20 before wider sharing |
-| Volatility from one 61-year history | Future markets may be more volatile or less correlated than 1965–2025 | Accepted; named stress paths shown separately; the years used are stated in the config |
+| Volatility from 20 years of history | Future markets may be more volatile or less correlated than 2006–2025 | Accepted; named stress paths shown separately; the years used are stated in the config |
 
 ## Glossary
 
@@ -942,8 +942,6 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     | `config:bundle` | `tsx tools/configBundle.ts` (generates `src/engine/config/bundle.ts`) |
     | `config:check` | `tsx tools/configCheck.ts` |
     | `config:compare` | `tsx tools/configCompare.ts <a.json> <b.json>` |
-    | `market:stats` | `tsx tools/marketStats.ts <returns.csv>` (prints candidate volatility and correlation entries) |
-
 ##### 4. `./.nvmrc` (Create)
 
 *   **Proposed Changes**: `22`.
@@ -1102,9 +1100,9 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 *   **Type / Scope**: Admin procedure, run each January.
 *   **Proposed Changes**:
-    1.  Two separate AI sessions each fetch every rule value listed in `config/SOURCES.md` into a candidate file.
-    2.  Run `npm run config:compare` on the two candidates.
-    3.  The admin resolves each disagreement against the source page.
+    1.  Two separate AI sessions each fetch every tax and benefit rule (`federal.json`, `ontario.json`) listed in `config/SOURCES.md` into a candidate file. One session fetches the market assumptions (`market.json`).
+    2.  Run `npm run config:compare` on the two tax and benefit candidates.
+    3.  The admin resolves each disagreement against the source page, and spot-checks the market values against theirs.
     4.  The admin sets each entry's validation status, name and date, and updates `config/CURRENT_YEAR`.
     5.  Run `npm run config:bundle` and `npm run config:check`.
     6.  Commit.
@@ -1123,7 +1121,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 *   **Type / Scope**: Rule values, following the [Config contract](#config-contract).
 *   **Proposed Changes**: Every key in `SOURCES.md`, fetched and validated per the admin guide. `market.json` holds:
     *   FP Canada returns and inflation;
-    *   volatility and correlations, computed by `tools/marketStats.ts` (O22);
+    *   volatility and correlations, from FP Canada's Addendum (O22);
     *   yields by income type;
     *   fees;
     *   the three FP Canada component returns for global stocks;
@@ -1392,17 +1390,12 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 #### Tools (stage 0)
 
-##### 51. `./tools/configBundle.ts`, `./tools/configCheck.ts`, `./tools/configCompare.ts`, `./tools/marketStats.ts` (Create)
+##### 51. `./tools/configBundle.ts`, `./tools/configCheck.ts`, `./tools/configCompare.ts` (Create)
 
 *   **Proposed Changes**:
     *   **`configBundle`:** generates `src/engine/config/bundle.ts` for `CURRENT_YEAR`.
     *   **`configCheck`:** validates every config file against the schema, checks that every key in `SOURCES.md` exists, and lists unvalidated entries. It exits non-zero on schema errors.
     *   **`configCompare a b`:** lists every key whose value, unit, year or indexed flag differs.
-    *   **`marketStats returns.csv`:** computes the O22 values described in [Asset classes and returns](#asset-classes-and-returns-o3).
-        *   Input: a CSV with the header `year,cad_equity,us,intl_developed,emerging,bonds` and annual total returns as decimals, copied from the Addendum's "50 Years Data" sheet (2026 edition: columns M, Q, U, Y and I).
-        *   It reads `planning.global_equity_weights` from the bundled config and skips any year with a blank value.
-        *   Output: candidate entries for `market.<class>.log_volatility` and `market.correlation` (order `cad_equity`, `global_equity`, `bonds`), in the entry format, with `validation.status` `unvalidated` and a locator naming the sheet, columns and first and last year.
-
 #### Tests and fixtures
 
 ##### 52. `./tests/fixtures/tax-cases.json` (Create, stage 0, by the author)
@@ -1459,8 +1452,6 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     | `changeSummary.test.ts`, `store.test.ts` | Diff fields; stale flag on edit, load and new seed |
     | `persistence.test.ts` | Round trip; newer-version refusal; the frozen v1 file loads |
     | `configCompare.test.ts`, `configCheck.test.ts` | Detects value, unit, year and indexed-flag differences; rejects a malformed file |
-    | `marketStats.test.ts` | Hand-computed standard deviation and correlation for a small series; blend weights applied each year; years with a blank skipped; output passes the config schema |
-
 ##### 57. `./tests/property/*.test.ts` (Create, stages 2–4)
 
 *   **Proposed Changes**: The property tests listed in [Verification](#verification-g10). They use fast-check, plus a test-only config under `tests/property/configs/` (zero tax, zero volatility) that is never part of the validated config.
