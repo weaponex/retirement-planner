@@ -95,23 +95,10 @@ export const KEY_SPECS: readonly KeySpec[] = [
   // (federal.rrif.min_factor, federal.rrif.latest_conversion_age); see the design's Accounts.
   ...rule('ontario', 'ageTable', ['ontario.lif.max_factor']),
 
-  // Market assumptions. Volatility and correlation come from FP Canada's Addendum (O22).
-  ...rule('market', 'number', perClass(['log_volatility', 'fee'])),
-  // Each class pays one income type, read from a factsheet; the other two are
-  // zero by the author's decision.
-  ...rule('market', 'number', [
-    'market.cad_equity.yield.eligible_dividends',
-    'market.global_equity.yield.foreign_dividends',
-    'market.bonds.yield.interest',
-  ]),
-  ...author('market', 'number', [
-    'market.cad_equity.yield.interest',
-    'market.cad_equity.yield.foreign_dividends',
-    'market.global_equity.yield.interest',
-    'market.global_equity.yield.eligible_dividends',
-    'market.bonds.yield.eligible_dividends',
-    'market.bonds.yield.foreign_dividends',
-  ]),
+  // Market assumptions. Returns are fixed (no volatility or correlation).
+  // Each class pays one income type, set by the design: Canadian stocks eligible
+  // dividends, global stocks foreign dividends, bonds interest.
+  ...rule('market', 'number', perClass(['yield', 'fee'])),
   // Compound returns. FP Canada has no single "global" figure, so global equity
   // is a blend of three published returns using planning.global_equity_weights.
   ...rule('market', 'number', [
@@ -122,7 +109,6 @@ export const KEY_SPECS: readonly KeySpec[] = [
     'market.global_equity.components.emerging',
   ]),
   ...rule('market', 'number', ['market.inflation', 'market.foreign_withholding_rate']),
-  ...rule('market', 'object', ['market.correlation']),
 
   // Planning: FP Canada life expectancy is sourced; the rest are author decisions.
   // Life expectancy is a table by current age (age with a 25% chance of survival).

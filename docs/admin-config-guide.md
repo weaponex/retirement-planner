@@ -18,8 +18,8 @@ two results are compared.
     from its listed page and write a candidate file per config file (`candidate-a/` and
     `candidate-b/`, outside `config/`). Neither session may see the other's output.
     Only the tax and benefit rules (`federal.json`, `ontario.json`) need two sessions. One session
-    fetches the market assumptions (`market.json`), including the global-stock blend described in
-    `SOURCES.md`; you spot-check those against their sources in step 5.
+    fetches the market assumptions (`market.json`); you spot-check those against their sources in
+    step 5.
 4.  **Compare.** For each config file:
 
     ```sh

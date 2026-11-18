@@ -43,11 +43,6 @@ jobs:
       - name: End-to-end tests
         run: npm run test:e2e
 
-      - name: Benchmark (report only)
-        if: hashFiles('tests/bench/recalc.bench.ts') != ''
-        continue-on-error: true
-        run: npm run bench
-
       - name: Dependency audit (report only)
         continue-on-error: true
         run: npm audit --omit=dev

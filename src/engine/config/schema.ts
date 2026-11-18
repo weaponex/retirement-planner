@@ -41,12 +41,6 @@ const accountGroup = z.enum(['registered', 'tfsa', 'nonreg']);
 
 /** Schemas for structured planning values, by key. */
 export const objectSchemas: Record<string, z.ZodTypeAny> = {
-  'market.correlation': z
-    .object({
-      order: z.array(assetClass).length(ASSET_CLASSES.length),
-      matrix: z.array(z.array(finite.min(-1).max(1))).length(ASSET_CLASSES.length),
-    })
-    .strict(),
   'planning.shapes': z.record(
     z.enum(['steady', 'gradual_shift', 'safety_first_regrow']),
     z

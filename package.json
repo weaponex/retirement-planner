@@ -17,13 +17,11 @@
     "format:check": "prettier --check .",
     "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test --pass-with-no-tests",
-    "bench": "tsx tests/bench/recalc.bench.ts",
     "config:bundle": "tsx tools/configBundle.ts",
     "config:check": "tsx tools/configCheck.ts",
     "config:compare": "tsx tools/configCompare.ts"
   },
   "dependencies": {
-    "pure-rand": "6.1.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "recharts": "2.15.4",
