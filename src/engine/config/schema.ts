@@ -57,17 +57,6 @@ export const objectSchemas: Record<string, z.ZodTypeAny> = {
     z.enum(['bonds_sheltered_first', 'growth_tax_free_first']),
     z.record(assetClass, z.array(accountGroup).length(accountGroup.options.length)),
   ),
-  'planning.stress_paths': z.record(
-    z.string(),
-    z
-      .object({
-        description: z.string(),
-        years: z.number().int().positive(),
-        stocks: z.array(finite),
-        bonds: z.array(finite),
-      })
-      .strict(),
-  ),
   'planning.comparison_bracket_target': z
     .object({ ref: z.literal('federal.tax.brackets'), bracketIndex: z.number().int().min(0) })
     .strict(),

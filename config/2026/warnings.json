@@ -4,10 +4,6 @@
       "money_runs_out": {
         "final_years": 5
       },
-      "low_success": {
-        "warn_below": 0.85,
-        "alert_below": 0.7
-      },
       "oas_clawback": {
         "near_today": 5000
       },
@@ -28,14 +24,14 @@
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "author decision, 2026-11-17",
+      "url": "author decision, 2026-11-18",
       "locator": "docs/designs/retirement-planner.md#design-values-version-1"
     },
-    "fetchedOn": "2026-11-17",
+    "fetchedOn": "2026-11-18",
     "validation": {
       "status": "validated",
       "by": "weaponex",
-      "on": "2026-11-17"
+      "on": "2026-11-18"
     }
   },
   "warnings.nudge_steps": {

@@ -3,7 +3,7 @@
 *   **Author:** weaponex
 *   **Status:** Proposed
 *   **Date:** 2026-11-17
-*   **Review:** EGM interactive review (Stages 5–9) on 2026-11-17. Round-1 findings were resolved with the author in `docs/reviews/2026-11-17/goldfish_review_report.md`. Stage 9 was re-run once (`implementation_readiness_report_r2.md`): all three reviewers rated the plan "Ready with fixes", with no Blockers. The author concluded the review with the round-2 findings open; they are listed in [Known gaps from review](#known-gaps-from-review) and must be closed before the stage each affects.
+*   **Review:** EGM interactive review (Stages 5–9) on 2026-11-17. Round-1 findings were resolved with the author in `docs/reviews/2026-11-17/goldfish_review_report.md`. Stage 9 was re-run once (`implementation_readiness_report_r2.md`): all three reviewers rated the plan "Ready with fixes", with no Blockers. The author concluded the review with the round-2 findings open; they are listed in [Known gaps from review](#known-gaps-from-review) and must be closed before the stage each affects. The 2026-11-18 revision (fixed returns, config sources) had a focused review only (`docs/reviews/2026-11-18/focused_review_report.md`, "Ready with fixes"); its open findings are in the same table, prefixed `FR-`.
 *   **Brief:** [concepts_brief.md](../../concepts_brief.md). Open-question numbers (O1–O23) refer to it; see [Open Questions](#open-questions).
 
 --------------------------------------------------------------------------------
@@ -248,17 +248,20 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 *   **Retirement (author):** each spouse has a retirement year. Household spending starts in the first spouse's retirement year. A spouse still working after that enters their after-tax pay in today's dollars, counted as cash income until they retire. CPP or OAS they collect while working is taxed at the working-years marginal rate they enter. Spending phases and growth-to-safety shapes are measured in years from the first retirement.
 *   **Timing within a year:** rebalancing happens first, then fixed income and required withdrawals, then the withdrawal solve, all at the start of the year; returns apply to what remains; contributions during working years land at the end of the year. Tax is settled in the same year.
 *   **Deaths** happen at the end of the year the spouse reaches their target. The first-death transfers apply from the following year. If both spouses die in the same year, the first-death rollover is applied and then the survivor's final return is filed, in that year.
-*   **Indexing:** each config value says whether it rises with inflation. Indexed values grow at the fixed rate; non-indexed values (for example Ontario's $150k and $220k bracket thresholds, the $50k probate threshold) stay fixed in future dollars.
+*   **Indexing:** each config value says whether it rises with inflation. Indexed values grow at the fixed rate; non-indexed values (for example Ontario's $150k and $220k bracket thresholds, the $50k probate threshold) stay fixed in future dollars. Benefit amounts (OAS, the CPP maximum and the CPP survivor amounts) are indexed to inflation by law and are marked `indexed: true`.
 
 ### Config contract
 
 *   **Two kinds of config, one set of files per tax year:**
     *   **Rule values** (`federal.json`, `ontario.json`, `market.json`): sourced from official or published pages and validated by the admin (the author, for now).
-    *   **Planning choices** (`planning.json`, `warnings.json`): the author's design values. Their source is recorded as `"author decision, <date>"` and the author validates them.
+    *   **Planning choices** (`planning.json`, `warnings.json`): the author's design values. Their source is recorded as `"author decision, <date>"` and the author validates them. One exception: `planning.life_expectancy.female` and `.male` are sourced from FP Canada's guidelines and fetched like market assumptions.
 *   **Entry shape:** `{ value, unit, taxYear, indexed, source: { url, locator }, fetchedOn, validation: { status, by, on } }`.
-    *   `value` is one of: a number; a bracket table `[{ from, rate, indexed? }]` (a row's `indexed` overrides the entry flag for that threshold, because Ontario's top two thresholds are not indexed); an age-keyed table `{ "71": 0.0528, … }`; a step schedule `[{ from, amount }]`; a phase-in schedule `[{ from, rate, cap }]` (within a band the amount is the previous row's `cap` (0 for the first row) plus `rate` × (income − `from`), up to this row's `cap`); or, for planning choices only, a structured object (presets, shapes, stress paths).
+    *   `value` is one of: a number; a bracket table `[{ from, rate, indexed? }]` (a row's `indexed` overrides the entry flag for that threshold, because Ontario's top two thresholds are not indexed); an age-keyed table `{ "71": 0.0528, … }`; a step schedule `[{ from, amount }]`; a phase-in schedule `[{ from, rate, cap }]` (within a band the amount is the previous row's `cap` (0 for the first row) plus `rate` × (income − `from`), up to this row's `cap`); a list of numbers `[n, …]` (the Ontario surtax thresholds and rates, in matching order); or, for planning choices only, a structured object (presets, shapes, weights, warning triggers).
     *   `unit` is one of `CAD_per_year`, `CAD_per_month`, `rate`, `age`, `years`, `count`, `none`.
-*   **Key tree:** the dotted keys below are the complete, authoritative list of rule-value keys. `config/SOURCES.md` adds each key's unit, source page and location on the page, and must list exactly these keys; `config:check` fails on any key missing from either side. Adding a key means editing this list first. Keys: `federal.tax.brackets`, `federal.credits.basic`, `federal.credits.age.amount`, `federal.credits.age.min_age`, `federal.credits.age.reduction_threshold`, `federal.credits.age.reduction_rate`, `federal.credits.pension.amount`, `federal.credits.pension.min_age_rrif`, `federal.capital_gains.inclusion_rate`, `federal.dividend.eligible.gross_up`, `federal.dividend.eligible.credit_rate`, `federal.oas.base_at_65`, `federal.oas.residence.min_years`, `federal.oas.residence.full_years`, `federal.oas.deferral.per_month`, `federal.oas.deferral.max_months`, `federal.oas.increase_age`, `federal.oas.increase_rate`, `federal.oas.recovery.threshold`, `federal.oas.recovery.rate`, `federal.cpp.start.earliest`, `federal.cpp.start.latest`, `federal.cpp.adjust.early_per_month`, `federal.cpp.adjust.late_per_month`, `federal.cpp.max_at_65`, `federal.cpp.survivor.pct_65_plus`, `federal.cpp.survivor.flat_under_65`, `federal.cpp.survivor.pct_under_65`, `federal.cpp.survivor.max_combined`, `federal.rrif.min_factor`, `federal.rrif.latest_conversion_age`, `federal.tfsa.annual_limit`, `federal.split.max_share`, `federal.split.min_age_rrif`, `ontario.tax.brackets`, `ontario.credits.basic`, `ontario.credits.age.amount`, `ontario.credits.age.reduction_threshold`, `ontario.credits.age.reduction_rate`, `ontario.credits.pension.amount`, `ontario.dividend.eligible.credit_rate`, `ontario.surtax.thresholds`, `ontario.surtax.rates`, `ontario.health_premium.schedule`, `ontario.tax_reduction.basic`, `ontario.probate.threshold`, `ontario.probate.rate`, `ontario.lif.max_factor`, `ontario.lif.unlock_share`, `market.cad_equity.geometric_return`, `market.bonds.geometric_return`, `market.global_equity.components.{us,intl_developed,emerging}`, `market.<class>.yield`, `market.<class>.fee`, `market.inflation`, `market.foreign_withholding_rate`. Here `<class>` is one of the asset-class ids below.
+*   **Key tree:** the dotted keys below are the complete, authoritative list of config keys. `src/engine/config/keys.ts` is the code copy, and `config/SOURCES.md` adds each key's unit, source page and location on the page. `config:check` fails unless `SOURCES.md` and `keys.ts` list exactly the same keys; this list is kept in step with them by hand. Adding a key means editing this list first.
+    *   **Rule values:** `federal.tax.brackets`, `federal.credits.basic`, `federal.credits.age.amount`, `federal.credits.age.min_age`, `federal.credits.age.reduction_threshold`, `federal.credits.age.reduction_rate`, `federal.credits.pension.amount`, `federal.credits.pension.min_age_rrif`, `federal.capital_gains.inclusion_rate`, `federal.dividend.eligible.gross_up`, `federal.dividend.eligible.credit_rate`, `federal.oas.base_at_65`, `federal.oas.residence.min_years`, `federal.oas.residence.full_years`, `federal.oas.deferral.per_month`, `federal.oas.deferral.max_months`, `federal.oas.increase_age`, `federal.oas.increase_rate`, `federal.oas.recovery.threshold`, `federal.oas.recovery.rate`, `federal.cpp.start.earliest`, `federal.cpp.start.latest`, `federal.cpp.adjust.early_per_month`, `federal.cpp.adjust.late_per_month`, `federal.cpp.max_at_65`, `federal.cpp.survivor.pct_65_plus`, `federal.cpp.survivor.flat_under_65`, `federal.cpp.survivor.pct_under_65`, `federal.cpp.survivor.max_combined`, `federal.rrif.min_factor`, `federal.rrif.latest_conversion_age`, `federal.tfsa.annual_limit`, `federal.split.max_share`, `federal.split.min_age_rrif`, `ontario.tax.brackets`, `ontario.credits.basic`, `ontario.credits.age.amount`, `ontario.credits.age.reduction_threshold`, `ontario.credits.age.reduction_rate`, `ontario.credits.pension.amount`, `ontario.dividend.eligible.credit_rate`, `ontario.surtax.thresholds`, `ontario.surtax.rates`, `ontario.health_premium.schedule`, `ontario.tax_reduction.basic`, `ontario.probate.threshold`, `ontario.probate.rate`, `ontario.lif.max_factor`, `ontario.lif.unlock_share`, `market.cad_equity.geometric_return`, `market.bonds.geometric_return`, `market.global_equity.components.{us,intl_developed,emerging}`, `market.<class>.yield`, `market.<class>.fee`, `market.inflation`, `market.foreign_withholding_rate`. Here `<class>` is one of the asset-class ids below.
+    *   **Sourced planning values:** `planning.life_expectancy.female`, `planning.life_expectancy.male`.
+    *   **Planning choices (author):** `planning.shapes`, `planning.presets`, `planning.comparison_bracket_target`, `planning.global_equity_weights`, `planning.stock_split.cad_share`, `planning.survivor_spending`, `planning.override_margin`, `warnings.triggers`, `warnings.nudge_steps`.
 *   **Persisted ids** (permanent once version 1 saves plans):
     *   asset classes: `cad_equity`, `global_equity`, `bonds`;
     *   shapes: `steady`, `gradual_shift`, `safety_first_regrow`;
@@ -267,9 +270,9 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
     *   account ids: `<type>-<owner>-<n>`, for example `rrsp-0-1`, assigned once when the account is created and never reused.
 *   **Engine settings** (solver tolerance and step cap, split-search step, invariant tolerance) are not config. They live in `src/engine/constants.ts`, along with `MONTHS_PER_YEAR`. It is the one engine file exempt from the no-magic-numbers lint rule.
 *   **Loading:** config files are JSON, imported directly. `config/CURRENT_YEAR` names the tax year; a generated module, `src/engine/config/bundle.ts`, imports every file for that year. The Worker, the Vitest tests and the `tsx` tools all import that one module. Config is never fetched at run time.
-*   **Status:** `configStatus(today)` returns the tax year, the list of unvalidated keys, and `outOfDate = today's year > taxYear`. The app shows the tax year and a notice when anything is unvalidated or out of date.
-*   **OAS** is updated once a year with the other values. Amounts the sources publish monthly (OAS, CPP maximum, CPP survivor flat rate and combined maximum) are stored as `CAD_per_month` exactly as published; the loader multiplies by 12. The OAS figure is the January quarter's.
-*   **Fetch checks (author):** tax and benefit rules (`federal.json`, `ontario.json`) are fetched twice, independently, and compared, because an error there gives a wrong answer for certain. Market assumptions (`market.json`) are estimates of the future, so one fetch and a spot-check by the admin are enough.
+*   **Status:** `configStatus(config, today)` returns the tax year, the lists of unfetched and unvalidated keys, and `outOfDate = today's year > taxYear`. The app shows the tax year and a notice when anything is unvalidated or out of date.
+*   **Monthly amounts:** amounts the sources publish monthly (OAS, the CPP maximum, the CPP survivor flat rate and combined maximum) are stored as `CAD_per_month` exactly as published, using the January figure, and updated once a year. The loader converts them to `CAD_per_year` (× 12; an unfetched null stays null). OAS changes each quarter, so January × 12 slightly understates a full year; this is an accepted approximation.
+*   **Fetch checks (author):** tax and benefit rules (`federal.json`, `ontario.json`) are fetched twice, independently, and compared, because an error there gives a wrong tax or benefit amount in every plan. Market assumptions (`market.json`) and the FP Canada life-expectancy tables are estimates, so one fetch and a spot-check by the admin are enough.
 *   **Market yields** are read from index and fund factsheets, which change monthly; each locator records the factsheet's as-of date.
 *   The engine never contains a rule value as a number in code.
 
@@ -500,7 +503,8 @@ PlanInputs {
 SpouseInput {
   birthYear [1930..2000], birthMonth [1..12], sexAtBirth: 'F' | 'M',
   retirementYear, lifeExpectancyTarget [60..105],
-  cppAt65Today, cppStartAge [60..70], oasStartAge [65..70],
+  cppAt65Today,              // monthly estimate at 65, as My Service Canada shows it
+  cppStartAge [60..70], oasStartAge [65..70],
   yearsInCanadaAt65 [0..47], workingMarginalRate [0..0.6],
   afterTaxPayToday           // used while still working after the first retirement
 }
@@ -827,25 +831,37 @@ Decisions marked "author" were made by the document's author and are recorded in
 
 ### Known gaps from review
 
-The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.md`) left 18 Major and 21 Nit findings open. Each Major must be fixed in this document before the stage named below starts. Nits are fixed when their file is built.
+The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.md`) left 18 Major and 21 Nit findings open; some have since been fixed or withdrawn, as marked. The focused review of the 2026-11-18 changes (`docs/reviews/2026-11-18/focused_review_report.md`, "Ready with fixes") added 20 Major and 24 Nit findings; its IDs are prefixed `FR-` below. Each Major must be fixed in this document before the stage named below starts. Nits are fixed when their file is built; r2 Nits N12, N13 and N16 are moot (benchmark and stress paths removed).
 
 | Finding | Gap | Close before |
 |---|---|---|
 | ~~M8~~ | Fixed: deploy requires a push event from this repository (file 12) | — |
 | ~~M10~~ | Fixed: `.prettierignore`, ESLint `ignores`, `"type": "module"` (files 3, 9) | — |
 | ~~M12~~ | Fixed: file 16 marked "Exists — keep" with the full list | — |
-| ~~M9~~ | Fixed: the Config contract's key tree is the complete list; `SOURCES.md` must match it | — |
+| ~~M9~~ | Fixed: the Config contract's key tree is the complete list; `config:check` makes `SOURCES.md` match `keys.ts`, and the design is kept in step by hand | — |
 | ~~M7~~ | Fixed: persisted ids defined; `holdings` replaced by non-registered `positions` | — |
 | ~~M17~~ | Fixed: cross-references now name `docs/history/` (file 18) | — |
-| ~~M18~~ | Fixed: `constants.ts` is the only exempt file and holds `MONTHS_PER_YEAR` and the generator constants; `ignoreNumericLiteralTypes` set (files 9, 23) | — |
+| ~~M18~~ | Fixed: `constants.ts` is the only exempt file and holds `MONTHS_PER_YEAR`; `ignoreNumericLiteralTypes` set (files 9, 23) | — |
 | ~~M16~~ | Fixed: `clawback` and `pairId` fields; `income` is after the split (file 52) | — |
 | M5 | Lifetime tax units ("today's dollars" vs `lifetimeTaxNom`) | Stage 2 |
 | M6 | Registered draws between spouses; LIF-cap overflow; LIRA rules | Stage 2 |
 | M13 | `bestSplit`: which spouse transfers income | Stage 2 |
-| M15 | Cash yield inside sheltered accounts is never reinvested | Stage 2 |
+| M15 | Cash yield inside sheltered accounts is never reinvested (now systematic: close with FR-M5 and FR-M6) | Stage 2 |
+| FR-M4 | LIF and RRIF minimum below age 71: `federal.rrif.min_factor` starts at 71 and the under-71 formula's 90 has no key; 95+ clamp unstated | Stage 2 |
+| FR-M5 | Bond yield likely above FP Canada's bond return, so bond prices fall every year; capital-loss rule (offset, carry-forward) undefined | Stage 2 |
+| FR-M6 | No file owns each class's yearly return: the 60/30/10 blend, overrides, the fee formula, the yield/price split; base for the global optimistic-return limit; citation for the 0.5-point margin | Stage 2 |
+| FR-M9 | Ontario LIF maximum: greater of table × opening balance and last year's earnings; first-year pro-rating; the 6% CANSIM condition | Stage 2 |
+| FR-M7 | When the age-based life-expectancy default is filled, and what happens above the table's last row | Stage 5 |
+| FR-M10 | Ontario basic tax defined; the order and formula of surtax, Tax Reduction and Health Premium | Stage 1 |
+| FR-M11 | CPP survivor cap: the retirement maximum or `max_combined` (author decision); JSON source URL differs from `SOURCES.md` | Stage 2 |
+| FR-M13 | Tests for the new rules: Health Premium band edges, surtax thresholds, per-row bracket indexing, the global blend and override limit, life-expectancy lookup, LIF minimum under 71 | Stage 1 (tax rows); Stage 2 (the rest) |
+| FR-M16 | The placement figure mixes a tax effect with holding more stock after tax; the stock-share readout's purpose and the risk row need rewording | Stage 4 |
+| FR-M17 | "Spending covered: Yes" at steady returns can reassure falsely; "Money runs out" repeats the headline | Stage 4 |
+| FR-M18 | Return terminology ("compound" vs "average"); the on-screen label | Stage 5 |
+| FR-M19 | `schedule` value kind is unused; the `brackets` comment in `keys.ts` omits `indexed?` (the `list` kind is now in the Config contract) | Stage 1 |
 | M1 | `Result`, `NormalizedInputs`, `warningFacts` fields; `YearRow` estate, forced-draw and contribution fields; CSV column naming | Stage 3 |
 | ~~M11~~ | Withdrawn: no random generator (fixed returns, 2026-11-18) | — |
-| ~~G3~~ | Withdrawn: the arithmetic-mean add-back applies only to simulations; fixed returns use FP Canada's compound figures directly | — |
+| ~~R1-F16~~ | Withdrawn (round-1 finding F16, goldfish issue 17; mislabelled "G3" until FR-M20): FP Canada's guidelines lower equity returns by 0.5 point and tell simulations to add it back when converting to an arithmetic mean. Fixed returns use the compound figures directly, so nothing is added back | — |
 | ~~M14~~ | Withdrawn: no paths or typical-path ranking | — |
 | M3 | 70% coverage target for non-engine code is unreachable without UI tests; gate start date disagrees (lines in Vitest config vs Verification Plan) | Stage 5 |
 | M4 | Store and persistence tests need a browser-like test environment (jsdom or happy-dom) | Stage 5 |
@@ -1074,19 +1090,19 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 *   **Type / Scope**: Admin procedure, run each January.
 *   **Proposed Changes**:
-    1.  Two separate AI sessions each fetch every tax and benefit rule (`federal.json`, `ontario.json`) listed in `config/SOURCES.md` into a candidate file. One session fetches the market assumptions (`market.json`).
-    2.  Run `npm run config:compare` on the two tax and benefit candidates.
-    3.  The admin resolves each disagreement against the source page, and spot-checks the market values against theirs.
+    1.  Two separate AI sessions each fetch every tax and benefit rule (`federal.json`, `ontario.json`) listed in `config/SOURCES.md` into a candidate file. One of them also fetches the market assumptions (`market.json`) and the life-expectancy tables (`planning.life_expectancy.*`). fsrao.ca pages are fetched with curl; Ontario probate is read by the admin.
+    2.  Run `npm run config:compare` on the two tax and benefit candidates (`federal.json`, `ontario.json`).
+    3.  The admin resolves each disagreement against the source page, and spot-checks the values fetched once against theirs.
     4.  The admin sets each entry's validation status, name and date, and updates `config/CURRENT_YEAR`.
-    5.  Run `npm run config:bundle` and `npm run config:check`.
+    5.  Run `npm run config:bundle` and `npm run config:check -- --strict`.
     6.  Commit.
 
-    Planning choices are reviewed in the same pass but not fetched.
+    Planning choices other than life expectancy are reviewed in the same pass but not fetched.
 
 ##### 20. `./config/SOURCES.md` (Create)
 
 *   **Type / Scope**: Key list and sources.
-*   **Proposed Changes**: Exactly the dotted keys in the [Config contract](#config-contract)'s key tree, each with its unit, its official page URL and where on the page the value appears. Planning-choice keys are marked "author decision". `config:check` fails if this file and the key tree disagree.
+*   **Proposed Changes**: Exactly the dotted keys in the [Config contract](#config-contract)'s key tree, each with its unit, its official page URL and where on the page the value appears. Planning-choice keys are marked "author decision". `config:check` fails if this file and `src/engine/config/keys.ts` disagree; the design's key tree is kept in step by hand.
 
 #### Config (stage 0)
 
@@ -1102,14 +1118,16 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 ##### 22. `./config/2026/planning.json` and `./config/2026/warnings.json` (Create)
 
-*   **Type / Scope**: The author's planning choices.
+*   **Type / Scope**: The author's planning choices, plus FP Canada's life-expectancy tables.
 *   **Proposed Changes**: The values in [Design values](#design-values-version-1):
-    *   shapes, presets and the stock split;
-    *   the life expectancy defaults by sex and the survivor percentage;
-    *   the default bracket target for the comparison variant;
-    *   warning triggers and nudge steps.
+    *   `planning.shapes`, `planning.presets` and `planning.stock_split.cad_share`;
+    *   `planning.global_equity_weights` and `planning.override_margin`;
+    *   `planning.survivor_spending`;
+    *   `planning.comparison_bracket_target`, the default bracket target for the comparison variant;
+    *   `warnings.triggers` and `warnings.nudge_steps`;
+    *   `planning.life_expectancy.female` and `.male`, which are sourced from FP Canada and fetched (see the [Config contract](#config-contract)).
 
-    Each value is sourced as "author decision, 2026-11-17".
+    Each author value is sourced as "author decision" with the date of the decision.
 
 #### Engine (stages noted per file)
 
@@ -1122,16 +1140,22 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     *   `SPLIT_STEP = 0.05`
     *   `MAX_SPLIT_PASSES = 2`
     *   `INVARIANT_TOLERANCE = 0.05`
+    *   `WEIGHT_SUM_TOLERANCE = 1e-9` (planning weights must sum to 1)
+    *   `CONFIG_YEAR_MIN = 2000`, `CONFIG_YEAR_MAX = 2100` (sanity range for a config entry's tax year)
 
-##### 24. `./src/engine/config/schema.ts`, `./load.ts`, `./bundle.ts` (Create, stage 0)
+    `MONTHS_PER_YEAR` and the three config constants exist from stage 0.
+
+##### 24. `./src/engine/config/keys.ts`, `./schema.ts`, `./load.ts`, `./bundle.ts` (Create, stage 0)
 
 *   **Proposed Changes**:
-    *   `schema.ts`: Zod schemas for the entry shape and for each file's key tree.
+    *   `keys.ts`: the code copy of the [Config contract](#config-contract)'s key list. Each key has its file, value kind and whether it is an author decision.
+    *   `schema.ts`: Zod schemas for the entry shape, each value kind and each structured planning value.
     *   `bundle.ts`: generated by `tools/configBundle.ts`. It imports the JSON files for `CURRENT_YEAR`.
     *   `load.ts`:
-        *   `loadConfig(): Config`, which validates the bundle and returns typed values;
-        *   `configStatus(today: Date): { taxYear, unvalidatedKeys: string[], outOfDate: boolean }`;
-        *   `configDefaults()`, which returns the values shown next to user overrides.
+        *   `checkBundle(bundle)`, which lists missing, unknown and malformed keys;
+        *   `loadConfig(): Config`, which validates the bundle and returns the entries, converting `CAD_per_month` amounts to `CAD_per_year` (× 12; a null value stays null);
+        *   `configStatus(config, today): { taxYear, unfetchedKeys: string[], unvalidatedKeys: string[], outOfDate: boolean }`;
+        *   `configDefaults()`, which returns the values shown next to user overrides (stage 4).
 
 ##### 25. `./src/engine/units.ts` (Create, stage 2)
 
@@ -1350,12 +1374,13 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 #### Tools (stage 0)
 
-##### 51. `./tools/configBundle.ts`, `./tools/configCheck.ts`, `./tools/configCompare.ts` (Create)
+##### 51. `./tools/configBundle.ts`, `./tools/configCheck.ts`, `./tools/configCompare.ts`, `./tools/lib.ts` (Create)
 
 *   **Proposed Changes**:
     *   **`configBundle`:** generates `src/engine/config/bundle.ts` for `CURRENT_YEAR`.
-    *   **`configCheck`:** validates every config file against the schema, checks that every key in `SOURCES.md` exists, and lists unvalidated entries. It exits non-zero on schema errors.
+    *   **`configCheck`:** validates every config file against the schema, checks that `SOURCES.md` and `keys.ts` list exactly the same keys (both directions), and lists unfetched and unvalidated entries. It exits non-zero on schema or key-list errors; with `--strict` it also fails on any unfetched or unvalidated entry.
     *   **`configCompare a b`:** lists every key whose value, unit, year or indexed flag differs.
+    *   **`lib.ts`:** shared helpers: reading `CURRENT_YEAR`, reading a year's config files, and reading the key column of `SOURCES.md`.
 
 #### Tests and fixtures
 
@@ -1411,7 +1436,8 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     | `warnings.test.ts`, `tips.test.ts` | Each trigger at and around its threshold; collapsed years; tips ranked by effect |
     | `changeSummary.test.ts`, `store.test.ts` | Diff fields; stale flag on edit and load |
     | `persistence.test.ts` | Round trip; newer-version refusal; the frozen v1 file loads |
-    | `configCompare.test.ts`, `configCheck.test.ts` | Detects value, unit, year and indexed-flag differences; rejects a malformed file |
+    | `config.test.ts` (exists from stage 0) | Key list has no duplicates and matches `SOURCES.md`; entry shape by value kind; structured planning values; missing, unknown and wrong-year keys; unfetched and out-of-date status; monthly amounts × 12 on load; the committed config passes; `configCompare` differences |
+    | `configCompare.test.ts`, `configCheck.test.ts` | Detects value, unit, year and indexed-flag differences; rejects a malformed file (may be folded into `config.test.ts`) |
 
 ##### 57. `./tests/property/*.test.ts` (Create, stages 2–4)
 

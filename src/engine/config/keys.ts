@@ -1,7 +1,7 @@
-// The complete list of config keys. It mirrors the Config contract's key tree
-// in docs/designs/retirement-planner.md: change the design first, then this
-// list. config/SOURCES.md must list exactly these keys (checked by
-// `npm run config:check`).
+// The complete list of config keys: the code copy of the Config contract's key
+// list in docs/designs/retirement-planner.md. Change the design first, then
+// this list. `npm run config:check` fails unless config/SOURCES.md lists exactly
+// these keys; the design is kept in step by hand.
 
 export const ASSET_CLASSES = ['cad_equity', 'global_equity', 'bonds'] as const;
 export type AssetClass = (typeof ASSET_CLASSES)[number];
@@ -119,7 +119,6 @@ export const KEY_SPECS: readonly KeySpec[] = [
   ...author('planning', 'object', [
     'planning.shapes',
     'planning.presets',
-    'planning.stress_paths',
     'planning.comparison_bracket_target',
     'planning.global_equity_weights',
   ]),

@@ -1,11 +1,14 @@
 # Config sources
 
-The complete list of config keys. It must match `src/engine/config/keys.ts` and the
-Config contract in `docs/designs/retirement-planner.md` exactly; `npm run config:check`
-fails on any difference.
+The complete list of config keys. `npm run config:check` fails unless it matches
+`src/engine/config/keys.ts` exactly. The Config contract in `docs/designs/retirement-planner.md`
+lists the same keys and is kept in step by hand.
 
-Both fetch sessions (see `docs/admin-config-guide.md`) fetch each rule value from the page
-listed here, from the place described. Author decisions are not fetched.
+Tax and benefit rules (`federal.json`, `ontario.json`) are fetched twice, independently, and
+compared. Market assumptions (`market.json`) and the FP Canada life-expectancy tables
+(`planning.life_expectancy.*`) are fetched once and spot-checked by the admin. See
+`docs/admin-config-guide.md`. Each value comes from the page listed here, from the place
+described. Author decisions are not fetched.
 
 **Status of this list (2026-11-17):**
 
@@ -33,7 +36,9 @@ listed here, from the place described. Author decisions are not fetched.
     policy L200-303 applies the federal RRIF minimum, and a LIRA is an RRSP, so the engine uses
     `federal.rrif.min_factor` and `federal.rrif.latest_conversion_age`.
   - fsrao.ca refuses automated fetch tools (HTTP 403) but serves `curl -sSL -A "Mozilla/5.0"`.
-    FP Canada's own pages return 404; the guidelines and the Addendum are on institutpf.org.
+  - FP Canada's web pages (for example `fpcanada.ca/standards`) return 404, but the guidelines
+    PDF linked in the rows below loaded on 2026-11-18. If it moves, the same PDF is published at
+    https://institutpf.org/assets/Documents/Normes-projection/InstituteFP-PAG2026.pdf.
 - The federal basic personal amount phases down for high incomes; the design models one amount.
   Flagged for the stage 1 tax work.
 
@@ -121,7 +126,6 @@ listed here, from the place described. Author decisions are not fetched.
 | `planning.life_expectancy.male` | age | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Probability-of-survival table, 25% column, male, one entry per current age row (20, 25, … 100) |
 | `planning.shapes` | none | author decision | Design values (version 1) |
 | `planning.presets` | none | author decision | Design values (version 1) |
-| `planning.stress_paths` | none | author decision | Unused since 2026-11-18 (fixed returns, no stress paths). Validated, so only the author removes it |
 | `planning.comparison_bracket_target` | none | author decision | Design values (version 1) |
 | `planning.global_equity_weights` | none | author decision | Design values (version 1) |
 | `planning.stock_split.cad_share` | rate | author decision | Design values (version 1) |
