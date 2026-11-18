@@ -1,3 +1,4 @@
+import { MONTHS_PER_YEAR } from '../constants';
 import { BUNDLE } from './bundle';
 import { KEY_SPECS } from './keys';
 import { checkEntry, type ConfigEntry } from './schema';
@@ -50,12 +51,23 @@ export function checkBundle(bundle: RawBundle): string[] {
   return problems;
 }
 
+/**
+ * Amounts published monthly are stored as `CAD_per_month` exactly as published.
+ * The engine sees them only as `CAD_per_year`: value x 12. Unfetched entries
+ * keep `value: null` but still take the yearly unit.
+ */
+export function toAnnual(entry: ConfigEntry): ConfigEntry {
+  if (entry.unit !== 'CAD_per_month') return entry;
+  const value = typeof entry.value === 'number' ? entry.value * MONTHS_PER_YEAR : entry.value;
+  return { ...entry, value, unit: 'CAD_per_year' };
+}
+
 export function buildConfig(bundle: RawBundle): Config {
   const problems = checkBundle(bundle);
   if (problems.length > 0) throw new ConfigError(problems);
   const entries = new Map<string, ConfigEntry>();
   for (const spec of KEY_SPECS) {
-    entries.set(spec.key, bundle.files[spec.file]![spec.key] as ConfigEntry);
+    entries.set(spec.key, toAnnual(bundle.files[spec.file]![spec.key] as ConfigEntry));
   }
   return { taxYear: bundle.taxYear, entries };
 }

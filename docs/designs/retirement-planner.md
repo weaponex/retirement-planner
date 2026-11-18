@@ -253,9 +253,9 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
     *   **Rule values** (`federal.json`, `ontario.json`, `market.json`): sourced from official or published pages and validated by the admin (the author, for now).
     *   **Planning choices** (`planning.json`, `warnings.json`): the author's design values. Their source is recorded as `"author decision, <date>"` and the author validates them.
 *   **Entry shape:** `{ value, unit, taxYear, indexed, source: { url, locator }, fetchedOn, validation: { status, by, on } }`.
-    *   `value` is one of: a number; a bracket table `[{ from, rate }]`; an age-keyed table `{ "71": 0.0528, … }`; a step schedule `[{ from, amount }]`; or, for planning choices only, a structured object (presets, shapes, stress paths).
+    *   `value` is one of: a number; a bracket table `[{ from, rate, indexed? }]` (a row's `indexed` overrides the entry flag for that threshold, because Ontario's top two thresholds are not indexed); an age-keyed table `{ "71": 0.0528, … }`; a step schedule `[{ from, amount }]`; a phase-in schedule `[{ from, rate, cap }]` (within a band the amount is the previous row's `cap` (0 for the first row) plus `rate` × (income − `from`), up to this row's `cap`); or, for planning choices only, a structured object (presets, shapes, stress paths).
     *   `unit` is one of `CAD_per_year`, `CAD_per_month`, `rate`, `age`, `years`, `count`, `none`.
-*   **Key tree:** the dotted keys below are the complete, authoritative list of rule-value keys. `config/SOURCES.md` adds each key's unit, source page and location on the page, and must list exactly these keys; `config:check` fails on any key missing from either side. Adding a key means editing this list first. Keys: `federal.tax.brackets`, `federal.credits.basic`, `federal.credits.age.amount`, `federal.credits.age.min_age`, `federal.credits.age.reduction_threshold`, `federal.credits.age.reduction_rate`, `federal.credits.pension.amount`, `federal.credits.pension.min_age_rrif`, `federal.capital_gains.inclusion_rate`, `federal.dividend.eligible.gross_up`, `federal.dividend.eligible.credit_rate`, `federal.oas.base_at_65`, `federal.oas.residence.min_years`, `federal.oas.residence.full_years`, `federal.oas.deferral.per_month`, `federal.oas.deferral.max_months`, `federal.oas.increase_age`, `federal.oas.increase_rate`, `federal.oas.recovery.threshold`, `federal.oas.recovery.rate`, `federal.cpp.start.earliest`, `federal.cpp.start.latest`, `federal.cpp.adjust.early_per_month`, `federal.cpp.adjust.late_per_month`, `federal.cpp.max_at_65`, `federal.cpp.survivor.pct_65_plus`, `federal.cpp.survivor.flat_under_65`, `federal.cpp.survivor.pct_under_65`, `federal.cpp.survivor.max_combined`, `federal.rrif.min_factor`, `federal.rrif.latest_conversion_age`, `federal.tfsa.annual_limit`, `federal.split.max_share`, `federal.split.min_age_rrif`, `ontario.tax.brackets`, `ontario.credits.basic`, `ontario.credits.age.amount`, `ontario.credits.age.reduction_threshold`, `ontario.credits.age.reduction_rate`, `ontario.credits.pension.amount`, `ontario.dividend.eligible.credit_rate`, `ontario.surtax.thresholds`, `ontario.surtax.rates`, `ontario.health_premium.schedule`, `ontario.tax_reduction.*`, `ontario.probate.threshold`, `ontario.probate.rate`, `ontario.lif.min_factor` (fetched from FSRA, not borrowed from the RRIF table), `ontario.lif.max_factor`, `ontario.lif.conversion.latest_age`, `ontario.lif.unlock_share`, `market.<class>.geometric_return`, `market.<class>.log_volatility`, `market.<class>.yield.{interest,eligible_dividends,foreign_dividends}`, `market.<class>.fee`, `market.<class>.override_limit`, `market.correlation`, `market.inflation`, `market.foreign_withholding_rate`. Here `<class>` is one of the asset-class ids below.
+*   **Key tree:** the dotted keys below are the complete, authoritative list of rule-value keys. `config/SOURCES.md` adds each key's unit, source page and location on the page, and must list exactly these keys; `config:check` fails on any key missing from either side. Adding a key means editing this list first. Keys: `federal.tax.brackets`, `federal.credits.basic`, `federal.credits.age.amount`, `federal.credits.age.min_age`, `federal.credits.age.reduction_threshold`, `federal.credits.age.reduction_rate`, `federal.credits.pension.amount`, `federal.credits.pension.min_age_rrif`, `federal.capital_gains.inclusion_rate`, `federal.dividend.eligible.gross_up`, `federal.dividend.eligible.credit_rate`, `federal.oas.base_at_65`, `federal.oas.residence.min_years`, `federal.oas.residence.full_years`, `federal.oas.deferral.per_month`, `federal.oas.deferral.max_months`, `federal.oas.increase_age`, `federal.oas.increase_rate`, `federal.oas.recovery.threshold`, `federal.oas.recovery.rate`, `federal.cpp.start.earliest`, `federal.cpp.start.latest`, `federal.cpp.adjust.early_per_month`, `federal.cpp.adjust.late_per_month`, `federal.cpp.max_at_65`, `federal.cpp.survivor.pct_65_plus`, `federal.cpp.survivor.flat_under_65`, `federal.cpp.survivor.pct_under_65`, `federal.cpp.survivor.max_combined`, `federal.rrif.min_factor`, `federal.rrif.latest_conversion_age`, `federal.tfsa.annual_limit`, `federal.split.max_share`, `federal.split.min_age_rrif`, `ontario.tax.brackets`, `ontario.credits.basic`, `ontario.credits.age.amount`, `ontario.credits.age.reduction_threshold`, `ontario.credits.age.reduction_rate`, `ontario.credits.pension.amount`, `ontario.dividend.eligible.credit_rate`, `ontario.surtax.thresholds`, `ontario.surtax.rates`, `ontario.health_premium.schedule`, `ontario.tax_reduction.basic`, `ontario.probate.threshold`, `ontario.probate.rate`, `ontario.lif.min_factor` (fetched from FSRA, not borrowed from the RRIF table), `ontario.lif.max_factor`, `ontario.lif.conversion.latest_age`, `ontario.lif.unlock_share`, `market.cad_equity.geometric_return`, `market.bonds.geometric_return`, `market.global_equity.components.{us,intl_developed,emerging}`, `market.<class>.log_volatility`, `market.<class>.yield.{interest,eligible_dividends,foreign_dividends}`, `market.<class>.fee`, `market.correlation`, `market.inflation`, `market.foreign_withholding_rate`. Here `<class>` is one of the asset-class ids below.
 *   **Persisted ids** (permanent once version 1 saves plans):
     *   asset classes: `cad_equity`, `global_equity`, `bonds`;
     *   shapes: `steady`, `gradual_shift`, `safety_first_regrow`;
@@ -265,7 +265,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 *   **Engine settings** (solver tolerance and step cap, split-search step, invariant tolerance, progress interval) are not config. They live in `src/engine/constants.ts`, along with the generator's mathematical constants and `MONTHS_PER_YEAR`. It is the one engine file exempt from the no-magic-numbers lint rule.
 *   **Loading:** config files are JSON, imported directly. `config/CURRENT_YEAR` names the tax year; a generated module, `src/engine/config/bundle.ts`, imports every file for that year. The Worker, the Vitest tests and the `tsx` tools all import that one module. Config is never fetched at run time.
 *   **Status:** `configStatus(today)` returns the tax year, the list of unvalidated keys, and `outOfDate = today's year > taxYear`. The app shows the tax year and a notice when anything is unvalidated or out of date.
-*   **OAS** is updated once a year with the other values, using the January amount × 12.
+*   **OAS** is updated once a year with the other values. Amounts the sources publish monthly (OAS, CPP maximum, CPP survivor flat rate and combined maximum) are stored as `CAD_per_month` exactly as published; the loader multiplies by 12. The OAS figure is the January quarter's.
 *   The engine never contains a rule value as a number in code.
 
 ### Jurisdiction
@@ -281,7 +281,9 @@ The engine calls a jurisdiction module for provincial tax and credits, the Ontar
     *   pension income credit;
     *   eligible dividend gross-up and credit;
     *   capital gains at 50% inclusion;
-    *   Ontario surtax, Health Premium and Tax Reduction;
+    *   Ontario surtax: the first rate on Ontario basic tax above the first threshold, plus the second rate on Ontario basic tax above the second threshold (additive, and applied to Ontario tax, not to income);
+    *   Ontario Health Premium, phased in by income band up to each band's cap (`phaseIn` shape);
+    *   Ontario Tax Reduction, basic amount only (no dependants are modelled);
     *   OAS recovery tax (clawback), calculated inside the tax function from actual net income.
 *   **Foreign withholding tax (author):** one config rate applies to the foreign-dividend yield of global stocks held in the TFSA and in RRSP/RRIF/LIRA/LIF, where it can't be recovered. In non-registered accounts it is treated as recovered through the foreign tax credit, which is not modelled in detail. The rate assumes Canadian-listed funds.
 *   **Out:** non-eligible dividends, alternative minimum tax, GIS, the CPP death benefit, other credits. Foreign dividends in non-registered accounts are taxed as ordinary income.
@@ -305,12 +307,12 @@ CPP and OAS: the user enters each spouse's CPP estimate at 65 and start age, and
 ### Asset classes and returns (O3)
 
 *   **Three asset classes:** Canadian stocks, global stocks, bonds. Each has config entries for:
-    *   expected compound (geometric) return, from FP Canada;
+    *   expected compound (geometric) return, from FP Canada. FP Canada publishes no single "global" return, so `global_equity` is a blend of its U.S., international developed and emerging-market returns, weighted by `planning.global_equity_weights` (author: 60/30/10);
     *   volatility of log returns and correlations (O22);
     *   a fixed yearly cash yield, split into interest, eligible dividends and foreign dividends;
     *   a default yearly fee that the user can edit.
 *   **Income and price:** the cash yield is applied to the start-of-year balance and paid as cash. The price return is the year's total return minus that yield; it can be negative, the yield can't. Fees are subtracted from the total return.
-*   **Return overrides (author):** the user can override the expected return for each asset class. The config default is shown next to each override, and the override is saved in the plan. Volatility, correlations and the income-type split always come from the config. An override above the config's limit for that class (FP Canada's guideline plus a margin, both in the config) triggers the "optimistic returns" warning.
+*   **Return overrides (author):** the user can override the expected return for each asset class. The config default is shown next to each override, and the override is saved in the plan. Volatility, correlations and the income-type split always come from the config. An override more than `planning.override_margin` (0.5 percentage point) above FP Canada's figure for that class triggers the "optimistic returns" warning.
 *   **Generator:** each year, ln(1 + return) for each class is drawn from a normal distribution centred on ln(1 + geometric return) with the class's log volatility, the three classes correlated through a Cholesky factor of the correlation matrix. Normals come from the Box–Muller method using `pure-rand`'s xoroshiro128+ generator. The plan's seed is a whole number from 0 to 4,294,967,295, picked at random when the plan is created; path *k* uses seed + *k*. Returns are stored by path, then year, then asset class. Pressing Recalculate with no changes gives the same results; a "new seed" button shows a different set of markets.
 *   **Named stress paths:** listed in [Design values](#design-values-version-1). They run alongside the random paths and are reported separately.
 *   **Number of paths:** 1,000 by default; the user can choose 250 or 1,000.
@@ -428,6 +430,8 @@ The author's planning choices, stored in `planning.json` and `warnings.json` as 
 
 **Stock split:** 30% Canadian, 70% global.
 
+**Global stock blend (author):** 60% U.S., 30% international developed, 10% emerging markets, applied to FP Canada's three published returns. A planning choice, not a sourced weight.
+
 **Placement presets.** Fill order for each asset class (registered means RRSP/RRIF/LIRA/LIF):
 
 | Preset | Bonds | Global stocks | Canadian stocks |
@@ -442,7 +446,7 @@ The author's planning choices, stored in `planning.json` and `warnings.json` as 
 | Early crash | −35%, +5%, +10%, +10%, +10% | +3% each year |
 | Lost decade lite | −15%, −10%, −5%, +5%, +5% | +1% each year |
 
-**Optimistic-return limit:** FP Canada's guideline for the class + 1.0 percentage point (compound return, before fees).
+**Optimistic-return limit (author):** FP Canada's guideline for the class + 0.5 percentage point (compound return, before fees), matching the deviation margin FP Canada allows planners. The engine calculates the limit from `planning.override_margin`; it is not a config value of its own.
 
 **Warning triggers** (dollar amounts in today's dollars):
 
@@ -470,7 +474,7 @@ The author's planning choices, stored in `planning.json` and `warnings.json` as 
 
 **Other defaults:**
 
-*   **Life expectancy target:** the age a person of that sex has a 25% chance of reaching, from FP Canada's Projection Assumption Guidelines. A note next to the input says a lower target raises the risk of outliving the plan.
+*   **Life expectancy target (author):** the age a person of that sex has a 25% chance of reaching, from FP Canada's Projection Assumption Guidelines. The guidelines give this by current age (rows every 5 years from 20 to 100), so `planning.life_expectancy.female` and `.male` are age tables. The default for each spouse uses the row at or below their current age (for example, age 63 uses the 60 row). A note next to the input says a lower target raises the risk of outliving the plan.
 *   **Survivor spending:** 70%. A single person needs about 1/√2 ≈ 71% of a couple's spending to keep the same standard of living, according to the square-root household equivalence scale.
 
 ### Data contracts
@@ -847,6 +851,7 @@ The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.
 | M15 | Cash yield inside sheltered accounts is never reinvested | Stage 2 |
 | M1 | `Result`, `NormalizedInputs`, `warningFacts` fields; `YearRow` estate, forced-draw and contribution fields; CSV column naming | Stage 3 |
 | M11 | Per-path seeding (`seed + k` correlates paths); uniform construction; Box–Muller log(0) guard | Stage 4 |
+| G3 | FP Canada's equity returns include a 0.5% downward adjustment to add back for arithmetic means in simulations (PAG 2026, section 3 b); reconcile with the generator's compound-return target | Stage 4 |
 | M14 | Comparison scope (first 250 paths) and the ranking used to pick the typical path | Stage 4 |
 | M3 | 70% coverage target for non-engine code is unreachable without UI tests; gate start date disagrees (lines in Vitest config vs Verification Plan) | Stage 5 |
 | M4 | Store and persistence tests need a browser-like test environment (jsdom or happy-dom) | Stage 5 |
@@ -1101,7 +1106,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     *   volatility and correlations (unvalidated until O22 is resolved);
     *   yields by income type;
     *   fees;
-    *   override limits;
+    *   the three FP Canada component returns for global stocks;
     *   the foreign withholding rate.
 
 ##### 22. `./config/2026/planning.json` and `./config/2026/warnings.json` (Create)

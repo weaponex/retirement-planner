@@ -169,7 +169,7 @@
   },
   "ontario.surtax.thresholds": {
     "value": null,
-    "unit": "none",
+    "unit": "CAD_per_year",
     "taxYear": 2026,
     "indexed": false,
     "source": {
@@ -183,7 +183,7 @@
   },
   "ontario.surtax.rates": {
     "value": null,
-    "unit": "none",
+    "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
@@ -197,7 +197,7 @@
   },
   "ontario.health_premium.schedule": {
     "value": null,
-    "unit": "none",
+    "unit": "CAD_per_year",
     "taxYear": 2026,
     "indexed": false,
     "source": {

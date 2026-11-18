@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CONFIG_YEAR_MAX, CONFIG_YEAR_MIN } from '../constants';
+import { CONFIG_YEAR_MAX, CONFIG_YEAR_MIN, WEIGHT_SUM_TOLERANCE } from '../constants';
 import { ASSET_CLASSES, KEY_SPECS, type KeySpec, type ValueKind } from './keys';
 
 export const UNITS = [
@@ -16,9 +16,22 @@ const finite = z.number().finite();
 
 const valueSchemas: Record<ValueKind, z.ZodTypeAny> = {
   number: finite,
-  brackets: z.array(z.object({ from: finite.nonnegative(), rate: finite })).min(1),
+  // `indexed` per row overrides the entry's flag for that threshold (for example
+  // Ontario's top two thresholds, which are not indexed).
+  brackets: z
+    .array(
+      z
+        .object({ from: finite.nonnegative(), rate: finite, indexed: z.boolean().optional() })
+        .strict(),
+    )
+    .min(1),
   ageTable: z.record(z.string().regex(/^\d+$/), finite),
-  schedule: z.array(z.object({ from: finite.nonnegative(), amount: finite })).min(1),
+  schedule: z.array(z.object({ from: finite.nonnegative(), amount: finite }).strict()).min(1),
+  phaseIn: z
+    .array(
+      z.object({ from: finite.nonnegative(), rate: finite.nonnegative(), cap: finite }).strict(),
+    )
+    .min(1),
   list: z.array(finite).min(1),
   object: z.unknown(),
 };
@@ -64,6 +77,16 @@ export const objectSchemas: Record<string, z.ZodTypeAny> = {
   'planning.comparison_bracket_target': z
     .object({ ref: z.literal('federal.tax.brackets'), bracketIndex: z.number().int().min(0) })
     .strict(),
+  'planning.global_equity_weights': z
+    .object({
+      us: finite.min(0).max(1),
+      intl_developed: finite.min(0).max(1),
+      emerging: finite.min(0).max(1),
+    })
+    .strict()
+    .refine((w) => Math.abs(w.us + w.intl_developed + w.emerging - 1) < WEIGHT_SUM_TOLERANCE, {
+      message: 'weights must sum to 1',
+    }),
   'warnings.triggers': z.record(z.string(), z.record(z.string(), finite)),
   'warnings.nudge_steps': z.record(z.string(), finite),
 };

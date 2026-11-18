@@ -83,34 +83,6 @@
       "status": "unfetched"
     }
   },
-  "market.cad_equity.override_limit": {
-    "value": null,
-    "unit": "rate",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
-    },
-    "fetchedOn": null,
-    "validation": {
-      "status": "unfetched"
-    }
-  },
-  "market.global_equity.geometric_return": {
-    "value": null,
-    "unit": "rate",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
-    },
-    "fetchedOn": null,
-    "validation": {
-      "status": "unfetched"
-    }
-  },
   "market.global_equity.log_volatility": {
     "value": null,
     "unit": "rate",
@@ -168,20 +140,6 @@
     }
   },
   "market.global_equity.fee": {
-    "value": null,
-    "unit": "rate",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
-    },
-    "fetchedOn": null,
-    "validation": {
-      "status": "unfetched"
-    }
-  },
-  "market.global_equity.override_limit": {
     "value": null,
     "unit": "rate",
     "taxYear": 2026,
@@ -279,20 +237,6 @@
       "status": "unfetched"
     }
   },
-  "market.bonds.override_limit": {
-    "value": null,
-    "unit": "rate",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
-    },
-    "fetchedOn": null,
-    "validation": {
-      "status": "unfetched"
-    }
-  },
   "market.inflation": {
     "value": null,
     "unit": "rate",
@@ -324,6 +268,48 @@
   "market.correlation": {
     "value": null,
     "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.global_equity.components.us": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.global_equity.components.intl_developed": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.global_equity.components.emerging": {
+    "value": null,
+    "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {

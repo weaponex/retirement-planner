@@ -155,7 +155,7 @@
   },
   "federal.oas.base_at_65": {
     "value": null,
-    "unit": "CAD_per_year",
+    "unit": "CAD_per_month",
     "taxYear": 2026,
     "indexed": false,
     "source": {
@@ -337,7 +337,7 @@
   },
   "federal.cpp.max_at_65": {
     "value": null,
-    "unit": "CAD_per_year",
+    "unit": "CAD_per_month",
     "taxYear": 2026,
     "indexed": false,
     "source": {
@@ -365,7 +365,7 @@
   },
   "federal.cpp.survivor.flat_under_65": {
     "value": null,
-    "unit": "CAD_per_year",
+    "unit": "CAD_per_month",
     "taxYear": 2026,
     "indexed": false,
     "source": {
@@ -393,7 +393,7 @@
   },
   "federal.cpp.survivor.max_combined": {
     "value": null,
-    "unit": "CAD_per_year",
+    "unit": "CAD_per_month",
     "taxYear": 2026,
     "indexed": false,
     "source": {

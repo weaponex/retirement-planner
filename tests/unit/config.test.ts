@@ -114,6 +114,19 @@ describe('checkBundle and configStatus', () => {
     expect(configStatus(buildConfig(skeleton()), new Date('2026-06-01')).outOfDate).toBe(false);
   });
 
+  it('converts monthly amounts to yearly on load', () => {
+    const b = skeleton();
+    b.files.federal!['federal.oas.base_at_65'] = validated(700, 'CAD_per_month');
+    const cfg = buildConfig(b);
+    const oas = cfg.entries.get('federal.oas.base_at_65')!;
+    expect(oas.value).toBe(8400);
+    expect(oas.unit).toBe('CAD_per_year');
+    b.files.federal!['federal.cpp.max_at_65'] = unfetched('CAD_per_month');
+    const cpp = buildConfig(b).entries.get('federal.cpp.max_at_65')!;
+    expect(cpp.value).toBeNull();
+    expect(cpp.unit).toBe('CAD_per_year');
+  });
+
   it('accepts the committed config', () => {
     expect(checkBundle(readBundle(currentYear()))).toEqual([]);
   });

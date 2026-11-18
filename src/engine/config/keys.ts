@@ -12,6 +12,7 @@ export type ValueKind =
   | 'brackets' // [{ from, rate }]
   | 'ageTable' // { "71": 0.0528, ... }
   | 'schedule' // [{ from, amount }]
+  | 'phaseIn' // [{ from, rate, cap }]: previous row's cap + rate x (income - from), up to this cap
   | 'list' // [number, ...]
   | 'object'; // structured planning value, validated by its own schema
 
@@ -89,7 +90,8 @@ export const KEY_SPECS: readonly KeySpec[] = [
     'ontario.lif.unlock_share',
   ]),
   ...rule('ontario', 'list', ['ontario.surtax.thresholds', 'ontario.surtax.rates']),
-  ...rule('ontario', 'schedule', ['ontario.health_premium.schedule']),
+  // Health premium phases in: see the design's Tax scope for the full rule.
+  ...rule('ontario', 'phaseIn', ['ontario.health_premium.schedule']),
   ...rule('ontario', 'ageTable', ['ontario.lif.min_factor', 'ontario.lif.max_factor']),
 
   // Market assumptions
@@ -97,20 +99,28 @@ export const KEY_SPECS: readonly KeySpec[] = [
     'market',
     'number',
     perClass([
-      'geometric_return',
       'log_volatility',
       'yield.interest',
       'yield.eligible_dividends',
       'yield.foreign_dividends',
       'fee',
-      'override_limit',
     ]),
   ),
+  // Compound returns. FP Canada has no single "global" figure, so global equity
+  // is a blend of three published returns using planning.global_equity_weights.
+  ...rule('market', 'number', [
+    'market.cad_equity.geometric_return',
+    'market.bonds.geometric_return',
+    'market.global_equity.components.us',
+    'market.global_equity.components.intl_developed',
+    'market.global_equity.components.emerging',
+  ]),
   ...rule('market', 'number', ['market.inflation', 'market.foreign_withholding_rate']),
   ...rule('market', 'object', ['market.correlation']),
 
   // Planning: FP Canada life expectancy is sourced; the rest are author decisions.
-  ...rule('planning', 'number', [
+  // Life expectancy is a table by current age (age with a 25% chance of survival).
+  ...rule('planning', 'ageTable', [
     'planning.life_expectancy.female',
     'planning.life_expectancy.male',
   ]),
@@ -119,6 +129,7 @@ export const KEY_SPECS: readonly KeySpec[] = [
     'planning.presets',
     'planning.stress_paths',
     'planning.comparison_bracket_target',
+    'planning.global_equity_weights',
   ]),
   ...author('planning', 'number', [
     'planning.stock_split.cad_share',

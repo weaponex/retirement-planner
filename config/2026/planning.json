@@ -240,8 +240,28 @@
     }
   },
   "planning.override_margin": {
-    "value": 0.01,
+    "value": 0.005,
     "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1 (matches FP Canada 2026 PAG section 3 d, deviation margin of 0.5%)"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  },
+  "planning.global_equity_weights": {
+    "value": {
+      "us": 0.6,
+      "intl_developed": 0.3,
+      "emerging": 0.1
+    },
+    "unit": "none",
     "taxYear": 2026,
     "indexed": false,
     "source": {

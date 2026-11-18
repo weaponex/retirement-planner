@@ -22,6 +22,9 @@ export const INVARIANT_TOLERANCE = 0.05;
 
 export const PROGRESS_EVERY = 50;
 
+/** Blend weights must sum to 1 within this tolerance. */
+export const WEIGHT_SUM_TOLERANCE = 1e-9;
+
 /** Sanity range for a config entry's tax year. */
 export const CONFIG_YEAR_MIN = 2000;
 export const CONFIG_YEAR_MAX = 2100;
