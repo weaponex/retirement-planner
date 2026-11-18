@@ -1,30 +1,53 @@
 {
   "ontario.tax.brackets": {
-    "value": null,
+    "value": [
+      {
+        "from": 0,
+        "rate": 0.0505
+      },
+      {
+        "from": 53891,
+        "rate": 0.0915
+      },
+      {
+        "from": 107785,
+        "rate": 0.1116
+      },
+      {
+        "from": 150000,
+        "rate": 0.1216,
+        "indexed": false
+      },
+      {
+        "from": 220000,
+        "rate": 0.1316,
+        "indexed": false
+      }
+    ],
     "unit": "none",
     "taxYear": 2026,
-    "indexed": false,
+    "indexed": true,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html",
+      "locator": "Provincial or territorial rates for 2026 > Ontario > table 'Ontario rate: 2026'. Non-indexation of $150,000 and $220,000 shown in T4127 (Jan 2026) Table 8.1 (2026) vs Table 8.22 (2025): lower thresholds moved 52,886->53,891 and 105,775->107,785 while 150,000 and 220,000 are unchanged."
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.credits.basic": {
-    "value": null,
+    "value": 12989,
     "unit": "CAD_per_year",
     "taxYear": 2026,
-    "indexed": false,
+    "indexed": true,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan.html",
+      "locator": "T4127 Jan 2026 (PDF t4127-01-26e.pdf), Chapter 8, Table 8.2 'Other rates and amounts for 2026', row ON, column 'Basic amount' (index rate 0.019); Chapter 3 note: 'all Ontario credits are indexed'"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.credits.age.amount": {
@@ -98,17 +121,17 @@
     }
   },
   "ontario.tax_reduction.basic": {
-    "value": null,
+    "value": 300,
     "unit": "CAD_per_year",
     "taxYear": 2026,
-    "indexed": false,
+    "indexed": true,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan.html",
+      "locator": "T4127 Jan 2026 (PDF), Table 8.2, row ON, column 'S2' = 300; Chapter 4 Step 5 Ontario factor S: '[2 x ($300 + Y)] - [T4 + V1]' (2025 Table 8.23 shows 294)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.probate.threshold": {
@@ -168,45 +191,77 @@
     }
   },
   "ontario.surtax.thresholds": {
-    "value": null,
+    "value": [
+      5818,
+      7446
+    ],
     "unit": "CAD_per_year",
     "taxYear": 2026,
-    "indexed": false,
+    "indexed": true,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan.html",
+      "locator": "T4127 Jan 2026 (PDF), Chapter 4 Step 5, Ontario factor V1; Table 8.2 row ON, columns 'T4 to V1' 5,818 / 7,446 (2025 Table 8.23: 5,710 / 7,307)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.surtax.rates": {
-    "value": null,
+    "value": [
+      0.2,
+      0.36
+    ],
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan.html",
+      "locator": "T4127 Jan 2026 (PDF), Chapter 4 Step 5, Ontario factor V1: 0.20 x (T4 - $5,818) + 0.36 x (T4 - $7,446); Table 8.2 row ON, column 'V1 rate'"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.health_premium.schedule": {
-    "value": null,
+    "value": [
+      {
+        "from": 20000,
+        "rate": 0.06,
+        "cap": 300
+      },
+      {
+        "from": 36000,
+        "rate": 0.06,
+        "cap": 450
+      },
+      {
+        "from": 48000,
+        "rate": 0.25,
+        "cap": 600
+      },
+      {
+        "from": 72000,
+        "rate": 0.25,
+        "cap": 750
+      },
+      {
+        "from": 200000,
+        "rate": 0.25,
+        "cap": 900
+      }
+    ],
     "unit": "CAD_per_year",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan.html",
+      "locator": "T4127 Jan 2026 (PDF), Chapter 4 Step 5, Ontario factor V2 (Ontario Health Premium): A <= $20,000 -> $0; then lesser of cap or previous cap + rate x (A - band start) for bands starting $20,000, $36,000, $48,000, $72,000, $200,000"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.lif.min_factor": {

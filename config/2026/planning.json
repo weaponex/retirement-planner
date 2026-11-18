@@ -1,30 +1,66 @@
 {
   "planning.life_expectancy.female": {
-    "value": null,
+    "value": {
+      "20": 98,
+      "25": 97,
+      "30": 97,
+      "35": 97,
+      "40": 97,
+      "45": 97,
+      "50": 97,
+      "55": 96,
+      "60": 96,
+      "65": 96,
+      "70": 96,
+      "75": 96,
+      "80": 96,
+      "85": 97,
+      "90": 98,
+      "95": 100,
+      "100": 103
+    },
     "unit": "age",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "2026 Guidelines p.4 'Probability of Survival Table', 25% column group, F column, one entry per Age row 20-100"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "planning.life_expectancy.male": {
-    "value": null,
+    "value": {
+      "20": 95,
+      "25": 95,
+      "30": 95,
+      "35": 95,
+      "40": 95,
+      "45": 94,
+      "50": 94,
+      "55": 94,
+      "60": 94,
+      "65": 94,
+      "70": 94,
+      "75": 94,
+      "80": 94,
+      "85": 95,
+      "90": 97,
+      "95": 99,
+      "100": 103
+    },
     "unit": "age",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "2026 Guidelines p.4 'Probability of Survival Table', 25% column group, M column, one entry per Age row 20-100"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "planning.shapes": {

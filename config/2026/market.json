@@ -1,16 +1,16 @@
 {
   "market.cad_equity.geometric_return": {
-    "value": null,
+    "value": 0.063,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "2026 Projection Assumption Guidelines (April 2026), p.3 'Guidelines for 2026 - Financial assumptions (before any adjustments for administrative and investment management fees)', c) Return rates (nominal): Canadian equities 6.3%; same in section 5 c); geometric means per section 3 b)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.cad_equity.log_volatility": {
@@ -154,17 +154,17 @@
     }
   },
   "market.bonds.geometric_return": {
-    "value": null,
+    "value": 0.032,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "p.3 Guidelines for 2026, c) Return rates (nominal): Fixed income 3.2%; section 5 c) same"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.bonds.log_volatility": {
@@ -238,17 +238,17 @@
     }
   },
   "market.inflation": {
-    "value": null,
+    "value": 0.021,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "p.3 Guidelines for 2026, a) Inflation 2.1%; section 5 a) same"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.foreign_withholding_rate": {
@@ -280,45 +280,45 @@
     }
   },
   "market.global_equity.components.us": {
-    "value": null,
+    "value": 0.064,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "p.3 Guidelines for 2026, c) Return rates (nominal): U.S. equities 6.4%; section 5 c) same"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.global_equity.components.intl_developed": {
-    "value": null,
+    "value": 0.066,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "p.3 Guidelines for 2026, c) Return rates (nominal): International developed-market equities 6.6%; section 5 c) same"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.global_equity.components.emerging": {
-    "value": null,
+    "value": 0.075,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "p.3 Guidelines for 2026, c) Return rates (nominal): Emerging market equities 7.5%; section 5 c) same"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   }
 }
