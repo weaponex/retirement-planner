@@ -86,26 +86,32 @@ export const KEY_SPECS: readonly KeySpec[] = [
     'ontario.tax_reduction.basic',
     'ontario.probate.threshold',
     'ontario.probate.rate',
-    'ontario.lif.conversion.latest_age',
     'ontario.lif.unlock_share',
   ]),
   ...rule('ontario', 'list', ['ontario.surtax.thresholds', 'ontario.surtax.rates']),
   // Health premium phases in: see the design's Tax scope for the full rule.
   ...rule('ontario', 'phaseIn', ['ontario.health_premium.schedule']),
-  ...rule('ontario', 'ageTable', ['ontario.lif.min_factor', 'ontario.lif.max_factor']),
+  // The LIF minimum and the LIRA conversion deadline are the federal RRIF rules
+  // (federal.rrif.min_factor, federal.rrif.latest_conversion_age); see the design's Accounts.
+  ...rule('ontario', 'ageTable', ['ontario.lif.max_factor']),
 
-  // Market assumptions
-  ...rule(
-    'market',
-    'number',
-    perClass([
-      'log_volatility',
-      'yield.interest',
-      'yield.eligible_dividends',
-      'yield.foreign_dividends',
-      'fee',
-    ]),
-  ),
+  // Market assumptions. Volatility is computed by tools/marketStats.ts (O22).
+  ...rule('market', 'number', perClass(['log_volatility', 'fee'])),
+  // Each class pays one income type, read from a factsheet; the other two are
+  // zero by the author's decision.
+  ...rule('market', 'number', [
+    'market.cad_equity.yield.eligible_dividends',
+    'market.global_equity.yield.foreign_dividends',
+    'market.bonds.yield.interest',
+  ]),
+  ...author('market', 'number', [
+    'market.cad_equity.yield.interest',
+    'market.cad_equity.yield.foreign_dividends',
+    'market.global_equity.yield.interest',
+    'market.global_equity.yield.eligible_dividends',
+    'market.bonds.yield.eligible_dividends',
+    'market.bonds.yield.foreign_dividends',
+  ]),
   // Compound returns. FP Canada has no single "global" figure, so global equity
   // is a blend of three published returns using planning.global_equity_weights.
   ...rule('market', 'number', [

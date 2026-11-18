@@ -28,17 +28,17 @@
     }
   },
   "market.cad_equity.yield.interest": {
-    "value": null,
+    "value": 0,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "author decision, 2026-11-18",
+      "locator": "docs/designs/retirement-planner.md#asset-classes-and-returns-o3 (each class pays one income type)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.cad_equity.yield.eligible_dividends": {
@@ -56,17 +56,17 @@
     }
   },
   "market.cad_equity.yield.foreign_dividends": {
-    "value": null,
+    "value": 0,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "author decision, 2026-11-18",
+      "locator": "docs/designs/retirement-planner.md#asset-classes-and-returns-o3 (each class pays one income type)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.cad_equity.fee": {
@@ -98,31 +98,31 @@
     }
   },
   "market.global_equity.yield.interest": {
-    "value": null,
+    "value": 0,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "author decision, 2026-11-18",
+      "locator": "docs/designs/retirement-planner.md#asset-classes-and-returns-o3 (each class pays one income type)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.global_equity.yield.eligible_dividends": {
-    "value": null,
+    "value": 0,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "author decision, 2026-11-18",
+      "locator": "docs/designs/retirement-planner.md#asset-classes-and-returns-o3 (each class pays one income type)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.global_equity.yield.foreign_dividends": {
@@ -196,31 +196,31 @@
     }
   },
   "market.bonds.yield.eligible_dividends": {
-    "value": null,
+    "value": 0,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "author decision, 2026-11-18",
+      "locator": "docs/designs/retirement-planner.md#asset-classes-and-returns-o3 (each class pays one income type)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.bonds.yield.foreign_dividends": {
-    "value": null,
+    "value": 0,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "author decision, 2026-11-18",
+      "locator": "docs/designs/retirement-planner.md#asset-classes-and-returns-o3 (each class pays one income type)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "market.bonds.fee": {

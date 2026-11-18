@@ -162,20 +162,6 @@
       "status": "unfetched"
     }
   },
-  "ontario.lif.conversion.latest_age": {
-    "value": null,
-    "unit": "age",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
-    },
-    "fetchedOn": null,
-    "validation": {
-      "status": "unfetched"
-    }
-  },
   "ontario.lif.unlock_share": {
     "value": null,
     "unit": "rate",
@@ -262,20 +248,6 @@
     "fetchedOn": "2026-11-18",
     "validation": {
       "status": "unvalidated"
-    }
-  },
-  "ontario.lif.min_factor": {
-    "value": null,
-    "unit": "rate",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
-    },
-    "fetchedOn": null,
-    "validation": {
-      "status": "unfetched"
     }
   },
   "ontario.lif.max_factor": {
