@@ -63,17 +63,17 @@
     }
   },
   "federal.credits.age.min_age": {
-    "value": null,
+    "value": 65,
     "unit": "age",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1/td1-26e.pdf",
+      "locator": "Form TD1 2026 (TD1 E (26)), page 1, line 3 \"Age amount\": \"If you will be 65 or older on December 31, 2026\""
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "federal.credits.age.reduction_threshold": {
@@ -91,17 +91,17 @@
     }
   },
   "federal.credits.age.reduction_rate": {
-    "value": null,
+    "value": 0.15,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1-ws/td1-ws-26e.pdf",
+      "locator": "Form TD1-WS 2026 (TD1-WS E (26)), section \"Line 3 of Form TD1 – Age amount\", line 5 \"Applicable rate\": 15%"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "federal.credits.pension.amount": {
@@ -133,59 +133,59 @@
     }
   },
   "federal.capital_gains.inclusion_rate": {
-    "value": null,
+    "value": 0.5,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/publications/t4037/capital-gains.html",
+      "locator": "Guide T4037 Capital Gains 2025 (T4037(E) Rev. 25), Chapter 5 \"Inclusion rate\" table, row \"From 2001 to 2025: 1/2 (50%)\"; Chapter 5 capital losses example: \"The inclusion rate for 2025 is 50%.\" The guide states no rate for 2026 or later."
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "federal.dividend.eligible.gross_up": {
-    "value": null,
+    "value": 0.38,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5000-d1/5000-d1-25e.pdf",
+      "locator": "Federal Worksheet 5000-D1 (T1-2025, 5000-D1 E (25)), page 1, \"Lines 12000 and 12010\", line 12 \"Applicable rate\" for eligible dividends: 138%"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "federal.dividend.eligible.credit_rate": {
-    "value": null,
+    "value": 0.150198,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5000-d1/5000-d1-25e.pdf",
+      "locator": "Federal Worksheet 5000-D1 (T1-2025, 5000-D1 E (25)), page 8, \"Line 40425 – Federal dividend tax credit\", line 7: amount C (A minus B) x 15.0198%"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "federal.oas.base_at_65": {
-    "value": null,
+    "value": 742.31,
     "unit": "CAD_per_month",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/en/employment-social-development/programs/pensions/pension/statistics/2026-quarterly-january-march.html",
+      "locator": "ESDC quarterly report January–March 2026, Table 5 \"OAS amounts – January to March 2026\", row \"Old Age Security pension (age 65 to 74)\", Maximum monthly amount: $742.31"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "federal.oas.residence.min_years": {
@@ -203,17 +203,17 @@
     }
   },
   "federal.oas.residence.full_years": {
-    "value": null,
+    "value": 40,
     "unit": "years",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://laws-lois.justice.gc.ca/eng/acts/O-9/section-3.html",
+      "locator": "Old Age Security Act, s. 3(1)(c)(iii) (current to 2026-10-29): resided in Canada after age 18 \"for an aggregate period of at least forty years\""
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "federal.oas.deferral.per_month": {
@@ -385,17 +385,17 @@
     }
   },
   "federal.cpp.survivor.flat_under_65": {
-    "value": null,
+    "value": 238.17,
     "unit": "CAD_per_month",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/en/employment-social-development/programs/pensions/pension/statistics/2026-quarterly-january-march.html",
+      "locator": "ESDC quarterly report January–March 2026, Table 1 \"Maximum amount of new CPP benefits, month of January 2026\", row \"Survivor's pension – younger than 65\", Flat rate portion: $238.17"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "federal.cpp.survivor.pct_under_65": {
@@ -427,17 +427,17 @@
     }
   },
   "federal.rrif.latest_conversion_age": {
-    "value": null,
+    "value": 71,
     "unit": "age",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/rrsps-related-plans/rrsp-options-when-you-turn-71/options-your-rrsps.html",
+      "locator": "CRA page \"Options for your own RRSPs\" (date modified 2025-01-03): \"In the year you turn 71 years old, you have to choose one of the following options for your RRSPs\""
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "federal.tfsa.annual_limit": {

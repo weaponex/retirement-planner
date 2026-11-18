@@ -51,73 +51,73 @@
     }
   },
   "ontario.credits.age.amount": {
-    "value": null,
+    "value": 6342,
     "unit": "CAD_per_year",
     "taxYear": 2026,
-    "indexed": false,
+    "indexed": true,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1on/td1on-26e.pdf",
+      "locator": "Form TD1ON 2026 (TD1ON E (26)), page 1, line 2 \"Age amount\": \"net income will be $47,210 or less, enter $6,342\""
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.credits.age.reduction_threshold": {
-    "value": null,
+    "value": 47210,
     "unit": "CAD_per_year",
     "taxYear": 2026,
-    "indexed": false,
+    "indexed": true,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1on/td1on-26e.pdf",
+      "locator": "Form TD1ON 2026 (TD1ON E (26)), page 1, line 2 \"Age amount\": full amount if net income \"will be $47,210 or less\" (also TD1ON-WS 2026 line 2 section, line 3 \"Base amount\" 47,210.00)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.credits.age.reduction_rate": {
-    "value": null,
+    "value": 0.15,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1on-ws/td1on-ws-26e.pdf",
+      "locator": "Form TD1ON-WS 2026 (TD1ON-WS E (26)), section \"Line 2 of Form TD1ON – Age amount\", line 5 \"Applicable rate\": 15%"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.credits.pension.amount": {
-    "value": null,
+    "value": 1796,
     "unit": "CAD_per_year",
     "taxYear": 2026,
-    "indexed": false,
+    "indexed": true,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1on/td1on-26e.pdf",
+      "locator": "Form TD1ON 2026 (TD1ON E (26)), page 1, line 3 \"Pension income amount\": \"enter whichever is less: $1,796 or your estimated annual pension\""
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.dividend.eligible.credit_rate": {
-    "value": null,
+    "value": 0.1,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5006-d/5006-d-25e.pdf",
+      "locator": "Worksheet ON428 2025 (5006-D E (25)), page 2, \"Line 61520 – Ontario dividend tax credit\", line 2: amount C (A minus B) x 10%"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.tax_reduction.basic": {
