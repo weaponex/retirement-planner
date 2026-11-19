@@ -47,6 +47,7 @@ export const KEY_SPECS: readonly KeySpec[] = [
   ...rule('federal', 'brackets', ['federal.tax.brackets']),
   ...rule('federal', 'number', [
     'federal.credits.basic',
+    'federal.credits.basic_min',
     'federal.credits.age.amount',
     'federal.credits.age.min_age',
     'federal.credits.age.reduction_threshold',

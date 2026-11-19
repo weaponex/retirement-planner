@@ -1,0 +1,382 @@
+[
+  {
+    "id": "low-oas-cpp",
+    "age": 67,
+    "income": {
+      "pensionEligible": 0,
+      "oas": 8908,
+      "cpp": 8000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 0,
+    "ontarioTax": 0,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "u65-rrsp-18k",
+    "age": 60,
+    "income": {
+      "pensionEligible": 0,
+      "oas": 0,
+      "cpp": 0,
+      "otherOrdinary": 18000,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 217,
+    "ontarioTax": 0,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "u65-rrsp-22k",
+    "age": 60,
+    "income": {
+      "pensionEligible": 0,
+      "oas": 0,
+      "cpp": 0,
+      "otherOrdinary": 22000,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 777,
+    "ontarioTax": 430,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-rrif-10k",
+    "age": 67,
+    "income": {
+      "pensionEligible": 10000,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 455,
+    "ontarioTax": 688,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-rrif-16k",
+    "age": 67,
+    "income": {
+      "pensionEligible": 16092,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 1308,
+    "ontarioTax": 1162,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-rrif-39k",
+    "age": 67,
+    "income": {
+      "pensionEligible": 39092,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 4909,
+    "ontarioTax": 2910,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-rrif-51k",
+    "age": 67,
+    "income": {
+      "pensionEligible": 51392,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 7688,
+    "ontarioTax": 4204,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-rrif-79k",
+    "age": 67,
+    "income": {
+      "pensionEligible": 79092,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 13790,
+    "ontarioTax": 6942,
+    "clawback": 702,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-rrif-99k",
+    "age": 67,
+    "income": {
+      "pensionEligible": 99092,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 17454,
+    "ontarioTax": 9162,
+    "clawback": 3702,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-rrif-139k",
+    "age": 67,
+    "income": {
+      "pensionEligible": 139092,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 26459,
+    "ontarioTax": 15236,
+    "clawback": 8908,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-rrif-239k",
+    "age": 67,
+    "income": {
+      "pensionEligible": 239092,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 54754,
+    "ontarioTax": 34841,
+    "clawback": 8908,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "u65-rrsp-70k",
+    "age": 60,
+    "income": {
+      "pensionEligible": 0,
+      "oas": 0,
+      "cpp": 0,
+      "otherOrdinary": 70000,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 8243,
+    "ontarioTax": 4140,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "u65-db-50k",
+    "age": 60,
+    "income": {
+      "pensionEligible": 50000,
+      "oas": 0,
+      "cpp": 0,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 4417,
+    "ontarioTax": 2378,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-high-dividends",
+    "age": 67,
+    "income": {
+      "pensionEligible": 0,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 60000,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 2346,
+    "ontarioTax": 750,
+    "clawback": 1258,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "u65-dividends-only",
+    "age": 60,
+    "income": {
+      "pensionEligible": 0,
+      "oas": 0,
+      "cpp": 0,
+      "otherOrdinary": 0,
+      "eligibleDividends": 50000,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 0,
+    "ontarioTax": 600,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-capital-gain",
+    "age": 67,
+    "income": {
+      "pensionEligible": 20000,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 40000
+    },
+    "federalTax": 5114,
+    "ontarioTax": 3000,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-foreign-dividends",
+    "age": 67,
+    "income": {
+      "pensionEligible": 20000,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 10000,
+      "capitalGains": 0
+    },
+    "federalTax": 3349,
+    "ontarioTax": 2132,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "65-interest",
+    "age": 67,
+    "income": {
+      "pensionEligible": 15000,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 15000,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 3349,
+    "ontarioTax": 2132,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "death-year-rrsp",
+    "age": 70,
+    "income": {
+      "pensionEligible": 0,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 400000,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 107860,
+    "ontarioTax": 68016,
+    "clawback": 8908,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "split-a",
+    "pairId": "split-1",
+    "age": 70,
+    "income": {
+      "pensionEligible": 50000,
+      "oas": 8908,
+      "cpp": 12000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 7374,
+    "ontarioTax": 3991,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  },
+  {
+    "id": "split-b",
+    "pairId": "split-1",
+    "age": 68,
+    "income": {
+      "pensionEligible": 30000,
+      "oas": 8908,
+      "cpp": 6000,
+      "otherOrdinary": 0,
+      "eligibleDividends": 0,
+      "foreignDividends": 0,
+      "capitalGains": 0
+    },
+    "federalTax": 2415,
+    "ontarioTax": 1651,
+    "clawback": 0,
+    "source": "TaxTips.ca Ontario calculator",
+    "checkedOn": "2026-11-19"
+  }
+]

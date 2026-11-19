@@ -56,6 +56,7 @@ described. Author decisions, including the market yields (O30), are not fetched.
 |---|---|---|---|
 | `federal.tax.brackets` | none | https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html | Federal rate for 2026 (table) |
 | `federal.credits.basic` | CAD_per_year | https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/adjustment-personal-income-tax-benefit-amounts.html | Basic personal amount rows (note: amount phases down at high income) |
+| `federal.credits.basic_min` | CAD_per_year | https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/adjustment-personal-income-tax-benefit-amounts.html | Basic personal amount (minimum), for net income at or above the start of the 33% bracket |
 | `federal.credits.age.amount` | CAD_per_year | https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/adjustment-personal-income-tax-benefit-amounts.html | Age amount |
 | `federal.credits.age.min_age` | age | https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1/td1-26e.pdf | Form TD1 2026, line 3 "Age amount": "65 or older on December 31, 2026" |
 | `federal.credits.age.reduction_threshold` | CAD_per_year | https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/adjustment-personal-income-tax-benefit-amounts.html | Net income threshold for age amount |

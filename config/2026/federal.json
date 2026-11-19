@@ -52,6 +52,22 @@
       "on": "2026-11-19"
     }
   },
+  "federal.credits.basic_min": {
+    "value": 14829,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/adjustment-personal-income-tax-benefit-amounts.html",
+      "locator": "Indexation chart, 2026 column, minimum basic personal amount for individuals whose net income is at or above the amount at which the 33% tax bracket begins. Value taken from the federal.credits.basic entry's locator ('Minimum BPA at/above the 33% bracket start is $14,829'), fetched 2026-11-18."
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
   "federal.credits.age.amount": {
     "value": 9208,
     "unit": "CAD_per_year",

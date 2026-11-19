@@ -289,7 +289,7 @@ The brief named three planning areas. Household is added because ages feed all t
     *   `value` is one of: a number; a bracket table `[{ from, rate, indexed? }]` (a row's `indexed` overrides the entry flag for that threshold, because Ontario's top two thresholds are not indexed); an age-keyed table `{ "71": 0.0528, … }`; a phase-in schedule `[{ from, rate, cap }]` (within a band the amount is the previous row's `cap` (0 for the first row) plus `rate` × (income − `from`), up to this row's `cap`); a list of numbers `[n, …]` (the Ontario surtax thresholds and rates, in matching order); or, for planning choices only, a structured object (presets, shapes, weights, warning triggers).
     *   `unit` is one of `CAD_per_year`, `CAD_per_month`, `rate`, `age`, `years`, `count`, `none`.
 *   **Key tree:** the dotted keys below are the complete, authoritative list of config keys. `src/engine/config/keys.ts` is the code copy, and `config/SOURCES.md` adds each key's unit, source page and location on the page. `config:check` fails unless `SOURCES.md` and `keys.ts` list exactly the same keys; this list is kept in step with them by hand. Adding a key means editing this list first.
-    *   **Rule values:** `federal.tax.brackets`, `federal.credits.basic`, `federal.credits.age.amount`, `federal.credits.age.min_age`, `federal.credits.age.reduction_threshold`, `federal.credits.age.reduction_rate`, `federal.credits.pension.amount`, `federal.credits.pension.min_age_rrif`, `federal.capital_gains.inclusion_rate`, `federal.dividend.eligible.gross_up`, `federal.dividend.eligible.credit_rate`, `federal.oas.base_at_65`, `federal.oas.residence.min_years`, `federal.oas.residence.full_years`, `federal.oas.deferral.per_month`, `federal.oas.deferral.max_months`, `federal.oas.increase_age`, `federal.oas.increase_rate`, `federal.oas.recovery.threshold`, `federal.oas.recovery.rate`, `federal.cpp.start.earliest`, `federal.cpp.start.latest`, `federal.cpp.adjust.early_per_month`, `federal.cpp.adjust.late_per_month`, `federal.cpp.max_at_65`, `federal.cpp.survivor.pct_65_plus`, `federal.cpp.survivor.flat_under_65`, `federal.cpp.survivor.pct_under_65`, `federal.cpp.survivor.max_combined`, `federal.rrif.min_factor`, `federal.rrif.latest_conversion_age`, `federal.tfsa.annual_limit`, `federal.split.max_share`, `federal.split.min_age_rrif`, `ontario.tax.brackets`, `ontario.credits.basic`, `ontario.credits.age.amount`, `ontario.credits.age.reduction_threshold`, `ontario.credits.age.reduction_rate`, `ontario.credits.pension.amount`, `ontario.dividend.eligible.credit_rate`, `ontario.surtax.thresholds`, `ontario.surtax.rates`, `ontario.health_premium.schedule`, `ontario.tax_reduction.basic`, `ontario.probate.threshold`, `ontario.probate.rate`, `ontario.lif.max_factor`, `ontario.lif.unlock_share`, `market.<class>.geometric_return`, `market.<class>.yield`, `market.inflation`, `market.foreign_withholding_rate`. Here `<class>` is one of the six asset-class ids below.
+    *   **Rule values:** `federal.tax.brackets`, `federal.credits.basic`, `federal.credits.basic_min`, `federal.credits.age.amount`, `federal.credits.age.min_age`, `federal.credits.age.reduction_threshold`, `federal.credits.age.reduction_rate`, `federal.credits.pension.amount`, `federal.credits.pension.min_age_rrif`, `federal.capital_gains.inclusion_rate`, `federal.dividend.eligible.gross_up`, `federal.dividend.eligible.credit_rate`, `federal.oas.base_at_65`, `federal.oas.residence.min_years`, `federal.oas.residence.full_years`, `federal.oas.deferral.per_month`, `federal.oas.deferral.max_months`, `federal.oas.increase_age`, `federal.oas.increase_rate`, `federal.oas.recovery.threshold`, `federal.oas.recovery.rate`, `federal.cpp.start.earliest`, `federal.cpp.start.latest`, `federal.cpp.adjust.early_per_month`, `federal.cpp.adjust.late_per_month`, `federal.cpp.max_at_65`, `federal.cpp.survivor.pct_65_plus`, `federal.cpp.survivor.flat_under_65`, `federal.cpp.survivor.pct_under_65`, `federal.cpp.survivor.max_combined`, `federal.rrif.min_factor`, `federal.rrif.latest_conversion_age`, `federal.tfsa.annual_limit`, `federal.split.max_share`, `federal.split.min_age_rrif`, `ontario.tax.brackets`, `ontario.credits.basic`, `ontario.credits.age.amount`, `ontario.credits.age.reduction_threshold`, `ontario.credits.age.reduction_rate`, `ontario.credits.pension.amount`, `ontario.dividend.eligible.credit_rate`, `ontario.surtax.thresholds`, `ontario.surtax.rates`, `ontario.health_premium.schedule`, `ontario.tax_reduction.basic`, `ontario.probate.threshold`, `ontario.probate.rate`, `ontario.lif.max_factor`, `ontario.lif.unlock_share`, `market.<class>.geometric_return`, `market.<class>.yield`, `market.inflation`, `market.foreign_withholding_rate`. Here `<class>` is one of the six asset-class ids below.
     *   **Sourced planning values:** `planning.life_expectancy.female`, `planning.life_expectancy.male`.
     *   **Planning choices (author):** `planning.shapes`, `planning.presets`, `planning.mixes` (O24), `planning.fee_levels` (O25), `planning.spending_phases` (O27), `planning.planner_search` (O31), `planning.survivor_spending`, `planning.override_margin`, `warnings.triggers`, `warnings.nudge_steps`.
     *   **Changed 2026-11-19:** removed `market.global_equity.components.{us,intl_developed,emerging}`, `market.<class>.fee`, `planning.global_equity_weights`, `planning.stock_split.cad_share` and `planning.comparison_bracket_target`; the U.S., international and emerging-market returns become classes of their own, fees become named levels, and every strategy is run, so no separate comparison target is needed. `src/engine/config/keys.ts`, `config/SOURCES.md` and the 2026 config files must follow this list before stage 0 is tagged.
@@ -321,7 +321,7 @@ The engine calls a jurisdiction module for provincial tax and credits, the Ontar
 
 *   **In:**
     *   federal and Ontario brackets;
-    *   basic personal amount;
+    *   basic personal amount, including the federal amount's reduction at high income;
     *   age amount and its income-based reduction;
     *   pension income credit;
     *   eligible dividend gross-up and credit;
@@ -332,17 +332,24 @@ The engine calls a jurisdiction module for provincial tax and credits, the Ontar
     *   OAS recovery tax (clawback), calculated inside the tax function from actual net income.
 *   **Foreign withholding tax (author):** one config rate applies to the foreign-dividend yield of global stocks held in the TFSA and in RRSP/RRIF/LIRA/LIF, where it can't be recovered. In non-registered accounts it is treated as recovered through the foreign tax credit, which is not modelled in detail. The rate assumes Canadian-listed funds.
 *   **Out:** non-eligible dividends, alternative minimum tax, GIS, the CPP death benefit, other credits. Foreign dividends in non-registered accounts are taxed as ordinary income.
-*   **Order of the Ontario calculation (FR-M10; follows Form ON428 and T4127 Chapter 4 Step 5).** All amounts are for one person's return, after any pension split.
+*   **Income, net income and the clawback (follows the T1 return).** Total income is the sum of the `TaxableIncome` fields, with eligible dividends grossed up by `federal.dividend.eligible.gross_up` and capital gains multiplied by `federal.capital_gains.inclusion_rate`. The OAS recovery tax = min(OAS received, `federal.oas.recovery.rate` × max(0, total income − `federal.oas.recovery.threshold`)). It is also a deduction (line 23500): net income and taxable income are total income minus the recovery tax. The age amount's reduction and the Health Premium use that net or taxable income.
+*   **Order of the Ontario calculation (FR-M10; follows Form ON428 Part C, checked against the 2025 form).** All amounts are for one person's return, after any pension split.
     1.  **Bracket tax:** `ontario.tax.brackets` applied to taxable income.
     2.  **Non-refundable credits:** the basic, age (after its income-based reduction) and pension amounts, added together and multiplied by the rate of the first row of `ontario.tax.brackets`.
-    3.  **Dividend tax credit:** `ontario.dividend.eligible.credit_rate` × the taxable (grossed-up) amount of eligible dividends.
-    4.  **Basic Ontario tax** = max(0, bracket tax − non-refundable credits − dividend tax credit). Neither credit is refundable.
-    5.  **Surtax** = the first rate × max(0, basic Ontario tax − the first threshold) + the second rate × max(0, basic Ontario tax − the second threshold), reading `ontario.surtax.rates` and `ontario.surtax.thresholds` in matching order.
-    6.  **Tax Reduction** = min(basic Ontario tax + surtax, max(0, 2 × `ontario.tax_reduction.basic` − (basic Ontario tax + surtax))). It can bring the tax to zero but not below.
-    7.  **Health Premium:** `ontario.health_premium.schedule` (`phaseIn` shape) applied to taxable income. It is added after the reduction and is never reduced by it.
-    8.  **Ontario tax** = basic Ontario tax + surtax − Tax Reduction + Health Premium. This is what `provincialTax` returns and what `tax-cases.json` calls `ontarioTax`.
+    3.  **Basic Ontario tax** (line 53) = max(0, bracket tax − non-refundable credits).
+    4.  **Surtax** (line 68) = the first rate × max(0, basic Ontario tax − the first threshold) + the second rate × max(0, basic Ontario tax − the second threshold), reading `ontario.surtax.rates` and `ontario.surtax.thresholds` in matching order. The surtax is worked out before the dividend tax credit.
+    5.  **After the dividend tax credit** (line 71) = max(0, basic Ontario tax + surtax − `ontario.dividend.eligible.credit_rate` × the grossed-up eligible dividends).
+    6.  **Tax Reduction** (line 80) = max(0, 2 × `ontario.tax_reduction.basic` − the step 5 amount). The tax after it (line 81) = max(0, step 5 − Tax Reduction).
+    7.  **Health Premium** (line 89): `ontario.health_premium.schedule` (`phaseIn` shape) applied to taxable income. It is added last and is never reduced.
+    8.  **Ontario tax** (line 90) = step 6 + Health Premium. This is what `provincialTax` returns and what `tax-cases.json` calls `ontarioTax`.
 
-    Federal tax follows steps 1 to 4 with the federal keys (credits at the first-row rate of `federal.tax.brackets`, the credit at `federal.dividend.eligible.credit_rate`). The OAS recovery tax is calculated after that and reported separately as `clawback`; it is not part of `federalTax`.
+    The Low-income individuals and families tax (LIFT) credit (line 85) falls between steps 6 and 7. It is out of scope; it can be non-zero only in a year with employment income.
+
+    The federal basic personal amount (TC-1) is `federal.credits.basic` up to taxable income equal to the `from` of the fourth row of `federal.tax.brackets`, `federal.credits.basic_min` at or above the fifth row's `from`, and falls in a straight line between them.
+
+    Federal tax = max(0, federal bracket tax − federal non-refundable credits × the first-row rate of `federal.tax.brackets` − `federal.dividend.eligible.credit_rate` × the grossed-up eligible dividends). The OAS recovery tax is reported separately as `clawback`; it is not part of `federalTax`.
+
+    Checked on 2026-11-19: these rules, with the 2026 config (including `federal.credits.basic_min`), reproduce all 21 TaxTips.ca cases to the dollar.
 
 ### Accounts
 
@@ -1024,7 +1031,8 @@ The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.
 | FR-M6 | No file owns each class's yearly return: the 60/30/10 blend, overrides, the fee formula, the yield/price split; base for the global optimistic-return limit; citation for the 0.5-point margin | Stage 2 |
 | FR-M9 | Ontario LIF maximum: greater of table × opening balance and last year's earnings; first-year pro-rating; the 6% CANSIM condition | Stage 2 |
 | FR-M7 | When the age-based life-expectancy default is filled, and what happens above the table's last row | Stage 5 |
-| ~~FR-M10~~ | Fixed (draft 2026-11-19, for author review): basic Ontario tax and the order of surtax, Tax Reduction and Health Premium are in [Tax scope](#tax-scope-o11) | — |
+| ~~FR-M10~~ | Fixed 2026-11-19: basic Ontario tax and the order of surtax, dividend credit, Tax Reduction and Health Premium are in [Tax scope](#tax-scope-o11), checked against Form ON428 and the 21 TaxTips.ca cases | — |
+| TC-1 | Fixed 2026-11-19 (design and key): the federal basic personal amount's reduction at high income uses the new key `federal.credits.basic_min`. The entry's value comes from the source note of the validated `federal.credits.basic` entry (fetched 2026-11-18); it stays unvalidated until the author checks it | Stage 1 (validate the entry) |
 | FR-M11 | CPP survivor cap: the retirement maximum or `max_combined` (author decision); JSON source URL differs from `SOURCES.md` | Stage 2 |
 | FR-M13 | Tests for the new rules. Tax rows fixed (draft 2026-11-19): `ontario.test.ts` and `federal.test.ts` in the unit test table. Still open: the global blend and override limit, life-expectancy lookup, LIF minimum under 71 | Stage 2 |
 | FR-M16 | The placement figure mixes a tax effect with holding more stock after tax; the stock-share readout's purpose and the risk row need rewording | Stage 4 |
@@ -1356,7 +1364,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 *   **Proposed Changes**: The definitions in [Data contracts](#data-contracts), plus:
     *   `YearContext { yearIndex, deflator, cfg }`, passed to every engine function that needs indexing;
-    *   `TaxableIncome { pensionEligible, oas, cpp, otherOrdinary, eligibleDividends, foreignDividends, taxableGains }`.
+    *   `TaxableIncome { pensionEligible, oas, cpp, otherOrdinary, eligibleDividends, foreignDividends, capitalGains }`. `eligibleDividends` is the cash amount received (the tax code grosses it up) and `capitalGains` is the full realized gain (the tax code applies the inclusion rate), matching what the TaxTips.ca calculator asks for.
 
     Filling rule for `pensionEligible`: DB payments at any age, and RRIF/LIF payments when the owner is 65 or older. RRSP and LIRA withdrawals, and RRIF/LIF before 65, go to `otherOrdinary`.
 
@@ -1579,6 +1587,8 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     *   a pension-split pair.
 
     Answers must match within $1 per return.
+
+    **How the cases were made (author, 2026-11-19):** an agent entered the 21 cases in `private/tax-cases-checklist.md` into the TaxTips.ca calculator (2026, Ontario, single) and recorded its results; the author re-ran a sample by hand before the file was committed. TaxTips' "Ontario tax" is line 42800, which includes the Health Premium; its federal tax is line 42000, without the clawback.
 
 ##### 53. `./tests/fixtures/reference-plan/inputs.json` and `./expected-rows.csv` (Create, stage 3)
 
