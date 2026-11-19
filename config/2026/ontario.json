@@ -33,7 +33,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.credits.basic": {
@@ -47,7 +49,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.credits.age.amount": {
@@ -61,7 +65,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.credits.age.reduction_threshold": {
@@ -75,7 +81,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.credits.age.reduction_rate": {
@@ -89,7 +97,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.credits.pension.amount": {
@@ -103,7 +113,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.dividend.eligible.credit_rate": {
@@ -117,7 +129,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.tax_reduction.basic": {
@@ -131,7 +145,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.probate.threshold": {
@@ -173,7 +189,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.surtax.thresholds": {
@@ -190,7 +208,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.surtax.rates": {
@@ -207,7 +227,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.health_premium.schedule": {
@@ -247,7 +269,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "ontario.lif.max_factor": {
@@ -312,7 +336,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   }
 }

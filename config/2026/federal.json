@@ -31,7 +31,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.credits.basic": {
@@ -45,7 +47,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.credits.age.amount": {
@@ -59,7 +63,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.credits.age.min_age": {
@@ -73,7 +79,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.credits.age.reduction_threshold": {
@@ -87,7 +95,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.credits.age.reduction_rate": {
@@ -101,7 +111,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.credits.pension.amount": {
@@ -115,7 +127,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.credits.pension.min_age_rrif": {
@@ -129,7 +143,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.capital_gains.inclusion_rate": {
@@ -143,7 +159,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.dividend.eligible.gross_up": {
@@ -157,7 +175,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.dividend.eligible.credit_rate": {
@@ -171,7 +191,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.oas.base_at_65": {
@@ -185,7 +207,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.oas.residence.min_years": {
@@ -199,7 +223,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.oas.residence.full_years": {
@@ -213,7 +239,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.oas.deferral.per_month": {
@@ -227,7 +255,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.oas.deferral.max_months": {
@@ -241,7 +271,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.oas.increase_age": {
@@ -255,7 +287,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.oas.increase_rate": {
@@ -269,7 +303,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.oas.recovery.threshold": {
@@ -283,7 +319,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.oas.recovery.rate": {
@@ -297,7 +335,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.cpp.start.earliest": {
@@ -311,7 +351,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.cpp.start.latest": {
@@ -325,7 +367,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.cpp.adjust.early_per_month": {
@@ -339,7 +383,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.cpp.adjust.late_per_month": {
@@ -353,7 +399,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.cpp.max_at_65": {
@@ -367,7 +415,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.cpp.survivor.pct_65_plus": {
@@ -381,7 +431,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.cpp.survivor.flat_under_65": {
@@ -395,7 +447,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.cpp.survivor.pct_under_65": {
@@ -409,7 +463,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.cpp.survivor.max_combined": {
@@ -423,7 +479,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.rrif.latest_conversion_age": {
@@ -437,7 +495,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.tfsa.annual_limit": {
@@ -451,7 +511,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.split.max_share": {
@@ -465,7 +527,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.split.min_age_rrif": {
@@ -479,7 +543,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "federal.rrif.min_factor": {
@@ -519,7 +585,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   }
 }
