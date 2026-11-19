@@ -90,7 +90,7 @@ Separately, the headline results and the withdrawal-strategy comparison update w
 ## Non-Goals
 
 *   **Other provinces and Quebec.** Version 1 is Ontario only. No Ontario-specific values are hard-coded in the engine, so other provinces can be added later; Quebec (QPP, separate tax system) is not part of that promise.
-*   **Single people.** Version 1 models couples. (Open question O16 asks whether singles are needed for the test group.)
+*   **Single people.** Version 1 models couples; all three test households are couples (O16).
 *   **Child-related planning other than legacy.** No RESP, no Canada Child Benefit.
 *   **Personal advice or open-ended optimization.** The app shows results of choices the user makes and compares them with simple baselines and with each other. It never says "you should". The one search it does is "Let the planner pick" (author, 2026-11-19): it tries the other named withdrawal strategies, at a fixed list of levels, and reports which one best meets a goal the user picks, with conditional wording and the runner-up. It does not search inputs the user controls (spending, mix, CPP and OAS ages, placement). Trades and money movement are out of scope.
 *   **Accounts, sync, servers.** No sign-in, no cloud storage, no sharing except by exporting a file.
@@ -122,7 +122,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | O13 | Success, typical, bad | Resolved: with fixed returns, one result: whether spending is covered every year ([Result definitions](#result-definitions)) |
 | O14 | Warnings and tips | Resolved: [Warnings](#warnings-o14) |
 | O15 | Empty start, sample plan | Resolved: [Persistence](#persistence) |
-| **O16** | **Test friends' situations** | **Open.** Are single people, or a general "other income" stream, needed? If yes, scope changes before implementation. |
+| O16 | Test friends' situations | Resolved 2026-11-19 (author): all three test households are couples, and none needs a general "other income" stream; scope unchanged |
 | O17 | Spending categories | Resolved 2026-11-19: monthly after-tax amounts by category, or one total ([Spending inputs](#spending-inputs)); previously deferred |
 | O18 | Recalculation mode | Resolved 2026-11-19: live, as the user edits ([Components and data flow](#components-and-data-flow)); previously button only |
 | O19 | Placement lesson in first release | Resolved: yes, built in stage 4 |
@@ -136,7 +136,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | **O27** | **Spending phase defaults** | **Open.** The mockup used: slower years from year 10 at 90% of active spending, later years from year 20 at 80%. Needed before stage 5. |
 | **O28** | **Later spending above slower spending** | **Open.** Whether to allow it silently, allow it with a note (design's suggestion), or prevent it. Needed before stage 5. |
 | **O29** | **Rebalancing switched off** | **Open.** What "Rebalance once a year" off means for the shape and the placement: proposed, holdings drift with returns, the shape is not applied, and the placement applies only at the plan start. Needed before stage 2. |
-| **O30** | **Yields for the new asset classes** | **Open.** Which factsheet gives each yield for U.S., international developed and emerging-market stocks (the MSCI factsheets used for the old global blend are the likely source) and whether cash's yield equals its return. Needed before stage 0 ends. |
+| O30 | Yields for the asset classes | Resolved 2026-11-19 (author): yields are author decisions, not fetched rule values ([Asset classes and returns](#asset-classes-and-returns-o3)) |
 | **O31** | **What "Let the planner pick" tries** | **Open.** The mockup tried 17 options: Registered last, Early RRSP drawdown, and Fill lower brackets at $40,000 to $110,000 in $5,000 steps. Range, step and tie rule to confirm. Needed before stage 4. |
 
 ## Critical User Journeys (CUJs)
@@ -201,7 +201,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | Retirement timing | A retirement year for each spouse; household spending starts at the first; a still-working spouse enters after-tax pay | Author (review) |
 | Foreign withholding tax | One config rate on foreign dividends in the TFSA and registered accounts | Author (review) |
 | Fetch checks | Tax and benefit rules fetched twice and compared; market assumptions fetched once and spot-checked | Author (2026-11-18) |
-| Cash yields | One yield per class, read from index and fund factsheets; each class pays one income type | Author (2026-11-18) |
+| Cash yields | One yield per class, an author decision editable in Settings; each class pays one income type | Author (2026-11-18; made author decisions 2026-11-19) |
 | LIF minimum and conversion deadline | The federal RRIF minimum and age-71 rule, which Ontario applies to LIFs and LIRAs; no Ontario keys of their own | Author (2026-11-18) |
 | First-year benefits | Birth month for each spouse; first year pro-rated | Author (review) |
 | Design values | As listed in [Design values](#design-values-version-1) | Author (review) |
@@ -310,7 +310,7 @@ The brief named three planning areas. Household is added because ages feed all t
 *   **Status:** `configStatus(config, overrides, today)` returns the tax year, the lists of unfetched and unvalidated keys, the list of overridden keys, and `outOfDate = today's year > taxYear`. The header chip shows the tax year and "default values" or "N values changed". A notice appears when a default is unvalidated; when the defaults are out of date, the notice says which year they come from and points to Settings, rather than asking for an admin update.
 *   **Monthly amounts:** amounts the sources publish monthly (OAS, the CPP maximum, the CPP survivor flat rate and combined maximum) are stored as `CAD_per_month` exactly as published, using the January figure, and updated once a year. The loader converts them to `CAD_per_year` (× 12; an unfetched null stays null). OAS changes each quarter, so January × 12 slightly understates a full year; this is an accepted approximation.
 *   **Fetch checks (author):** tax and benefit rules (`federal.json`, `ontario.json`) are fetched twice, independently, and compared, because an error there gives a wrong tax or benefit amount in every plan. Market assumptions (`market.json`) and the FP Canada life-expectancy tables are estimates, so one fetch and a spot-check by the admin are enough.
-*   **Market yields** are read from index and fund factsheets, which change monthly; each locator records the factsheet's as-of date.
+*   **Market yields** are author decisions (2026-11-19, O30): sourced "author decision, <date>", validated by the author, not fetched or refreshed. The keys keep their `market.<class>.yield` names.
 *   The engine never contains a rule value as a number in code.
 
 ### Jurisdiction
@@ -356,15 +356,14 @@ CPP and OAS: the user enters each spouse's CPP estimate at 65 and start age, and
 
 *   **Six asset classes (author, 2026-11-19, replacing three):** Canadian stocks, U.S. stocks, international developed stocks, emerging-market stocks, bonds, and cash and GICs. These match FP Canada's published classes, so no blend is needed. Each has config entries for:
     *   expected compound (geometric) return, from FP Canada (cash uses FP Canada's short-term rate);
-    *   a fixed yearly cash yield (`market.<class>.yield`, sources below; O30).
+    *   a fixed yearly cash yield (`market.<class>.yield`), an author decision (below).
 *   **The user's mix (author, 2026-11-19):** the Savings tab sets today's share of each class across all accounts. The user starts from a named mix (Conservative, Balanced, Growth; O24) or enters their own ("Custom"). Each class has a slider and a number box. Moving one class's share moves the others in proportion to their current shares, so the total stays at 100%; a class at 0% stays at 0% until the user sets it. The tab shows the mix as a coloured bar, the stock/bond/cash totals, and the expected return before and after fees.
 *   **Fixed returns (author, 2026-11-18):** every year, each class earns its expected compound return (or the user's override), less fees. There are no random markets and no stress paths, so results show the plan under steady average markets. They do not show sequence risk, the damage a bad market early in retirement can do, and a safer growth-to-safety shape shows only its lower return ([Alternative C](#alternative-c-fixed-returns-only)). The screens say returns are steady averages.
-*   **Cash yields (author):** each class pays one income type.
-    *   Canadian stocks: eligible dividends, at the "Distribution Yield" on the factsheet of the iShares Core S&P/TSX Capped Composite Index ETF (XIC).
-    *   U.S., international developed and emerging-market stocks: foreign dividends, at the "Div Yld (%)" on MSCI's USA, EAFE and Emerging Markets index factsheets respectively (O30 to confirm).
-    *   Bonds: interest, at the "Weighted Average Coupon" on the factsheet of the iShares Core Canadian Universe Bond Index ETF (XBB). The coupon is used rather than the yield to maturity because the yield here is the cash paid out.
-    *   Cash and GICs: interest; proposed, the whole return is paid as interest (O30).
-    *   Yields are snapshots on the fetch date and are refreshed with the other values when the admin refreshes the defaults.
+*   **Cash yields (author; author decisions from 2026-11-19, O30):** each class pays one income type. A yield is an assumption like a return, not a tax rule, so the author sets each one rather than fetching it every year. It is shown with the returns under investing assumptions in Settings, where the user can change it. Starting values may be taken once from the factsheets below; after that they are not refreshed.
+    *   Canadian stocks: eligible dividends; reference, the "Distribution Yield" on the factsheet of the iShares Core S&P/TSX Capped Composite Index ETF (XIC).
+    *   U.S., international developed and emerging-market stocks: foreign dividends; reference, the "Div Yld (%)" on MSCI's USA, EAFE and Emerging Markets index factsheets.
+    *   Bonds: interest; reference, the "Weighted Average Coupon" on the factsheet of the iShares Core Canadian Universe Bond Index ETF (XBB). The coupon is used rather than the yield to maturity because the yield here is the cash paid out.
+    *   Cash and GICs: interest; the whole return is paid as interest, so its yield equals its return.
 *   **Fees (author, 2026-11-19, replacing a fee per class):** one yearly fee applies to all investments. The user picks a named level, "Index ETFs", "Robo-advisor", "Mutual funds with an advisor", or "Custom" with their own figure. The levels' values are planning choices (`planning.fee_levels`, O25) and can be changed in Settings. The earlier per-class iShares MER defaults are dropped.
 *   **Income and price:** the cash yield is applied to the start-of-year balance and paid as cash. The price return is the year's total return minus that yield; it can be negative, the yield can't. The fee is subtracted from the total return.
 *   **Return overrides (author):** the user can override the expected return for each asset class, in the mix table on the Savings tab. The config default is shown next to each override, and the override is saved in the plan. Yields and income types always come from the config. An override more than `planning.override_margin` (0.5 percentage point) above FP Canada's figure for that class triggers the "optimistic returns" warning. Inflation is shown on the Savings tab with an Edit link to Settings.
@@ -947,7 +946,7 @@ Decisions marked "author" were made by the document's author and are recorded in
 | "Let the planner pick" read as advice | Users treat the pick as a recommendation | Search limited to named strategies and fixed levels; conditional wording; the runner-up and gap shown; a "Learn more" dialog listing its limits |
 | Defaults not refreshed each year | Values in use drift from current rules | The header shows the defaults' tax year; the out-of-date notice points to Settings; refreshing stays possible with the admin procedure |
 | Schema change after a rollback | Saved plans unreadable | New schema saves under a new key; old save kept |
-| Open questions O16, O20 | Scope or numbers may change | O16 checked before stage 0 ends; O20 before wider sharing |
+| Open questions O20, O24–O31 | Scope or numbers may change | Each closed before the stage named in [Open Questions](#open-questions); O20 before wider sharing |
 ## Glossary
 
 | Term | Meaning |
@@ -980,7 +979,7 @@ Decisions marked "author" were made by the document's author and are recorded in
 
 *   **Variable returns:** random markets and named stress paths, to show sequence risk, a chance of success, and the value of the growth-to-safety shift.
 *   **Other provinces:** new jurisdiction modules and config files; Quebec needs separate pension and tax handling.
-*   **Single people and a general "other income" stream:** pending O16.
+*   **Single people and a general "other income" stream:** not needed by the test group (O16); for a public release.
 *   **Per-category survivor percentages:** survivor spending by category instead of one percentage.
 *   **Random inflation:** inflation that varies by year, linked to returns, to show inflation risk to unindexed income.
 *   **Editable placement and growth-to-safety settings:** priority lists and user-set points, once the presets have been tested.
@@ -1039,7 +1038,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 | Stage | Content | Gate before starting |
 |---|---|---|
-| 0 | Repository setup, conventions documents, config contract and 2026 values, tax fixtures, placeholder app | O16 checked with the test friends |
+| 0 | Repository setup, conventions documents, config contract and 2026 values, tax fixtures, placeholder app | O16 checked with the test friends (done 2026-11-19) |
 | 1 | Tax for one person (`jurisdiction/*`, `tax/personalTax.ts`) | Stage 0 config validated |
 | 2 | Couple engine with fixed returns: `units`, `accounts/*`, `benefits/*`, `withdraw/*` (all four strategies), `tax/split.ts`, `solver/*`, `project/workingYear.ts`, `project/runPath.ts`, `invest/*`, rule overrides, invariants | O25, O26, O29 |
 | 3 | Deaths and estate (`project/death.ts`); reference plan test | — |
@@ -1277,7 +1276,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 *   **Type / Scope**: Rule values, following the [Config contract](#config-contract).
 *   **Proposed Changes**: Every key in `SOURCES.md`, fetched and validated per the admin guide. `market.json` holds:
     *   FP Canada returns for the six classes and inflation;
-    *   one cash yield per class;
+    *   one cash yield per class (author decisions, O30);
     *   the foreign withholding rate.
 
 ##### 22. `./config/2026/planning.json` and `./config/2026/warnings.json` (Create)
