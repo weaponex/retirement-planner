@@ -17,9 +17,8 @@ export type AssetClass = (typeof ASSET_CLASSES)[number];
 /** Shape of a key's `value`. */
 export type ValueKind =
   | 'number' // a single number
-  | 'brackets' // [{ from, rate }]
+  | 'brackets' // [{ from, rate, indexed? }]: a row's indexed overrides the entry flag
   | 'ageTable' // { "71": 0.0528, ... }
-  | 'schedule' // [{ from, amount }]
   | 'phaseIn' // [{ from, rate, cap }]: previous row's cap + rate x (income - from), up to this cap
   | 'list' // [number, ...]
   | 'object'; // structured planning value, validated by its own schema

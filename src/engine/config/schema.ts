@@ -26,7 +26,6 @@ const valueSchemas: Record<ValueKind, z.ZodTypeAny> = {
     )
     .min(1),
   ageTable: z.record(z.string().regex(/^\d+$/), finite),
-  schedule: z.array(z.object({ from: finite.nonnegative(), amount: finite }).strict()).min(1),
   phaseIn: z
     .array(
       z.object({ from: finite.nonnegative(), rate: finite.nonnegative(), cap: finite }).strict(),
