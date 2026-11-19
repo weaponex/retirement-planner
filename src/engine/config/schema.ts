@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { CONFIG_YEAR_MAX, CONFIG_YEAR_MIN, WEIGHT_SUM_TOLERANCE } from '../constants';
-import { ASSET_CLASSES, KEY_SPECS, type KeySpec, type ValueKind } from './keys';
+import { CONFIG_YEAR_MAX, CONFIG_YEAR_MIN } from '../constants';
+import { KEY_SPECS, type KeySpec, type ValueKind } from './keys';
 
 export const UNITS = [
   'CAD_per_year',
@@ -36,7 +36,10 @@ const valueSchemas: Record<ValueKind, z.ZodTypeAny> = {
   object: z.unknown(),
 };
 
-const assetClass = z.enum(ASSET_CLASSES);
+// Placement presets have three columns (design: Placement presets): cash follows
+// the bonds column; U.S., international and emerging-market stocks follow the
+// global stocks column.
+const presetColumn = z.enum(['bonds', 'global_equity', 'cad_equity']);
 const accountGroup = z.enum(['registered', 'tfsa', 'nonreg']);
 
 /** Schemas for structured planning values, by key. */
@@ -55,21 +58,8 @@ export const objectSchemas: Record<string, z.ZodTypeAny> = {
   ),
   'planning.presets': z.record(
     z.enum(['bonds_sheltered_first', 'growth_tax_free_first']),
-    z.record(assetClass, z.array(accountGroup).length(accountGroup.options.length)),
+    z.record(presetColumn, z.array(accountGroup).length(accountGroup.options.length)),
   ),
-  'planning.comparison_bracket_target': z
-    .object({ ref: z.literal('federal.tax.brackets'), bracketIndex: z.number().int().min(0) })
-    .strict(),
-  'planning.global_equity_weights': z
-    .object({
-      us: finite.min(0).max(1),
-      intl_developed: finite.min(0).max(1),
-      emerging: finite.min(0).max(1),
-    })
-    .strict()
-    .refine((w) => Math.abs(w.us + w.intl_developed + w.emerging - 1) < WEIGHT_SUM_TOLERANCE, {
-      message: 'weights must sum to 1',
-    }),
   'warnings.triggers': z.record(z.string(), z.record(z.string(), finite)),
   'warnings.nudge_steps': z.record(z.string(), finite),
 };

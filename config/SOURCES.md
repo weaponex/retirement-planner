@@ -5,10 +5,10 @@ The complete list of config keys. `npm run config:check` fails unless it matches
 lists the same keys and is kept in step by hand.
 
 Tax and benefit rules (`federal.json`, `ontario.json`) are fetched twice, independently, and
-compared. Market assumptions (`market.json`) and the FP Canada life-expectancy tables
+compared. Market returns and inflation (`market.json`) and the FP Canada life-expectancy tables
 (`planning.life_expectancy.*`) are fetched once and spot-checked by the admin. See
 `docs/admin-config-guide.md`. Each value comes from the page listed here, from the place
-described. Author decisions are not fetched.
+described. Author decisions, including the market yields (O30), are not fetched.
 
 **Status of this list (2026-11-17):**
 
@@ -23,15 +23,23 @@ described. Author decisions are not fetched.
   show it (checked on 2026-11-18, values not recorded). OAS and CPP amounts now come from the
   ESDC quarterly table for January to March 2026, since the OAS payments page only shows the
   current quarter. Ontario probate must be read by the admin; e-Laws refuses automated fetches.
-- **Default fees (author, 2026-11-18):** the MER of an iShares core index ETF for each class:
-  XIC (Canadian stocks), XAW (global stocks), XBB (bonds).
+- **Revised 2026-11-19 (SR-2):** six asset classes matching FP Canada's published classes
+  (`cad_equity`, `us_equity`, `intl_equity`, `em_equity`, `bonds`, `cash`) replace the
+  three-class list and the 60/30/10 global blend. Removed: `market.global_equity.components.*`,
+  `market.<class>.fee` (fees are now named levels, `planning.fee_levels`),
+  `planning.global_equity_weights`, `planning.stock_split.cad_share` and
+  `planning.comparison_bracket_target`. The six
+  `market.<class>.yield` values are author decisions (O30, 2026-11-19): set and validated by
+  the author, not fetched or refreshed. Their factsheets are listed as references only; cash's
+  yield equals `market.cash.geometric_return`.
 - **Decided 2026-11-18:**
   - Version 1 uses fixed returns, so there are no volatility or correlation keys (O22 withdrawn).
   - Market values are fetched once and spot-checked by the admin; only the federal and Ontario
     rules are fetched twice and compared.
   - Each class has one cash yield; its income type is fixed by the design (Canadian stocks:
-    eligible dividends; global stocks: foreign dividends; bonds: interest). Yields come from
-    factsheets that change monthly; record each factsheet's as-of date.
+    eligible dividends; U.S., international and emerging-market stocks: foreign dividends;
+    bonds and cash: interest). (Revised 2026-11-19, O30: the yields are author decisions; see
+    above.)
   - The Ontario LIF minimum and the LIRA conversion deadline have no keys of their own: FSRA
     policy L200-303 applies the federal RRIF minimum, and a LIRA is an RRSP, so the engine uses
     `federal.rrif.min_factor` and `federal.rrif.latest_conversion_age`.
@@ -101,21 +109,22 @@ described. Author decisions are not fetched.
 | `ontario.health_premium.schedule` | CAD_per_year | https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan/t4127-jan-payroll-deductions-formulas-computer-programs.html | Chapter 4, Step 5, Ontario Health Premium (factor V2) |
 | `ontario.lif.max_factor` | rate | https://www.fsrao.ca/industry/pensions/regulatory-framework/guidance-pensions/life-income-fund-lif-and-locked-retirement-income-fund-lrif-maximum-annual-income-payment-amount-table | "Appendix A: maximum annual income payment amount table for an Ontario LIF or LRIF": percentage by age (ages 41 to 90). The table holds for any year while the CANSIM V122487 rate stays at or below 6.00%. Fetch with curl (see the status notes) |
 
-## Market assumptions (FP Canada returns; yields from factsheets; fetched once and spot-checked)
+## Market assumptions (FP Canada returns fetched once and spot-checked; yields are author decisions, O30)
 
 | Key | Unit | Source URL | Where on the page |
 |---|---|---|---|
-| `market.cad_equity.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumption: cad_equity (compound, before fees) |
-| `market.cad_equity.yield` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xic-ishares-core-s-p-tsx-capped-composite-index-etf-fund-fact-sheet-en-ca.pdf | iShares XIC factsheet, "Portfolio Characteristics", "Distribution Yield"; record the as-of date in the locator |
-| `market.cad_equity.fee` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xic-ishares-core-s-p-tsx-capped-composite-index-etf-fund-fact-sheet-en-ca.pdf | iShares XIC factsheet, "Fees and Charges", "Management Expense Ratio (MER)"; record the as-of date |
-| `market.global_equity.components.us` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: U.S. equities (compound, before fees) |
-| `market.global_equity.components.intl_developed` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: International developed-market equities (compound, before fees) |
-| `market.global_equity.components.emerging` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: Emerging-market equities (compound, before fees) |
-| `market.global_equity.yield` | rate | https://www.msci.com/documents/10199/255599/msci-usa-index-net.pdf , https://www.msci.com/documents/10199/255599/msci-eafe-index-cad-net.pdf , https://www.msci.com/documents/10199/255599/msci-emerging-markets-index-cad-net.pdf | MSCI index factsheets, "Fundamentals", "Div Yld (%)" for USA, EAFE and Emerging Markets; value = 0.6 × USA + 0.3 × EAFE + 0.1 × EM (`planning.global_equity_weights`). Record the three yields and the as-of date in the locator |
-| `market.global_equity.fee` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xaw-ishares-core-msci-all-country-world-ex-canada-index-etf-fund-fact-sheet-en-ca.pdf | iShares XAW (Core MSCI All Country World ex Canada) factsheet, "Fees and Charges", "Management Expense Ratio (MER)"; record the as-of date |
-| `market.bonds.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return assumptions, section 5 c: Fixed income (compound, before fees) |
-| `market.bonds.yield` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf | iShares XBB factsheet, "Portfolio Characteristics", "Weighted Average Coupon" (not the yield to maturity); record the as-of date in the locator |
-| `market.bonds.fee` | rate | https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf | iShares XBB factsheet, "Fees and Charges", "Management Expense Ratio (MER)"; record the as-of date |
+| `market.cad_equity.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return rates (nominal), section 5 c: Canadian equities (compound, before fees) |
+| `market.cad_equity.yield` | rate | author decision (O30, 2026-11-19) | reference: XIC Distribution Yield (iShares XIC factsheet, "Portfolio Characteristics", https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xic-ishares-core-s-p-tsx-capped-composite-index-etf-fund-fact-sheet-en-ca.pdf) |
+| `market.us_equity.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return rates (nominal), section 5 c: U.S. equities (compound, before fees) |
+| `market.us_equity.yield` | rate | author decision (O30, 2026-11-19) | reference: MSCI USA Div Yld (%) (MSCI USA index factsheet, "Fundamentals", https://www.msci.com/documents/10199/255599/msci-usa-index-net.pdf) |
+| `market.intl_equity.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return rates (nominal), section 5 c: International developed-market equities (compound, before fees) |
+| `market.intl_equity.yield` | rate | author decision (O30, 2026-11-19) | reference: MSCI EAFE Div Yld (%) (MSCI EAFE index factsheet, "Fundamentals", https://www.msci.com/documents/10199/255599/msci-eafe-index-cad-net.pdf) |
+| `market.em_equity.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return rates (nominal), section 5 c: Emerging-market equities (compound, before fees) |
+| `market.em_equity.yield` | rate | author decision (O30, 2026-11-19) | reference: MSCI Emerging Markets Div Yld (%) (MSCI Emerging Markets index factsheet, "Fundamentals", https://www.msci.com/documents/10199/255599/msci-emerging-markets-index-cad-net.pdf) |
+| `market.bonds.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return rates (nominal), section 5 c: Fixed income (compound, before fees) |
+| `market.bonds.yield` | rate | author decision (O30, 2026-11-19) | reference: XBB Weighted Average Coupon, not the yield to maturity (iShares XBB factsheet, "Portfolio Characteristics", https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf) |
+| `market.cash.geometric_return` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Return rates (nominal), section 5 c: short-term rate (compound, before fees) |
+| `market.cash.yield` | rate | author decision (O30, 2026-11-19) | equals `market.cash.geometric_return` (the whole return is paid as interest) |
 | `market.inflation` | rate | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Inflation rate assumption |
 | `market.foreign_withholding_rate` | rate | https://www.canada.ca/en/department-finance/programs/tax-policy/tax-treaties/country/united-states-america-convention-consolidated-1980-1983-1984-1995-1997-2007.html | Canada–U.S. tax convention (consolidated to the 2007 protocol), Article X, paragraph 2(b): rate "in all other cases" (portfolio holdings) |
 ## Planning
@@ -126,9 +135,10 @@ described. Author decisions are not fetched.
 | `planning.life_expectancy.male` | age | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Probability-of-survival table, 25% column, male, one entry per current age row (20, 25, … 100) |
 | `planning.shapes` | none | author decision | Design values (version 1) |
 | `planning.presets` | none | author decision | Design values (version 1) |
-| `planning.comparison_bracket_target` | none | author decision | Design values (version 1) |
-| `planning.global_equity_weights` | none | author decision | Design values (version 1) |
-| `planning.stock_split.cad_share` | rate | author decision | Design values (version 1) |
+| `planning.mixes` | none | author decision, open (O24) | Design values (version 1) |
+| `planning.fee_levels` | none | author decision, open (O25) | Design values (version 1) |
+| `planning.spending_phases` | none | author decision, open (O27) | Design values (version 1) |
+| `planning.planner_search` | none | author decision, open (O31) | Design values (version 1) |
 | `planning.survivor_spending` | rate | author decision | Design values (version 1) |
 | `planning.override_margin` | rate | author decision | Design values (version 1) |
 

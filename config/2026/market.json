@@ -13,32 +13,102 @@
       "status": "unvalidated"
     }
   },
-  "market.cad_equity.fee": {
-    "value": 0.0006,
+  "market.cad_equity.yield": {
+    "value": 0.02,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
       "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xic-ishares-core-s-p-tsx-capped-composite-index-etf-fund-fact-sheet-en-ca.pdf",
-      "locator": "iShares XIC factsheet, October 2026 (as at 31-Oct-2026), Fees and Charges: Management Expense Ratio (MER) 0.06%"
+      "locator": "iShares XIC fund factsheet (October 2026), page 1, 'Portfolio Characteristics', 'Distribution Yield : 2.00%'; as at 31-Oct-2026."
     },
     "fetchedOn": "2026-11-18",
     "validation": {
       "status": "unvalidated"
     }
   },
-  "market.global_equity.fee": {
-    "value": 0.0022,
+  "market.us_equity.geometric_return": {
+    "value": 0.064,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xaw-ishares-core-msci-all-country-world-ex-canada-index-etf-fund-fact-sheet-en-ca.pdf",
-      "locator": "iShares XAW factsheet, October 2026 (as at 31-Oct-2026), Fees and Charges: Management Expense Ratio (MER) 0.22%"
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "p.3 Guidelines for 2026, c) Return rates (nominal): U.S. equities 6.4%; section 5 c) same"
     },
     "fetchedOn": "2026-11-18",
     "validation": {
       "status": "unvalidated"
+    }
+  },
+  "market.us_equity.yield": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "source to choose (O30)"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.intl_equity.geometric_return": {
+    "value": 0.066,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "p.3 Guidelines for 2026, c) Return rates (nominal): International developed-market equities 6.6%; section 5 c) same"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "market.intl_equity.yield": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "source to choose (O30)"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.em_equity.geometric_return": {
+    "value": 0.075,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "p.3 Guidelines for 2026, c) Return rates (nominal): Emerging market equities 7.5%; section 5 c) same"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "market.em_equity.yield": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "source to choose (O30)"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
     }
   },
   "market.bonds.geometric_return": {
@@ -55,18 +125,46 @@
       "status": "unvalidated"
     }
   },
-  "market.bonds.fee": {
-    "value": 0.001,
+  "market.bonds.yield": {
+    "value": 0.0347,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
       "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf",
-      "locator": "iShares XBB factsheet, October 2026 (as at 31-Oct-2026), Fees and Charges: Management Expense Ratio (MER) 0.10%"
+      "locator": "iShares XBB fund factsheet (October 2026), page 1, 'Portfolio Characteristics', 'Weighted Average Coupon : 3.47%' (not Weighted Avg YTM 4.02% or Distribution Yield 3.58%); as at 31-Oct-2026."
     },
     "fetchedOn": "2026-11-18",
     "validation": {
       "status": "unvalidated"
+    }
+  },
+  "market.cash.geometric_return": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "market.cash.yield": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "source to choose (O30)"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
     }
   },
   "market.inflation": {
@@ -91,90 +189,6 @@
     "source": {
       "url": "https://www.canada.ca/en/department-finance/programs/tax-policy/tax-treaties/country/united-states-america-convention-consolidated-1980-1983-1984-1995-1997-2007.html",
       "locator": "Canada-U.S. tax convention, consolidated text as amended by the protocols of 1983, 1984, 1995, 1997 and 2007, Article X (Dividends), paragraph 2(b): 15 per cent of the gross amount of the dividends in all other cases (2(a), 5 percent, is for companies owning at least 10% of the voting stock)"
-    },
-    "fetchedOn": "2026-11-18",
-    "validation": {
-      "status": "unvalidated"
-    }
-  },
-  "market.global_equity.components.us": {
-    "value": 0.064,
-    "unit": "rate",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
-      "locator": "p.3 Guidelines for 2026, c) Return rates (nominal): U.S. equities 6.4%; section 5 c) same"
-    },
-    "fetchedOn": "2026-11-18",
-    "validation": {
-      "status": "unvalidated"
-    }
-  },
-  "market.global_equity.components.intl_developed": {
-    "value": 0.066,
-    "unit": "rate",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
-      "locator": "p.3 Guidelines for 2026, c) Return rates (nominal): International developed-market equities 6.6%; section 5 c) same"
-    },
-    "fetchedOn": "2026-11-18",
-    "validation": {
-      "status": "unvalidated"
-    }
-  },
-  "market.global_equity.components.emerging": {
-    "value": 0.075,
-    "unit": "rate",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
-      "locator": "p.3 Guidelines for 2026, c) Return rates (nominal): Emerging market equities 7.5%; section 5 c) same"
-    },
-    "fetchedOn": "2026-11-18",
-    "validation": {
-      "status": "unvalidated"
-    }
-  },
-  "market.cad_equity.yield": {
-    "value": 0.02,
-    "unit": "rate",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xic-ishares-core-s-p-tsx-capped-composite-index-etf-fund-fact-sheet-en-ca.pdf",
-      "locator": "iShares XIC fund factsheet (October 2026), page 1, 'Portfolio Characteristics', 'Distribution Yield : 2.00%'; as at 31-Oct-2026."
-    },
-    "fetchedOn": "2026-11-18",
-    "validation": {
-      "status": "unvalidated"
-    }
-  },
-  "market.global_equity.yield": {
-    "value": 0.01704,
-    "unit": "rate",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "https://www.msci.com/documents/10199/255599/msci-usa-index-net.pdf , https://www.msci.com/documents/10199/255599/msci-eafe-index-cad-net.pdf , https://www.msci.com/documents/10199/255599/msci-emerging-markets-index-cad-net.pdf",
-      "locator": "MSCI index factsheets, page 1, 'FUNDAMENTALS (OCT 30, 2026)', 'Div Yld (%)', the index's own row: MSCI USA Index (USD) 1.13 (as of Oct 30, 2026); MSCI EAFE Index (CAD) 2.69 (as of Oct 30, 2026); MSCI Emerging Markets Index (CAD) 2.19 (as of Oct 30, 2026). Value = 0.6 x 1.13% + 0.3 x 2.69% + 0.1 x 2.19% = 1.704% (planning.global_equity_weights us 0.6, intl_developed 0.3, emerging 0.1), rounded to 6 decimals."
-    },
-    "fetchedOn": "2026-11-18",
-    "validation": {
-      "status": "unvalidated"
-    }
-  },
-  "market.bonds.yield": {
-    "value": 0.0347,
-    "unit": "rate",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf",
-      "locator": "iShares XBB fund factsheet (October 2026), page 1, 'Portfolio Characteristics', 'Weighted Average Coupon : 3.47%' (not Weighted Avg YTM 4.02% or Distribution Yield 3.58%); as at 31-Oct-2026."
     },
     "fetchedOn": "2026-11-18",
     "validation": {

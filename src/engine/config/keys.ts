@@ -3,7 +3,15 @@
 // this list. `npm run config:check` fails unless config/SOURCES.md lists exactly
 // these keys; the design is kept in step by hand.
 
-export const ASSET_CLASSES = ['cad_equity', 'global_equity', 'bonds'] as const;
+// Persisted ids (design: Config contract). These match FP Canada's published classes.
+export const ASSET_CLASSES = [
+  'cad_equity',
+  'us_equity',
+  'intl_equity',
+  'em_equity',
+  'bonds',
+  'cash',
+] as const;
 export type AssetClass = (typeof ASSET_CLASSES)[number];
 
 /** Shape of a key's `value`. */
@@ -96,18 +104,11 @@ export const KEY_SPECS: readonly KeySpec[] = [
   ...rule('ontario', 'ageTable', ['ontario.lif.max_factor']),
 
   // Market assumptions. Returns are fixed (no volatility or correlation).
-  // Each class pays one income type, set by the design: Canadian stocks eligible
-  // dividends, global stocks foreign dividends, bonds interest.
-  ...rule('market', 'number', perClass(['yield', 'fee'])),
-  // Compound returns. FP Canada has no single "global" figure, so global equity
-  // is a blend of three published returns using planning.global_equity_weights.
-  ...rule('market', 'number', [
-    'market.cad_equity.geometric_return',
-    'market.bonds.geometric_return',
-    'market.global_equity.components.us',
-    'market.global_equity.components.intl_developed',
-    'market.global_equity.components.emerging',
-  ]),
+  // Each class has FP Canada's compound return and one cash yield; its income
+  // type is set by the design: Canadian stocks eligible dividends; U.S.,
+  // international and emerging-market stocks foreign dividends; bonds and cash
+  // interest. Fees are not market values: see planning.fee_levels.
+  ...rule('market', 'number', perClass(['geometric_return', 'yield'])),
   ...rule('market', 'number', ['market.inflation', 'market.foreign_withholding_rate']),
 
   // Planning: FP Canada life expectancy is sourced; the rest are author decisions.
@@ -119,14 +120,12 @@ export const KEY_SPECS: readonly KeySpec[] = [
   ...author('planning', 'object', [
     'planning.shapes',
     'planning.presets',
-    'planning.comparison_bracket_target',
-    'planning.global_equity_weights',
+    'planning.mixes',
+    'planning.fee_levels',
+    'planning.spending_phases',
+    'planning.planner_search',
   ]),
-  ...author('planning', 'number', [
-    'planning.stock_split.cad_share',
-    'planning.survivor_spending',
-    'planning.override_margin',
-  ]),
+  ...author('planning', 'number', ['planning.survivor_spending', 'planning.override_margin']),
 
   // Warnings
   ...author('warnings', 'object', ['warnings.triggers', 'warnings.nudge_steps']),

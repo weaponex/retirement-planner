@@ -171,39 +171,60 @@
       "on": "2026-11-17"
     }
   },
-  "planning.comparison_bracket_target": {
-    "value": {
-      "ref": "federal.tax.brackets",
-      "bracketIndex": 0
-    },
+  "planning.mixes": {
+    "value": null,
     "unit": "none",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "author decision, 2026-11-17",
+      "url": "author decision, open (O24)",
       "locator": "docs/designs/retirement-planner.md#design-values-version-1"
     },
-    "fetchedOn": "2026-11-17",
+    "fetchedOn": null,
     "validation": {
-      "status": "validated",
-      "by": "weaponex",
-      "on": "2026-11-17"
+      "status": "unfetched"
     }
   },
-  "planning.stock_split.cad_share": {
-    "value": 0.3,
-    "unit": "rate",
+  "planning.fee_levels": {
+    "value": null,
+    "unit": "none",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "author decision, 2026-11-17",
+      "url": "author decision, open (O25)",
       "locator": "docs/designs/retirement-planner.md#design-values-version-1"
     },
-    "fetchedOn": "2026-11-17",
+    "fetchedOn": null,
     "validation": {
-      "status": "validated",
-      "by": "weaponex",
-      "on": "2026-11-17"
+      "status": "unfetched"
+    }
+  },
+  "planning.spending_phases": {
+    "value": null,
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, open (O27)",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "planning.planner_search": {
+    "value": null,
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, open (O31)",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
     }
   },
   "planning.survivor_spending": {
@@ -230,26 +251,6 @@
     "source": {
       "url": "author decision, 2026-11-17",
       "locator": "docs/designs/retirement-planner.md#design-values-version-1 (matches FP Canada 2026 PAG section 3 d, deviation margin of 0.5%)"
-    },
-    "fetchedOn": "2026-11-17",
-    "validation": {
-      "status": "validated",
-      "by": "weaponex",
-      "on": "2026-11-17"
-    }
-  },
-  "planning.global_equity_weights": {
-    "value": {
-      "us": 0.6,
-      "intl_developed": 0.3,
-      "emerging": 0.1
-    },
-    "unit": "none",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "author decision, 2026-11-17",
-      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
     },
     "fetchedOn": "2026-11-17",
     "validation": {
