@@ -672,11 +672,12 @@ Revised 2026-11-19 (author), replacing one yearly amount per phase.
 
 *   **Monthly and after tax:** the user enters what they would spend in a typical month early in retirement, after tax, in today's dollars, because that is how people think about spending. Yearly totals are shown beside each phase.
 *   **Two ways to enter it:** "By category" (default) or "One total" (a single monthly amount).
-*   **Categories (O17), in five groups that open and close:**
+*   **Categories (O17), in six groups that open and close:**
     *   Home and utilities: Mortgage and rent, Property tax, Hydro, Gas and fuel, Internet, Mobile phone;
     *   Getting around: Auto payment, Auto gas, Public transportation;
     *   Insurance and banking: Home and auto insurance, Life insurance, Disability insurance, Bank fees;
     *   Food and drink: Groceries, Restaurants, Fast food, Alcohol and bars;
+    *   Travel: Transportation, Accommodations, Food and drink, Activities, Travel insurance, Gear, Shopping (added 2026-11-19, author). Their ids carry a `travel_` prefix, so travel shopping and everyday shopping stay separate;
     *   Everyday and other: Shopping, Pharmacy, Gifts and donations, Cash, Other.
 
     Category ids are persisted and must not change once plans are saved.
