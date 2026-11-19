@@ -76,6 +76,7 @@ export const KEY_SPECS: readonly KeySpec[] = [
     'federal.cpp.survivor.pct_under_65',
     'federal.cpp.survivor.max_combined',
     'federal.rrif.latest_conversion_age',
+    'federal.rrif.min_factor_base_age',
     'federal.tfsa.annual_limit',
     'federal.split.max_share',
     'federal.split.min_age_rrif',

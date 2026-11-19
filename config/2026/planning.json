@@ -110,12 +110,14 @@
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "author decision, 2026-11-19 (placeholder, open question O26)",
-      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+      "url": "author decision, 2026-11-19",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1 (O26: values accepted by the author)"
     },
     "fetchedOn": "2026-11-19",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
     }
   },
   "planning.presets": {

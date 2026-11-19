@@ -1,6 +1,6 @@
 # Admin guide: updating the config
 
-The admin is the author, for now. Run this each January for the new tax year.
+The admin is the author, for now. Refreshing the defaults is optional: users can change any rule value in Settings, and indexed values grow from the defaults' tax year. When you do refresh (for example each January), follow these steps for the new tax year. If you refresh, also check that the CANSIM V122487 rate is still 6% or less, because the Ontario LIF maximum table assumes it.
 
 Rule values are never typed in from memory, by a person or an AI. They are fetched from the
 pages listed in [config/SOURCES.md](../config/SOURCES.md). Tax and benefit rules

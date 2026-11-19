@@ -605,5 +605,21 @@
       "by": "weaponex",
       "on": "2026-11-19"
     }
+  },
+  "federal.rrif.min_factor_base_age": {
+    "value": 90,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/completing-slips-summaries/t4rsp-t4rif-information-returns/payments/chart-prescribed-factors.html",
+      "locator": "Chart of prescribed factors: ages 70 and under use '1 divided by (90 minus the age)'. Value taken from the federal.rrif.min_factor entry's locator, fetched 2026-11-18."
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
   }
 }
