@@ -42,7 +42,7 @@ const valueSchemas: Record<ValueKind, z.ZodTypeAny> = {
 const presetColumn = z.enum(['bonds', 'global_equity', 'cad_equity']);
 const accountGroup = z.enum(['registered', 'tfsa', 'nonreg']);
 
-/** Schemas for structured planning values, by key. */
+/** Schemas for structured planning values, by key. Shapes hold changes to the user's stock share (design: Growth-to-safety shapes). */
 export const objectSchemas: Record<string, z.ZodTypeAny> = {
   'planning.shapes': z.record(
     z.enum(['steady', 'gradual_shift', 'safety_first_regrow']),
@@ -50,7 +50,7 @@ export const objectSchemas: Record<string, z.ZodTypeAny> = {
       .object({
         points: z
           .array(
-            z.object({ yearsFromRetirement: finite, stockShare: finite.min(0).max(1) }).strict(),
+            z.object({ yearsFromRetirement: finite, stockChange: finite.min(-1).max(1) }).strict(),
           )
           .min(1),
       })

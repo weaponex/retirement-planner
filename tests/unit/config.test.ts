@@ -80,9 +80,9 @@ describe('checkEntry', () => {
 
   it('validates structured planning values', () => {
     const shapes = spec('planning.shapes');
-    const good = { steady: { points: [{ yearsFromRetirement: 0, stockShare: 0.6 }] } };
+    const good = { steady: { points: [{ yearsFromRetirement: 0, stockChange: -0.1 }] } };
     expect(checkEntry(shapes, validated(good, 'none'))).toEqual([]);
-    const bad = { steady: { points: [{ yearsFromRetirement: 0, stockShare: 1.6 }] } };
+    const bad = { steady: { points: [{ yearsFromRetirement: 0, stockChange: 1.6 }] } };
     expect(checkEntry(shapes, validated(bad, 'none')).length).toBeGreaterThan(0);
   });
 });

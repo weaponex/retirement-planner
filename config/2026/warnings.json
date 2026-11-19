@@ -38,7 +38,6 @@
     "value": {
       "spending_phase_pct": 0.05,
       "cpp_oas_start_years": 1,
-      "bracket_target_today": 5000,
       "retirement_year": 1,
       "survivor_pct_points": 0.05
     },
@@ -46,14 +45,12 @@
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "author decision, 2026-11-17",
-      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+      "url": "author decision, 2026-11-19",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1 (bracket level nudges to the other level, so it has no step value)"
     },
-    "fetchedOn": "2026-11-17",
+    "fetchedOn": "2026-11-19",
     "validation": {
-      "status": "validated",
-      "by": "weaponex",
-      "on": "2026-11-17"
+      "status": "unvalidated"
     }
   }
 }

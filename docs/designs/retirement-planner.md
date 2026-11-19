@@ -3,7 +3,7 @@
 *   **Author:** weaponex
 *   **Status:** Proposed
 *   **Date:** 2026-11-17
-*   **Review:** EGM interactive review (Stages 5–9) on 2026-11-17. Round-1 findings were resolved with the author in `docs/reviews/2026-11-17/goldfish_review_report.md`. Stage 9 was re-run once (`implementation_readiness_report_r2.md`): all three reviewers rated the plan "Ready with fixes", with no Blockers. The author concluded the review with the round-2 findings open; they are listed in [Known gaps from review](#known-gaps-from-review) and must be closed before the stage each affects. The 2026-11-18 revision (fixed returns, config sources) had a focused review only (`docs/reviews/2026-11-18/focused_review_report.md`, "Ready with fixes"); its open findings are in the same table, prefixed `FR-`. The 2026-11-19 revision (screens redesigned from clickable mockups with the author: six tabs including Savings, Estate and Results, a Settings screen for every rule value, live recalculation, spending by category, a user-set investment mix with six asset classes, and four withdrawal strategies) has not been reviewed; see [Screen design revision (2026-11-19)](#screen-design-revision-2026-11-19) and its open questions, O24–O31.
+*   **Review:** EGM interactive review (Stages 5–9) on 2026-11-17. Round-1 findings were resolved with the author in `docs/reviews/2026-11-17/goldfish_review_report.md`. Stage 9 was re-run once (`implementation_readiness_report_r2.md`): all three reviewers rated the plan "Ready with fixes", with no Blockers. The author concluded the review with the round-2 findings open; they are listed in [Known gaps from review](#known-gaps-from-review) and must be closed before the stage each affects. The 2026-11-18 revision (fixed returns, config sources) had a focused review only (`docs/reviews/2026-11-18/focused_review_report.md`, "Ready with fixes"); its open findings are in the same table, prefixed `FR-`. The 2026-11-19 revision (screens redesigned from clickable mockups with the author: six tabs including Savings, Estate and Results, a Settings screen for every rule value, live recalculation, spending by category, a user-set investment mix with six asset classes, and four withdrawal strategies) had a focused review (`docs/reviews/2026-11-19/focused_review_report.md`, "Ready with fixes"); its open findings are in the same table, prefixed `SR1-`. See [Screen design revision (2026-11-19)](#screen-design-revision-2026-11-19) and its open questions, O24–O31.
 *   **Brief:** [concepts_brief.md](../../concepts_brief.md). Open-question numbers (O1–O23) refer to it; see [Open Questions](#open-questions).
 
 --------------------------------------------------------------------------------
@@ -992,7 +992,7 @@ Decisions marked "author" were made by the document's author and are recorded in
 
 ### Known gaps from review
 
-The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.md`) left 18 Major and 21 Nit findings open; some have since been fixed or withdrawn, as marked. The focused review of the 2026-11-18 changes (`docs/reviews/2026-11-18/focused_review_report.md`, "Ready with fixes") added 20 Major and 24 Nit findings; its IDs are prefixed `FR-` below. Each Major must be fixed in this document before the stage named below starts. Nits are fixed when their file is built; r2 Nits N12, N13 and N16 are moot (benchmark and stress paths removed).
+The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.md`) left 18 Major and 21 Nit findings open; some have since been fixed or withdrawn, as marked. The focused review of the 2026-11-18 changes (`docs/reviews/2026-11-18/focused_review_report.md`, "Ready with fixes") added 20 Major and 24 Nit findings; its IDs are prefixed `FR-` below. Each Major must be fixed in this document before the stage named below starts. The 2026-11-19 focused review (`docs/reviews/2026-11-19/focused_review_report.md`, "Ready with fixes") added 13 Major and 20 Nit findings, prefixed `SR1-`. Nits are fixed when their file is built; r2 Nits N12, N13 and N16 are moot (benchmark and stress paths removed).
 
 | Finding | Gap | Close before |
 |---|---|---|
@@ -1027,8 +1027,21 @@ The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.
 | M3 | 70% coverage target for non-engine code is unreachable without UI tests; gate start date disagrees (lines in Vitest config vs Verification Plan) | Stage 5 |
 | M4 | Store and persistence tests need a browser-like test environment (jsdom or happy-dom) | Stage 5 |
 | M2 | CUJ 6 test-config build: how `VITE_CONFIG_SET=test` reaches a statically imported bundle (CUJ 6 is now user changes in Settings; this may be moot) | Stage 5 |
-| SR-1 | 2026-11-19 screen revision not reviewed: the whole revision needs at least a focused review | Stage 1 |
-| SR-2 | Key tree changed (six classes, fee levels, new planning keys; five keys removed): update `keys.ts`, `SOURCES.md`, the 2026 config files and the fetch candidates | Stage 0 tag |
+| ~~SR-1~~ | Fixed: focused review done (`docs/reviews/2026-11-19/focused_review_report.md`, "Ready with fixes"); its open findings are below, prefixed `SR1-` | — |
+| ~~SR-2~~ | Fixed: `keys.ts`, `SOURCES.md` and the 2026 config follow the key tree, including the shape, nudge-step and yield entries (SR1-M1). The fetch candidates in `private/` still use the old keys | — |
+| ~~SR1-M1~~ | Fixed: `planning.shapes` holds stock changes (placeholders, unvalidated until O26); the bracket-target nudge step is removed; the six yields are sourced as author decisions | — |
+| SR1-M2 | Live recalculation: how stale runs are cancelled (a Worker can't read new messages mid-run), revisions, when tips run, and incomplete inputs | Stage 4 (Worker); Stage 5 (store) |
+| SR1-M3 | One measurement point for the speed targets; tips under "Let the planner pick" multiply the run count | Stage 2 (measurement); Stage 4 (tips) |
+| SR1-M4 | Early RRSP drawdown: draw-down years, spouse choice and per-spouse limits as an implementable rule | Stage 2 |
+| SR1-M5 | "Let the planner pick": options, ranking, tie rule (with O31) | Stage 4 |
+| SR1-M6 | Which income the two bracket levels top up (taxable income before or after splitting; net income for the clawback level) | Stage 2 |
+| SR1-M7 | Shapes on the user's mix: reference year, and what happens when the change hits 0% or 100% | Stage 2 |
+| SR1-M8 | Spending: category ids, phase years and the spending nudge | Stage 5 |
+| SR1-M9 | Rule overrides: which keys, validation, units and import rules | Stage 2 |
+| SR1-M10 | No yearly refresh: indexing from the defaults' year, stale overrides; the admin guide still says "each January" | Stage 2 |
+| SR1-M11 | `Result` contract fields for the Results tab and strategy cards | Stage 4 |
+| SR1-M12 | Three gaps in the mitigations for the planner's pick being read as advice | Stage 5 |
+| SR1-M13 | Undecided items with no open question or gate | Stage 5 |
 | SR-3 | FR-M6 (which file owns each class's return) now covers six classes and one fee; the 60/30/10 blend part is moot | Stage 2 |
 | SR-4 | Open questions O24–O31 | As listed in [Open Questions](#open-questions) |
 

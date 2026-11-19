@@ -19,8 +19,8 @@
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xic-ishares-core-s-p-tsx-capped-composite-index-etf-fund-fact-sheet-en-ca.pdf",
-      "locator": "iShares XIC fund factsheet (October 2026), page 1, 'Portfolio Characteristics', 'Distribution Yield : 2.00%'; as at 31-Oct-2026."
+      "url": "author decision, 2026-11-19 (O30)",
+      "locator": "reference: XIC Distribution Yield; starting value from iShares XIC fund factsheet (October 2026), page 1, 'Portfolio Characteristics', 'Distribution Yield : 2.00%'; as at 31-Oct-2026."
     },
     "fetchedOn": "2026-11-18",
     "validation": {
@@ -47,8 +47,8 @@
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "source to choose (O30)"
+      "url": "author decision, 2026-11-19 (O30)",
+      "locator": "reference: MSCI USA Div Yld (%); value to set"
     },
     "fetchedOn": null,
     "validation": {
@@ -75,8 +75,8 @@
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "source to choose (O30)"
+      "url": "author decision, 2026-11-19 (O30)",
+      "locator": "reference: MSCI EAFE Div Yld (%); value to set"
     },
     "fetchedOn": null,
     "validation": {
@@ -103,8 +103,8 @@
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "source to choose (O30)"
+      "url": "author decision, 2026-11-19 (O30)",
+      "locator": "reference: MSCI Emerging Markets Div Yld (%); value to set"
     },
     "fetchedOn": null,
     "validation": {
@@ -131,8 +131,8 @@
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf",
-      "locator": "iShares XBB fund factsheet (October 2026), page 1, 'Portfolio Characteristics', 'Weighted Average Coupon : 3.47%' (not Weighted Avg YTM 4.02% or Distribution Yield 3.58%); as at 31-Oct-2026."
+      "url": "author decision, 2026-11-19 (O30)",
+      "locator": "reference: XBB Weighted Average Coupon; starting value from iShares XBB fund factsheet (October 2026), page 1, 'Portfolio Characteristics', 'Weighted Average Coupon : 3.47%' (not Weighted Avg YTM 4.02% or Distribution Yield 3.58%); as at 31-Oct-2026."
     },
     "fetchedOn": "2026-11-18",
     "validation": {
@@ -159,8 +159,8 @@
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "source to choose (O30)"
+      "url": "author decision, 2026-11-19 (O30)",
+      "locator": "equals market.cash.geometric_return (all interest); value to set"
     },
     "fetchedOn": null,
     "validation": {

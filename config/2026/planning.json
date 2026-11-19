@@ -69,7 +69,7 @@
         "points": [
           {
             "yearsFromRetirement": 0,
-            "stockShare": 0.6
+            "stockChange": 0
           }
         ]
       },
@@ -77,15 +77,15 @@
         "points": [
           {
             "yearsFromRetirement": -10,
-            "stockShare": 0.7
+            "stockChange": 0.1
           },
           {
             "yearsFromRetirement": 0,
-            "stockShare": 0.5
+            "stockChange": -0.1
           },
           {
             "yearsFromRetirement": 15,
-            "stockShare": 0.4
+            "stockChange": -0.2
           }
         ]
       },
@@ -93,15 +93,15 @@
         "points": [
           {
             "yearsFromRetirement": -5,
-            "stockShare": 0.6
+            "stockChange": 0
           },
           {
             "yearsFromRetirement": 0,
-            "stockShare": 0.4
+            "stockChange": -0.2
           },
           {
             "yearsFromRetirement": 15,
-            "stockShare": 0.6
+            "stockChange": 0
           }
         ]
       }
@@ -110,14 +110,12 @@
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "author decision, 2026-11-17",
+      "url": "author decision, 2026-11-19 (placeholder, open question O26)",
       "locator": "docs/designs/retirement-planner.md#design-values-version-1"
     },
-    "fetchedOn": "2026-11-17",
+    "fetchedOn": "2026-11-19",
     "validation": {
-      "status": "validated",
-      "by": "weaponex",
-      "on": "2026-11-17"
+      "status": "unvalidated"
     }
   },
   "planning.presets": {
