@@ -145,7 +145,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 
 *   **Given**: A couple opens the app for the first time. No plan is saved in the browser.
 *   **When**: They enter, tab by tab: on Household, birth years and months, retirement years and life expectancy targets; on Savings, accounts, balances, DB pension (if any) and their investment mix; on Spending, monthly spending by category or as one total; on Withdrawals, CPP and OAS start ages and a strategy; on Estate, the survivor spending percentage and legacy goal. Any value they don't enter keeps its default.
-*   **Then**: Results appear as soon as there is enough to calculate, and update as they go. The Results tab shows, in today's dollars, year-by-year income by source, account balances, tax by spouse, whether spending is covered every year (and the first year it isn't), the after-tax legacy, and any warnings. The plan is saved in the browser automatically.
+*   **Then**: Results appear as soon as there is enough to calculate, and update as they go. The Results tab shows, in today's dollars, their two goals first (whether spending is covered every year, and the first year it isn't; whether the after-tax legacy meets their goal), then any warnings, then charts of balances, income by source, tax by spouse and the estate. The plan is saved in the browser automatically.
 
 ### CUJ 2: Change one tab, see the others
 
@@ -256,7 +256,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 *   **Spending:** monthly after-tax spending by category or as one total, and the three phases ([Spending inputs](#spending-inputs)).
 *   **Withdrawals:** CPP and OAS start ages, RRSP and LIRA conversion, pension income splitting, and the strategy comparison with its income chart ([Withdrawals tab](#withdrawals-tab)).
 *   **Estate:** survivor spending, the legacy goal, the home, and the probate and beneficiary assumptions ([Death and estate](#death-and-estate-o12-o23)).
-*   **Results:** the headline numbers, what the last change did, warnings with tips, charts and the year-by-year table. Its tab label carries a badge: the warning count, "Updating", "Short from <year>" or "Error".
+*   **Results:** the two goals, warnings with tips, and four charts ([Results tab](#results-tab)). Its tab label carries a badge: the warning count, "Updating", "Short from <year>" or "Error".
 *   **Settings** (header link, not a tab): every rule value with its default and source, grouped as income tax, OAS, CPP, investing assumptions, and accounts ([Settings](#settings)).
 
 The brief named three planning areas. Household is added because ages feed all three; accounts and pensions moved to Savings, and death and legacy inputs to Estate, because users look for them there. There is no results panel on the input tabs: each input tab shows the results that belong to it (for example the strategy cards and income chart on Withdrawals, the placement comparison on Savings), and the full results are one tab away.
@@ -468,7 +468,7 @@ Years before the first retirement run in `project/workingYear.ts` instead:
 
     A variant identical to the user's choice reuses the user's result. Each comparison reports lifetime tax paired with after-tax money left. When the two move in opposite directions, the app says so and explains why. Explanations are fixed templates, not generated text. The strategy comparison is shown on the strategy cards, against "Registered last"; there is no separate comparison box.
 *   **No shape comparison:** with steady returns a safer growth-to-safety shape only lowers returns, so a comparison would always favour more stocks. The Savings tab says so instead of showing one.
-*   **Detail:** the user's plan returns every row and every account for the year-by-year table and charts. The other strategies return summary numbers plus, per year, income by source, tax, amount moved to the TFSA and the spending need, so the Withdrawals chart can switch strategy without a rerun. The placement baseline returns summary numbers only.
+*   **Detail:** the user's plan returns every row and every account, for the charts and their table views. The other strategies return summary numbers plus, per year, income by source, tax, amount moved to the TFSA and the spending need, so the Withdrawals chart can switch strategy without a rerun. The placement baseline returns summary numbers only.
 
 ### Warnings (O14)
 
@@ -710,7 +710,17 @@ The screens were redesigned with the author on 2026-11-19 from clickable mockups
 
 #### Results tab
 
-*   Headline tiles, "What your last change did", warnings with tips, then the charts and year-by-year table. A status line reads "Up to date · updates as you edit" or "Updating…". The badge on the tab label shows the warning count, "Updating", "Short from <year>" or "Error".
+Revised 2026-11-19 (author). Three sections, in this order; there is no year-by-year table.
+
+*   **Your goals.** Two cards side by side, each with a "Met" or "Missed" badge:
+    *   **Goal 1, spending covered every year:** the number of years covered out of the plan's years, a strip with one block per year (red for a short year), the first shortfall year and total shortfall if any, the "assuming deaths at the target ages and steady average returns" label, and a link to Spending.
+    *   **Goal 2, the legacy goal:** the projected after-tax legacy (including the home, after final-return tax and probate) against the goal set on Estate, the amount above or below it, a bar with the goal marked, and a link to Estate.
+
+    Below the cards, one line: lifetime tax, OAS clawback years, and what the last change did (for example "switched to 'Fill lower brackets first' · tax 6,000 lower · legacy 1,000 higher").
+*   **Warnings,** each with its computed tips and links to the related input.
+*   **Charts,** one at a time, chosen with buttons: **Balances** (stacked areas by account type: RRSP/RRIF/LIF, non-registered, TFSA), **Income by source** (the Withdrawals chart for the chosen strategy, with the spending target), **Tax by spouse** (a stacked bar per year for each spouse, income tax including any clawback, after splitting), and **Estate** (a waterfall from balances and the home at the second death, less final-return tax, tax on gains and probate, to the after-tax legacy, with the legacy goal marked). The yearly charts mark the first death. Each chart has a "View as table" option with the same data, for screen readers.
+
+A status line reads "Up to date · updates as you edit" or "Updating…". The badge on the tab label shows the warning count, "Updating", "Short from <year>" or "Error".
 
 #### Settings
 
@@ -1487,23 +1497,23 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     *   **Spending:** "By category" or "One total"; category groups with "Different later?" overrides and group notes; the three phases with "from year" fields and keep-share sliders.
     *   **Withdrawals:** the three setup sections (closed by default, with summaries); the four strategy cards with "Learn more" dialogs; the options row; the income chart with its year slider and the fixed 11-row breakdown.
     *   **Estate:** survivor percentage, legacy goal, home value, probate strip, beneficiary assumption.
-    *   **Results:** status line, headline tiles, "What your last change did", warnings, charts and table.
+    *   **Results:** status line, the two goal cards with the summary line, warnings, and the four charts.
     *   **Settings:** every rule value by section, with default, source, "changed" mark and Reset; deep links from Edit strips on other screens.
 
-##### 47. `./src/ui/results/Headline.tsx`, `./UpdatingState.tsx`, `./ResultsBadge.tsx`, `./ChangeSummary.tsx`, `./WarningsList.tsx`, `./ConfigNotice.tsx`, `./IntegrityError.tsx` (Create)
+##### 47. `./src/ui/results/Goals.tsx`, `./UpdatingState.tsx`, `./ResultsBadge.tsx`, `./ChangeSummary.tsx`, `./WarningsList.tsx`, `./ConfigNotice.tsx`, `./IntegrityError.tsx` (Create)
 
 *   **Proposed Changes**:
-    *   **Headline numbers:** whether spending is covered every year (with its label, and the first shortfall year if not), after-tax legacy, lifetime tax, clawback years.
+    *   **Goals:** Goal 1, whether spending is covered every year (with its label, the year strip, and the first shortfall year if not); Goal 2, the after-tax legacy against the goal; then one line with lifetime tax, clawback years and the change summary.
     *   **Updating state:** while a run is in progress, the previous figures stay, faded, under "Updating…"; no Recalculate button (2026-11-19).
     *   **Results badge:** on the tab label: warning count, "Updating", "Short from <year>" or "Error".
-    *   **Change summary:** "What your last change did", naming the edit.
+    *   **Change summary:** what the last change did, naming the edit, on the line under the goals.
     *   **Warnings:** each with tips and links that focus the related input.
     *   **Config notice:** shown when values are unvalidated or out of date.
     *   **Integrity error:** shows the details with a "Copy details" button.
 
-##### 48. `./src/ui/charts/BalancesChart.tsx`, `./IncomeChart.tsx`, `./TaxChart.tsx`, `./EstateWaterfall.tsx`, `./YearTable.tsx` (Create)
+##### 48. `./src/ui/charts/BalancesChart.tsx`, `./IncomeChart.tsx`, `./TaxChart.tsx`, `./EstateWaterfall.tsx`, `./ChartTable.tsx` (Create)
 
-*   **Proposed Changes**: Charts in today's dollars for the user's plan. Every chart has a table view, and labels say "today's dollars". `IncomeChart` is the Withdrawals tab's stacked area chart (sources labelled on their bands, spending target line, tax and TFSA bands, year marker driven by a slider spanning the plot area); it draws any strategy's rows from `StrategyResult` without a rerun.
+*   **Proposed Changes**: Charts in today's dollars for the user's plan, as described in [Results tab](#results-tab). Every chart has a table view (`ChartTable`), and labels say "today's dollars". There is no separate year-by-year table (2026-11-19). `IncomeChart` is the Withdrawals tab's stacked area chart (sources labelled on their bands, spending target line, tax and TFSA bands, year marker driven by a slider spanning the plot area); it draws any strategy's rows from `StrategyResult` without a rerun.
 
 ##### 49. `./src/ui/inputs/Field.tsx`, `./CurrencyInput.tsx`, `./PercentInput.tsx`, `./AgeInput.tsx`, `./SegmentedChoice.tsx` (Create)
 
@@ -1600,7 +1610,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 ##### 60. `./tests/e2e/*.spec.ts` (Create, stages 5–7)
 
 *   **Proposed Changes**: One spec per CUJ, plus two checks.
-    *   **CUJ 1 (`first-plan.spec.ts`):** load the sample plan; results appear without a button press. The spending-covered result, after-tax legacy and lifetime tax are shown, the year table has one row per year, and the plan survives a page reload.
+    *   **CUJ 1 (`first-plan.spec.ts`):** load the sample plan; results appear without a button press. Both goal cards show their result, the lifetime tax is shown, each yearly chart's table view has one row per year, and the plan survives a page reload.
     *   **CUJ 2 (`cross-tab.spec.ts`):** click each strategy card on Withdrawals. The cards, chart and breakdown keep their positions; after selecting one, the Results tab shows "Updating" and then "What your last change did" with lifetime tax and clawback years.
     *   **CUJ 3 (`placement.spec.ts`):** change the preset. The comparison shows lifetime tax and money left for the preset and the baseline.
     *   **CUJ 4 (`first-death.spec.ts`):** with targets 78 and 94, the rows after 78 show one spouse not alive, the survivor benefits started, and the survivor percentage applied.
