@@ -42,17 +42,19 @@
     }
   },
   "market.us_equity.yield": {
-    "value": null,
+    "value": 0.0113,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
       "url": "author decision, 2026-11-19 (O30)",
-      "locator": "reference: MSCI USA Div Yld (%); value to set"
+      "locator": "reference: MSCI USA Div Yld (%); starting value from the MSCI USA Index factsheet (https://www.msci.com/documents/10199/255599/msci-usa-index-net.pdf), page 1, \"Fundamentals (Oct 30, 2026)\", Div Yld (%) 1.13; as at 30-Oct-2026."
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-20",
     "validation": {
-      "status": "unfetched"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-20"
     }
   },
   "market.intl_equity.geometric_return": {
@@ -70,17 +72,19 @@
     }
   },
   "market.intl_equity.yield": {
-    "value": null,
+    "value": 0.0269,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
       "url": "author decision, 2026-11-19 (O30)",
-      "locator": "reference: MSCI EAFE Div Yld (%); value to set"
+      "locator": "reference: MSCI EAFE Div Yld (%); starting value from the MSCI EAFE Index factsheet (https://www.msci.com/documents/10199/255599/msci-eafe-index-cad-net.pdf), page 1, \"Fundamentals (Oct 30, 2026)\", Div Yld (%) 2.69; as at 30-Oct-2026."
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-20",
     "validation": {
-      "status": "unfetched"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-20"
     }
   },
   "market.em_equity.geometric_return": {
@@ -98,17 +102,19 @@
     }
   },
   "market.em_equity.yield": {
-    "value": null,
+    "value": 0.0219,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
       "url": "author decision, 2026-11-19 (O30)",
-      "locator": "reference: MSCI Emerging Markets Div Yld (%); value to set"
+      "locator": "reference: MSCI Emerging Markets Div Yld (%); starting value from the MSCI Emerging Markets Index factsheet (https://www.msci.com/documents/10199/255599/msci-emerging-markets-index-cad-net.pdf), page 1, \"Fundamentals (Oct 30, 2026)\", Div Yld (%) 2.19; as at 30-Oct-2026."
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-20",
     "validation": {
-      "status": "unfetched"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-20"
     }
   },
   "market.bonds.geometric_return": {
@@ -140,31 +146,35 @@
     }
   },
   "market.cash.geometric_return": {
-    "value": null,
+    "value": 0.024,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://institutpf.org/assets/Documents/Normes-projection/InstituteFP-PAG2026.pdf",
+      "locator": "2026 Projection Assumption Guidelines (April 2026), section 5 c) Return rates: \"Short-term: 2.4%\" (page 26; also section 4 b) I, page 17). Nominal, before fees. The fpcanada.ca link in SOURCES.md returns 404; this is the same PDF on the Institute of Financial Planning site."
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-20",
     "validation": {
-      "status": "unfetched"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-20"
     }
   },
   "market.cash.yield": {
-    "value": null,
+    "value": 0.024,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
       "url": "author decision, 2026-11-19 (O30)",
-      "locator": "equals market.cash.geometric_return (all interest); value to set"
+      "locator": "equals market.cash.geometric_return (the whole return is paid as interest): 2.4%."
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-20",
     "validation": {
-      "status": "unfetched"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-20"
     }
   },
   "market.inflation": {
