@@ -265,7 +265,7 @@ The brief named three planning areas. Household is added because ages feed all t
 
 **One store.** The plan lives in one store (Zustand, mechanical choice). Screens read from it and write inputs straight to it. No component keeps its own copy of a plan value.
 
-**Live recalculation and the change summary (revised 2026-11-19, author).** The store keeps an `inputsRevision` counter, increased by every input edit and plan load. 500 ms after the last edit, the store sends the inputs and the revision to the Worker. Each result records the revision it was computed from; a result for an older revision is dropped. While a run is in progress, the previous figures stay on screen, faded, with "Updating…", so nothing jumps; the Results tab badge reads "Updating". Before replacing the result, the store keeps the one it replaces, and "What your last change did" on the Results tab lists the differences in the headline numbers (whether spending is covered, after-tax legacy, lifetime tax, clawback years, first shortfall year, warnings added or cleared), naming the edit and when it was made. The previous result is not saved across browser sessions.
+**Live recalculation and the change summary (revised 2026-11-19, author).** The store keeps an `inputsRevision` counter, increased by every input edit and plan load. 500 ms after the last edit, the store sends the inputs and the revision to the Worker. A Worker can't read a new message in the middle of a run, so when a newer revision is sent while a run is in progress, `client.ts` terminates the Worker and starts a new one (C4, author, 2026-11-19). Each result records the revision it was computed from; a result for an older revision is dropped. While a run is in progress, the previous figures stay on screen, faded, with "Updating…", so nothing jumps; the Results tab badge reads "Updating". Before replacing the result, the store keeps the one it replaces, and "What your last change did" on the Results tab lists the differences in the headline numbers (whether spending is covered, after-tax legacy, lifetime tax, clawback years, first shortfall year, warnings added or cleared), naming the edit and when it was made. The previous result is not saved across browser sessions.
 
 **Worker.** All calculation runs in a Web Worker so the screen stays responsive while the user types. A run happens in two parts: first the user's plan, the placement baseline and the four withdrawal strategies (what the screens need), then the warning tips, which follow in a second message. No shared memory or special headers are needed.
 
@@ -278,7 +278,7 @@ The brief named three planning areas. Household is added because ages feed all t
 *   **Retirement (author):** each spouse has a retirement year. Household spending starts in the first spouse's retirement year. A spouse still working after that enters their after-tax pay in today's dollars, counted as cash income until they retire. CPP or OAS they collect while working is taxed at the working-years marginal rate they enter. Spending phases and growth-to-safety shapes are measured in years from the first retirement.
 *   **Timing within a year:** rebalancing happens first, then fixed income and required withdrawals, then the withdrawal solve, all at the start of the year; returns apply to what remains; contributions during working years land at the end of the year. Tax is settled in the same year.
 *   **Deaths** happen at the end of the year the spouse reaches their target. The first-death transfers apply from the following year. If both spouses die in the same year, the first-death rollover is applied and then the survivor's final return is filed, in that year.
-*   **Indexing:** each config value says whether it rises with inflation. Indexed values grow at the fixed rate **counting from the defaults' tax year, not from the plan start** (SR1-M10): an indexed value from tax year *Y* is worth value × (1 + inflation)^(year − *Y*) in calendar year *year*. A 2026 threshold used in a plan starting in 2029 has already grown by three years of inflation in its first row. `YearContext` carries this as `ruleFactor(year)`, separate from the display deflator, which counts from the plan start. An override is indexed the same way, from the tax year of the default it replaced. Non-indexed values (for example Ontario's $150k and $220k bracket thresholds, the $50k probate threshold) stay fixed in future dollars. Benefit amounts (OAS, the CPP maximum and the CPP survivor amounts) are indexed to inflation by law and are marked `indexed: true`.
+*   **Indexing:** each config value says whether it rises with inflation. Indexed values grow at the fixed rate **counting from the defaults' tax year, not from the plan start** (SR1-M10): an indexed value from tax year *Y* is worth value × (1 + inflation)^(year − *Y*) in calendar year *year*. A 2026 threshold used in a plan starting in 2029 has already grown by three years of inflation in its first row. This is done once per run: `rebaseConfig(cfg, planStartYear)` multiplies by (1 + inflation)^(planStartYear − the entry's `taxYear`), then sets the entry's `taxYear` to `planStartYear`. By value kind: a `number` entry marked `indexed`; each `brackets` row whose own flag (or the entry's) is indexed, on its `from` only; every number in an indexed `list`; the `from` and `cap` of every row of an indexed `phaseIn`. `ageTable` and `object` values are never rebased (they hold rates and structures). After that, every indexed read uses the display deflator, which counts from the plan start. An override is rebased the same way, from the tax year of the default it replaced. Non-indexed values (for example Ontario's $150k and $220k bracket thresholds, the $50k probate threshold) stay fixed in future dollars. Benefit amounts (OAS, the CPP maximum and the CPP survivor amounts) are indexed to inflation by law and are marked `indexed: true`.
 
 ### Config contract
 
@@ -304,21 +304,22 @@ The brief named three planning areas. Household is added because ages feed all t
     *   planner goals: `most_left`, `least_tax`;
     *   spending categories: listed in [Spending inputs](#spending-inputs);
     *   account ids: `<type>-<owner>-<n>`, for example `rrsp-0-1`, assigned once when the account is created and never reused.
-*   **User changes to rule values (2026-11-19, author; made precise for SR1-M9 and SR1-M10):** a plan may hold `ruleOverrides`, a map from a key in the key tree to `{ value, defaultTaxYear }`. Overrides are never written to the config files.
+*   **User changes to rule values (2026-11-19, author; made precise for SR1-M9 and SR1-M10):** a plan may hold `ruleOverrides: RuleOverrides`, where `RuleOverrides = Record<string, { value: unknown; defaultTaxYear: number }>`, keyed by a key in the key tree. Overrides are never written to the config files.
     *   **Which keys:** every key in the key tree, rule values and planning values alike, except `warnings.*` and `market.<class>.geometric_return`. Returns are changed only through `investing.returnOverride` on the Savings tab; the Settings row for returns links there. Fee levels stay planning choices, but their values can be overridden in Settings like any other key; the plan's `feeLevel` still picks which level applies. Yields are overridable.
-    *   **Units:** an override is entered in the key's published unit (OAS per month, like the config) and in the defaults' tax-year dollars. It goes through the same loader conversion (× 12 for `CAD_per_month`) and the same indexing as the default.
-    *   **Validation:** `validateOverride(key, value, cfg)` in `src/engine/config/overrides.ts` checks, in order:
-        *   the value kind's schema (the same zod schema as the config);
+    *   **Units:** an override is entered in the key's published unit (OAS per month, like the config) and in the defaults' tax-year dollars. It goes through the same loader conversion and the same indexing as the default. Because a loaded `Config` holds yearly amounts, each loaded entry keeps `publishedUnit` (set by `toAnnual` to `CAD_per_month` for the four monthly keys); `applyRuleOverrides` multiplies an override by `MONTHS_PER_YEAR` when its key's `publishedUnit` is `CAD_per_month`.
+    *   **Validation:** `validateOverride(key, value, overrides, cfg): string[]` in `src/engine/config/overrides.ts` checks, in order:
+        *   the value kind's schema (`checkValue(spec: KeySpec, value): string[]`, exported from `schema.ts`; it uses the kind's schema, or the key's `objectSchemas` entry for an `object` key, like `checkEntry`);
         *   a range by unit: `rate` 0 to 1, `age` 40 to 110, `years` and `count` 0 to 100, `CAD_*` 0 or more; the life-expectancy tables 60 to 110;
-        *   structure: bracket and phase-in `from` values rise, the first bracket row starts at 0; phase-in caps never fall; age tables have no gaps between their first and last ages; the surtax threshold and rate lists have the same length;
+        *   structure: bracket and phase-in `from` values rise, the first bracket row starts at 0; phase-in caps never fall; `federal.rrif.min_factor` and `ontario.lif.max_factor` have no gaps between their first and last ages (the life-expectancy tables, with a row every 5 years, are exempt); the surtax threshold and rate lists have the same length;
         *   cross-key rules, using the override set as a whole: `federal.cpp.start.earliest` < `federal.cpp.start.latest`; `federal.oas.residence.min_years` ≤ `federal.oas.residence.full_years`; `federal.credits.basic_min` ≤ `federal.credits.basic`.
         A failing override is rejected in Settings with the rule it broke.
     *   **Stale overrides:** each override stores the tax year of the default it replaced. When the bundled tax year differs, Settings marks it "set against <year> defaults" and shows the new default beside it; the header chip counts it as changed. The value is not changed automatically.
     *   **Import:** an override whose key is unknown to this app version, or whose value fails validation, is dropped on import, and a message lists each dropped key and its value.
-    *   `applyRuleOverrides(cfg, overrides)` (same file) returns a new `Config` with the valid overrides applied; the engine reads only that.
+    *   `applyRuleOverrides(cfg, overrides)` (same file) returns a new `Config` with the valid overrides applied, each given the `taxYear` of its `defaultTaxYear`; the engine reads only that.
+    *   **Order per run:** `applyRuleOverrides`, then `rebaseConfig`, then `normalizeInputs`. An override of `market.inflation` therefore changes both the rebase and the deflator.
 *   **Engine settings** (solver tolerance and step cap, split-search step, invariant tolerance) are not config. They live in `src/engine/constants.ts`, along with `MONTHS_PER_YEAR`. It is the one engine file exempt from the no-magic-numbers lint rule.
 *   **Loading:** config files are JSON, imported directly. `config/CURRENT_YEAR` names the tax year; a generated module, `src/engine/config/bundle.ts`, imports every file for that year. The Worker, the Vitest tests and the `tsx` tools all import that one module. Config is never fetched at run time.
-*   **Status:** `configStatus(config, overrides, today)` (stage 2; until then `configStatus(config, today)`) returns the tax year, the lists of unfetched and unvalidated keys, the list of overridden keys, and `outOfDate = today's year > taxYear`. The header chip shows the tax year and "default values" or "N values changed". A notice appears when a default is unvalidated; when the defaults are out of date, the notice says which year they come from and points to Settings, rather than asking for an admin update.
+*   **Status:** `configStatus(config, overrides, today)` (stage 2; until then `configStatus(config, today)`) returns the tax year, the lists of unfetched and unvalidated keys, the lists of overridden keys and of stale overrides (`staleOverrideKeys`, set against an older tax year), and `outOfDate = today's year > taxYear`. The header chip shows the tax year and "default values" or "N values changed". A notice appears when a default is unvalidated; when the defaults are out of date, the notice says which year they come from and points to Settings, rather than asking for an admin update.
 *   **Monthly amounts:** amounts the sources publish monthly (OAS, the CPP maximum, the CPP survivor flat rate and combined maximum) are stored as `CAD_per_month` exactly as published, using the January figure, and updated once a year. The loader converts them to `CAD_per_year` (× 12; an unfetched null stays null). OAS changes each quarter, so January × 12 slightly understates a full year; this is an accepted approximation.
 *   **Fetch checks (author):** tax and benefit rules (`federal.json`, `ontario.json`) are fetched twice, independently, and compared, because an error there gives a wrong tax or benefit amount in every plan. Market assumptions (`market.json`) and the FP Canada life-expectancy tables are estimates, so one fetch and a spot-check by the admin are enough.
 *   **Market yields** are author decisions (2026-11-19, O30): sourced "author decision, <date>", validated by the author, not fetched or refreshed. The keys keep their `market.<class>.yield` names.
@@ -372,9 +373,9 @@ Every account has an owner (spouse 1 or spouse 2). Types:
     *   **The maximum is Ontario's (FR-M9):** max = the greater of `ontario.lif.max_factor`[start-of-year age] × the start-of-year balance, and the LIF's investment earnings in the previous year (its yield plus price return, after fees). Conversion is modelled at January 1 of the conversion year, so the opening year is a full year and needs no pro-rating; in that year the maximum is the table factor alone, because the LIF has no previous year's earnings. Ages above the table's last age (90) use its last factor (100%). The table applies while the CANSIM V122487 rate is 6% or less; the engine assumes it is (the admin guide's yearly check, when a refresh is done, confirms it).
     *   The minimum is the federal RRIF minimum (`federal.rrif.min_factor`). Ontario sets no table of its own; FSRA policy L200-303 says the LIF minimum is the Income Tax Regulations' RRIF minimum.
     *   The age-71 deadline is the federal RRSP rule, because a LIRA is an RRSP; it uses `federal.rrif.latest_conversion_age`. The one-time 50% unlock is an optional choice at conversion; if chosen, half moves to the owner's RRSP/RRIF (O9).
-*   **TFSA**, with contribution room tracked from a user-entered starting room plus the yearly limit from the config.
+*   **TFSA**, with contribution room tracked from a user-entered starting room plus the yearly limit from the config (`federal.tfsa.annual_limit`, indexed; the rounding of the published limit is not modelled, an accepted approximation). A withdrawal is added back to room on January 1 of the next year (C3, author, 2026-11-19).
 *   **Non-registered**, holding pooled positions per asset class with their original cost (adjusted cost base, the amount paid). Each year's interest, dividends and realized gains are taxed by type. Sales are spread across positions in proportion, at average cost.
-*   **DB pension** (income stream, not a balance): lifetime amount and start age, optional bridge amount until an end age, indexing (full, fixed percentage or none), survivor percentage.
+*   **DB pension** (income stream, not a balance): lifetime amount and start age, optional bridge amount (a temporary top-up paid until an end age, usually when CPP or OAS starts), indexing (full, fixed percentage or none), survivor percentage. **Amounts and indexing:** with `full`, the lifetime and bridge amounts are today's dollars and grow with the deflator. With `fixed` or `none`, they are the nominal amounts on the pension statement at the start age; `fixed` then grows by `indexRate` each year after the start, and `none` stays flat. `normalizeInputs` converts only the `full` amounts.
 
 CPP and OAS: the user enters each spouse's CPP estimate at 65 and start age, and years of Canadian residence for OAS. A help note explains that an estimate from My Service Canada assumes contributions continue to 65, and links to Service Canada's explanation of adjusting for years without contributions (O10). All coefficients below come from the config:
 
@@ -427,24 +428,33 @@ CPP and OAS: the user enters each spouse's CPP estimate at 65 and start age, and
 *   **"Early RRSP drawdown" (added 2026-11-19, author):** in the "draw-down years", the spending need is drawn from RRSP/RRIF and LIF first, before non-registered savings and the TFSA. After the draw-down years, it follows "registered last". Made precise for SR1-M4:
     *   **Draw-down years:** from the first retirement year up to and including the last year in which a living spouse has a CPP or OAS pension that has not yet started. A spouse's unstarted benefits stop counting at their death. With no such years (benefits start at or before retirement), the strategy is the same as "Registered last", and the option row says "No draw-down years with these start ages; same as Registered last".
     *   **Which spouse (a fill-up rule, so the solve stays monotonic):** draw from the spouse whose net income before splitting (after fixed income, minimums and the cash yield) is lower, until the two are equal; then from both equally. If incomes are equal at the start, begin with spouse 1. Within a spouse, RRSP/RRIF and LIF are drawn in proportion to their balances, LIF capped at its maximum. When one spouse's registered money runs out (or is at the LIF cap), the rest comes from the other spouse.
-    *   **A spouse still working** in the draw-down years is drawn from like a retired spouse; their after-tax pay is not counted as taxable income here, because it is entered after tax. It is designed to pair with delaying CPP and OAS; the option row shows the draw-down years and where the ages are set.
+    *   **A spouse still working** in the draw-down years is not drawn from; see [the year solver](#the-year-solver) (C2). It is designed to pair with delaying CPP and OAS; the option row shows the draw-down years and where the ages are set.
 *   **"Let the planner pick" (added 2026-11-19, author):** the engine runs "Registered last", "Early RRSP drawdown", and "Fill lower brackets first" at each level in `planning.planner_search` (O31), and uses the one that best meets the goal the user picks: "Most left after tax" (highest after-tax legacy) or "Least lifetime tax". It reports the pick and the runner-up with the gap between them; when the gap is under $5,000, it says small changes could swap them. The pick is redone on every run. Wording stays conditional ("Under these assumptions, the planner picked…"); see [Non-Goals](#non-goals) for why this is not open-ended optimization.
 *   **All four are always run:** every run computes all four strategies (and the planner's search) at the same returns, because the Withdrawals tab shows each strategy's lifetime tax, money left, amount moved to the TFSA and clawback years on its card, with the difference from "Registered last".
 *   **Explanations:** each strategy has a "Learn more" dialog with fixed text: what it does, its effect on income, taxes and savings, pros, cons, when it makes sense, and an "In your plan" line with this plan's figures against "Registered last" (or, for "Registered last", against "Fill lower brackets first"). The dialog has "Use this strategy" and "Close".
 *   **Between spouses:** non-registered and TFSA draws come from each spouse in proportion to their balances.
-*   **Surplus:** money forced out by minimums or the bracket level beyond what spending needs goes into the owner's TFSA up to available room, then into their non-registered account.
-*   **Pension income splitting:** eligible pension income is DB payments at any age, and RRIF and LIF payments if the transferring spouse is 65 or older. The split search tries 0% to 50% in 5% steps **in both directions** (M13): spouse 1 transferring to spouse 2, and spouse 2 to spouse 1, each up to half of the transferring spouse's eligible pension income. That is 21 points (0% counted once). It keeps the split with the lowest household tax; on a tie, the smaller transfer, then spouse 1 transferring. This approximates the split tax software finds at filing time; it is not presented as a recommendation. To keep it fast, the year is first solved with the previous year's split (50/50 in the first year), then the search runs once at that answer, and the year is solved again only if the best split changed (at most 2 passes).
+*   **Surplus:** money forced out by minimums or the bracket level beyond what spending needs is split between the spouses in proportion to their share of the forced draws that caused it (C3); each share goes into that spouse's TFSA up to available room, then into their non-registered account.
+*   **Pension income splitting:** eligible pension income is DB payments at any age, and RRIF and LIF payments if the transferring spouse is at least `federal.split.min_age_rrif`. The split search tries 0 up to `federal.split.max_share` of the transferring spouse's eligible pension income, in `SPLIT_STEP` steps, **in both directions** (M13): spouse 1 transferring to spouse 2, and spouse 2 to spouse 1. With the 2026 values (50% in 5% steps) that is 21 points (0% counted once). It keeps the split with the lowest household tax; on a tie, the smaller transfer, then spouse 1 transferring. This approximates the split tax software finds at filing time; it is not presented as a recommendation. To keep it fast, the year is first solved with the previous year's split (50/50 in the first year), then the search runs once at that answer, and the year is solved again only if the best split changed (at most 2 passes).
 
 ### The year solver
 
 Each year, for each variant, in this order:
 
 ```text
+0.  Start of year (solver/startOfYear.ts): convert an RRSP to a RRIF, or a
+    LIRA to a LIF (applying the optional 50% unlock), on January 1 of the year
+    the owner reaches their conversion age, and no later than the year they
+    turn federal.rrif.latest_conversion_age; set openedYear. Add the yearly
+    TFSA limit and last year's TFSA withdrawals to each spouse's room.
 1.  Set ages and who is alive. If the first death happened last year, apply the
-    first-death transfers:
-      - RRSP/RRIF/LIRA/LIF and non-registered positions move to the survivor
-        (non-registered at their original cost);
-      - the TFSA moves to the survivor without using room;
+    first-death transfers (project/death.ts, firstDeathTransfer):
+      - every RRSP/RRIF/LIRA/LIF, TFSA and non-registered account keeps its id
+        and type and changes owner (non-registered at original cost; the TFSA
+        as successor holder, without using the survivor's room);
+      - from then on the survivor's age drives minimums, maximums and
+        conversion; openedYear and lifPrevEarningsNom are kept; the deceased's
+        carried-forward loss is dropped (losses on the first-death return are
+        not modelled);
       - the deceased's CPP, OAS and DB stop;
       - the CPP survivor benefit (capped) and the DB survivor share start;
       - spending switches to the survivor percentage.
@@ -468,12 +478,14 @@ Each year, for each variant, in this order:
       - find W by bisection between 0 and everything available; this always
         works because after-tax cash rises when W rises (no one pays more than
         100% tax on an extra dollar; a property test checks this);
-      - precision $0.01, at most 32 steps;
+      - precision $0.01 on W, at most `SOLVER_MAX_STEPS` (40) steps;
       - if even everything available is short, record the shortfall.
 6.  Put any surplus into the TFSA (within room), then non-registered.
 7.  Apply the year's price returns (total return after fees, minus the
     yield) to what remains. Update the original cost of non-registered
-    positions and each spouse's carried-forward capital loss.
+    positions and each spouse's carried-forward capital loss. Record each
+    LIF's investment earnings (lifPrevEarningsNom) and each spouse's TFSA
+    withdrawals for next year.
 8.  If this is the second death year, file the final return:
       - the full RRSP/RRIF/LIRA/LIF balance counts as income, converted or not;
       - non-registered positions are taxed as if sold;
@@ -483,12 +495,17 @@ Each year, for each variant, in this order:
 9.  Run invariant checks (see Verification).
 ```
 
-Years before the first retirement run in `project/workingYear.ts` instead:
+Years before the first retirement run in `project/workingYear.ts` instead, in this order:
 
-*   contributions are entered in today's dollars and indexed;
-*   RRSP deductions are not modelled;
-*   TFSA room grows by the yearly limit;
-*   non-registered income is taxed at the working-years marginal rate the user enters.
+1.  Set ages.
+2.  Rebalance and apply the shape, as in retired years.
+3.  The non-registered cash yield is taxed at each owner's `workingMarginalRate`; the tax is paid from the yield and the rest is reinvested.
+4.  CPP, OAS and DB collected while working are taxed at that rate; the net goes to the owner's TFSA within room, then to non-registered.
+5.  Contributions (entered in today's dollars and indexed) land at the end of the year: TFSA within room, any excess to non-registered. RRSP deductions are not modelled. TFSA room grows by the yearly limit.
+6.  Apply price returns.
+7.  Run invariant checks.
+
+**A spouse still working in a retired-household year (C2, author, 2026-11-19):** their after-tax pay counts as cash. All their other taxable income (CPP, OAS, DB, registered draws and their share of non-registered income) is taxed at their `workingMarginalRate`, not through `personalTax`. Until they retire, they are left out of pension splitting, the "fill lower brackets first" top-up and Early RRSP draws. This replaces the earlier "drawn from like a retired spouse" rule for Early RRSP drawdown.
 
 ### Death and estate (O12, O23)
 
@@ -602,7 +619,9 @@ PlanInputs {
       laterOverrideToday?: [slower: number | null, later: number | null] } },
     phases: [{ fromYear: number, keepPct: [0..100] }] x2   // slower, later;
                                              // fromYear counts from the first
-                                             // retirement; keepPct of active
+                                             // retirement year (year 0);
+                                             // 0 < slower.fromYear < later.fromYear;
+                                             // keepPct of active
   }
   estate: { survivorPct [40..100], legacyGoalToday, homeValueToday? }
   investing: { mixId: 'conservative' | 'balanced' | 'growth' | 'custom',
@@ -617,7 +636,7 @@ PlanInputs {
                             | 'planner_pick',
                 bracketLevel: 'first_bracket' | 'oas_threshold',
                 plannerGoal: 'most_left' | 'least_tax' }
-  ruleOverrides?: { [ruleKey]: value }      // from Settings
+  ruleOverrides?: RuleOverrides             // from Settings: { [ruleKey]: { value, defaultTaxYear } }
 }
 SpouseInput {
   birthYear [1930..2000], birthMonth [1..12], sexAtBirth: 'F' | 'M',
@@ -646,13 +665,18 @@ DbPensionInput {
 }
 YearRow {
   year, spouse[0..1]: { age, alive, cppNom, oasNom, dbNom, payNom,
-    withdrawals: { [accountId]: Nom }, taxableIncomeNom, taxNom, clawbackNom,
-    splitShare },
-  balancesEndNom: { [accountId]: Nom }, realizedGainsNom,
+    withdrawals: { [accountId]: Nom }, forcedDrawsNom, realizedGainsNom,
+    taxableIncomeNom, taxNom, clawbackNom, splitShare },
+  accounts: { [accountId]: { startNom, contributionsNom, depositsNom,
+    reinvestedYieldNom, withholdingNom, priceReturnNom, drawsNom, endNom } },
+  balancesEndNom: { [accountId]: Nom },      // equals accounts[id].endNom
+  cashYieldNom,                              // non-registered yield paid out as cash
   spendNeedNom, afterTaxCashNom, surplusNom, shortfallNom
 }
-PlanSummary { spendingCovered, firstShortfallYear?, totalShortfallNom, lifetimeTaxNom,
-  afterTaxLegacyNom, clawbackYears, savedToTfsaNom, warningFacts }
+PlanSummary { spendingCovered, firstShortfallYear?, totalShortfallNom, totalShortfallToday,
+  lifetimeTaxNom, lifetimeTaxToday, afterTaxLegacyNom, legacyIsPreTax, clawbackYears,
+  savedToTfsaNom, warningFacts }             // warningFacts is {} until stage 6;
+                                             // legacyIsPreTax is true in stage 2 (no final return)
 StrategyResult {                             // one per strategy, every run
   strategyId, summary: PlanSummary,
   pickedOption?, runnerUp?, gapNom?,         // planner_pick only
@@ -660,6 +684,35 @@ StrategyResult {                             // one per strategy, every run
            nonreg, tfsa }, taxNom, clawbackNom, savedToTfsaNom,
            spendNeedNom }]                   // for the Withdrawals chart
 }
+```
+
+**Engine state (stage 2, in `types.ts`).** The year solver reads and returns one `PlanState` per year:
+
+```text
+PositionState { valueNom, costNom }            // costNom used for non-registered only
+AccountState {
+  id, owner: 0 | 1, type: 'rrsp' | 'rrif' | 'lira' | 'lif' | 'tfsa' | 'nonreg',
+  holdings: { [assetClass]: PositionState },
+  openedYear?,                                 // RRIF/LIF: the year it opened (no minimum)
+  lifPrevEarningsNom?                          // LIF: last year's investment earnings
+}
+SpouseYearState { alive, age, working, carriedLossNom,
+  tfsaRoomNom,                                 // room belongs to the person, shared by
+                                               // all their TFSAs
+  tfsaWithdrawnThisYearNom }                   // added back to room next January 1
+PlanState { year, yearIndex, spouses: [SpouseYearState, SpouseYearState],
+  accounts: AccountState[], splitShare: { from: 0 | 1, share }, firstDeathYear? }
+Draw { accountId, amountNom, incomeType: 'pensionEligible' | 'otherOrdinary' | 'tfsa'
+  | 'nonregPrincipal', realizedGainNom }
+Variant { id, strategyId, presetId: PresetId | 'same_mix' }
+NormalizedInputs                               // PlanInputs with every …Today field
+                                               // replaced by …Nom at the plan start
+EngineIntegrityError { year, variantId, check, before: PlanState, after: PlanState }
+RuleOverrides = { [ruleKey]: { value, defaultTaxYear } }
+YearInProgress { state: PlanState, inputs: NormalizedInputs,
+  incomeSoFar: [TaxableIncome, TaxableIncome],   // each spouse's income so far this year
+  drawsSoFar: Draw[] }                           // draws already taken this year
+Death { spouse: 0 | 1, year }
 ```
 
 *   **Input paths:** dotted text such as `spouses.0.cppStartAge` or `accounts.<id>.balanceToday`, used by `setInput` and by warning definitions.
@@ -689,15 +742,18 @@ StrategyResult {                             // one per strategy, every run
 *   **Targets (revised 2026-11-19 for live recalculation):** on the reference machine (the author's laptop with current Chrome, whose CPU, cores and RAM are recorded in `README.md` at stage 4), measured from the end of the 500 ms pause after the last edit:
     *   **under 1 second** for the first message: the user's plan, the placement baseline, the three other strategies and the planner's search (about 22 runs of 30–45 years);
     *   **under 2 seconds** for the second message: the warning tips (about 100 more runs).
-*   **Typing stays smooth:** a new edit cancels any run still in progress (the Worker checks for a newer revision between runs), so results never lag behind a burst of edits.
-*   **Early warning (SR1-M3, from stage 2):** `yearSolve.test.ts` logs the time of one 40-year couple run in CI. Above 45 ms (the budget per run for about 22 runs in 1 second), the log says so; it does not fail the build.
+*   **Typing stays smooth:** a new edit cancels any run still in progress (the client terminates the Worker and starts a new one), so results never lag behind a burst of edits. Measured as: no main-thread task over 50 ms while a run is in progress, checked in the Chrome DevTools Performance panel.
+*   **Early warning (SR1-M3, from stage 2):** `runPath.test.ts` logs the time of one 40-year couple run in CI. Above 45 ms (the budget per run for about 22 runs in 1 second), the log says so; it does not fail the build.
 *   **How it's checked:** timed by hand on the reference machine before stage 8. If a target is missed, reduce work inside the year solver first, then run the planner's search with summary detail only.
 
 ### Verification (G10)
 
 *   **Runtime invariants, checked every year of every run:**
     *   after-tax cash equals the spending need, or a shortfall is recorded;
-    *   money is conserved across accounts;
+    *   money is conserved, using the `YearRow` fields:
+        *   for each account: start + contributions + deposits + reinvested yield − withholding + price return − draws = end;
+        *   for the household in a retired year: draws + fixed income (including a working spouse's after-tax pay) + non-registered cash yield − tax − deposits = spending need − shortfall;
+        *   for the household in a working year: CPP, OAS and DB collected + non-registered cash yield − tax = deposits (contributions come from outside the plan and appear only in the account identity);
     *   no balance or original cost is negative;
     *   RRIF and LIF draws respect their minimums and maximums;
     *   TFSA contributions stay within room.
@@ -707,7 +763,7 @@ StrategyResult {                             // one per strategy, every run
     *   tax fixtures from an outside calculator, matched within $1 per return;
     *   rule-value tests against the config;
     *   a full reference plan built by a separate AI session from the written design without seeing the engine code, matched within $1 per cell;
-    *   property tests: the same inputs give the same result; higher spending never raises the after-tax legacy; swapping the spouses gives the same household totals; with zero tax the loop matches the closed-form annuity; moving money between two accounts of the same type and owner changes nothing; the chosen split never gives more tax than a 0% split; after-tax cash rises when the withdrawal rises; the two-pass split matches the full nested search;
+    *   property tests: the same inputs give the same result; higher spending never raises the after-tax legacy; swapping the spouses gives the same household totals (plans where the two spouses' inputs are identical are skipped, because the tie rules favour spouse 1); with zero tax the loop matches the closed-form annuity; moving money between two accounts of the same type and owner changes nothing; the chosen split never gives more tax than a 0% split; after-tax cash rises when the withdrawal rises; the two-pass split's household tax is never below the full nested search's, and stays within 1% of it (a test setting, not a rule value);
     *   the manual paid-tool comparison before stage 8;
     *   the manual speed check.
 
@@ -1042,7 +1098,7 @@ Decisions marked "author" were made by the document's author and are recorded in
 
 ### Known gaps from review
 
-The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.md`) left 18 Major and 21 Nit findings open; some have since been fixed or withdrawn, as marked. The focused review of the 2026-11-18 changes (`docs/reviews/2026-11-18/focused_review_report.md`, "Ready with fixes") added 20 Major and 24 Nit findings; its IDs are prefixed `FR-` below. Each Major must be fixed in this document before the stage named below starts. The 2026-11-19 focused review (`docs/reviews/2026-11-19/focused_review_report.md`, "Ready with fixes") added 13 Major and 20 Nit findings, prefixed `SR1-`. Nits are fixed when their file is built; r2 Nits N12, N13 and N16 are moot (benchmark and stress paths removed).
+**Sources:** the Stage 9 re-run of 2026-11-17 (no prefix; `docs/reviews/2026-11-17/implementation_readiness_report_r2.md`), the focused review of 2026-11-18 (`FR-`), the focused review of 2026-11-19 (`SR1-`), the 2026-11-19 screen revision (`SR-`) and the tax-case check of 2026-11-19 (`TC-`), all under `docs/reviews/`. The second full review of 2026-11-19 is in `docs/reviews/2026-11-19/`. **Rule:** each open Major is closed before its stage starts, in this document; a row marked "(during)" is closed by the code, test or config it names, within its stage. Nits are fixed when their file is built; r2 Nits N12, N13 and N16 are moot (benchmark and stress paths removed).
 
 | Finding | Gap | Close before |
 |---|---|---|
@@ -1054,24 +1110,24 @@ The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.
 | ~~M17~~ | Fixed: cross-references now name `docs/history/` (file 18) | — |
 | ~~M18~~ | Fixed: `constants.ts` is the only exempt file and holds `MONTHS_PER_YEAR`; `ignoreNumericLiteralTypes` set (files 9, 23) | — |
 | ~~M16~~ | Fixed: `clawback` and `pairId` fields; `income` is after the split (file 52) | — |
-| ~~M5~~ | Fixed 2026-11-19: lifetime tax summed year by year in today's dollars, alongside the nominal sum ([Result definitions](#result-definitions)); author | — |
+| ~~M5~~ | Fixed 2026-11-19: lifetime tax summed year by year in today's dollars, alongside the nominal sum ([Result definitions](#result-definitions)); decided by the author | — |
 | ~~M6~~ | Fixed 2026-11-19: pro rata across both spouses, LIF cap overflow to the owner's RRSP/RRIF then the other spouse, unconverted RRSP drawable, LIRA never drawn | — |
 | ~~M13~~ | Fixed 2026-11-19: both directions, 21 points, tie rule | — |
 | ~~M15~~ | Fixed 2026-11-19: sheltered yields reinvested, net of foreign withholding (year solver step 4, `reinvestYield`) | — |
 | ~~FR-M4~~ | Fixed 2026-11-19: new key `federal.rrif.min_factor_base_age`; last row used above 95; tests at 60 and 70 | — |
-| ~~FR-M5~~ | Fixed 2026-11-19: capital-loss rule and carry-forward; `config:check` warning when a yield is above its return; loss rule confirmed by the author | — |
-| ~~FR-M6~~ | Fixed 2026-11-19: `invest/returns.ts` `classReturns`; override before fees; fee subtracted (author); 0.5-point margin cited (PAG 2026 section 3 d) | — |
-| ~~FR-M9~~ | Fixed 2026-11-19: greater of table × start balance and last year's earnings; no pro-rating (conversion at January 1); last row above 90; 6% condition assumed | — |
+| FR-M5 | The capital-loss rule and carry-forward are in the design (loss rule decided by the author). The `config:check` warning for a yield above its return (`yieldWarnings`, file 51) is built in stage 2; the 2026 bond values trigger it | Stage 2 (during) |
+| ~~FR-M6~~ | Fixed 2026-11-19: `invest/returns.ts` `classReturns`; override before fees; fee subtracted (decided by the author); 0.5-point margin cited (PAG 2026 section 3 d) | — |
+| ~~FR-M9~~ | Fixed 2026-11-19: greater of table × start balance and last year's earnings; no pro-rating (conversion at January 1); last row above 90; assumes the CANSIM V122487 rate is 6% or less | — |
 | FR-M7 | When the age-based life-expectancy default is filled, and what happens above the table's last row | Stage 5 |
 | ~~FR-M10~~ | Fixed 2026-11-19: basic Ontario tax and the order of surtax, dividend credit, Tax Reduction and Health Premium are in [Tax scope](#tax-scope-o11), checked against Form ON428 and the 21 TaxTips.ca cases | — |
-| TC-1 | Fixed 2026-11-19 (design and key): the federal basic personal amount's reduction at high income uses the new key `federal.credits.basic_min`. The entry's value comes from the source note of the validated `federal.credits.basic` entry (fetched 2026-11-18); it stays unvalidated until the author checks it | Stage 1 (validate the entry) |
-| ~~FR-M11~~ | Fixed 2026-11-19: cap at `federal.cpp.survivor.max_combined` (author); `SOURCES.md` URL now matches the JSON entry | — |
-| FR-M13 | Tests for the new rules. Tax rows done in stage 1. Override limit (`returns.test.ts`) and LIF minimum under 71 (`liraLif.test.ts`) added (draft 2026-11-19); the global blend is moot. Still open: the life-expectancy lookup, with FR-M7 | Stage 5 |
+| ~~TC-1~~ | Fixed 2026-11-19: the basic personal amount's reduction at high income uses `federal.credits.basic_min`, validated by the author 2026-11-19 | — |
+| ~~FR-M11~~ | Fixed 2026-11-19: cap at `federal.cpp.survivor.max_combined` (decided by the author); `SOURCES.md` URL now matches the JSON entry | — |
+| FR-M13 | Tests for the new rules. Tax rows done in stage 1. Override limit (`returns.test.ts`) and LIF minimum under 71 (`liraLif.test.ts`) added 2026-11-19; the global blend is moot. Still open: the life-expectancy lookup, with FR-M7 | Stage 5 |
 | FR-M16 | The placement figure mixes a tax effect with holding more stock after tax; the stock-share readout's purpose and the risk row need rewording | Stage 4 |
 | FR-M17 | "Spending covered: Yes" at steady returns can reassure falsely; "Money runs out" repeats the headline | Stage 4 |
 | FR-M18 | Return terminology ("compound" vs "average"); the on-screen label | Stage 5 |
 | ~~FR-M19~~ | Fixed 2026-11-19: the unused `schedule` kind is removed from the design, `keys.ts` and `schema.ts`; the `brackets` comment shows `indexed?`; the `list` kind is in the Config contract | — |
-| M1 | `Result`, `NormalizedInputs`, `warningFacts` fields; `YearRow` estate, forced-draw and contribution fields; CSV column naming | Stage 3 |
+| M1 | `NormalizedInputs`, the engine state and the `YearRow` forced-draw, contribution and account fields are defined in Data contracts (2026-11-19). Still open: the `Result` contract, `warningFacts` content, the `YearRow` estate fields and CSV column naming | Stage 3 (estate fields, CSV); Stage 4 (`Result`) |
 | ~~M11~~ | Withdrawn: no random generator (fixed returns, 2026-11-18) | — |
 | ~~R1-F16~~ | Withdrawn (round-1 finding F16, goldfish issue 17; mislabelled "G3" until FR-M20): FP Canada's guidelines lower equity returns by 0.5 point and tell simulations to add it back when converting to an arithmetic mean. Fixed returns use the compound figures directly, so nothing is added back | — |
 | ~~M14~~ | Withdrawn: no paths or typical-path ranking | — |
@@ -1080,20 +1136,22 @@ The Stage 9 re-run (`docs/reviews/2026-11-17/implementation_readiness_report_r2.
 | M2 | CUJ 6 test-config build: how `VITE_CONFIG_SET=test` reaches a statically imported bundle (CUJ 6 is now user changes in Settings; this may be moot) | Stage 5 |
 | ~~SR-1~~ | Fixed: focused review done (`docs/reviews/2026-11-19/focused_review_report.md`, "Ready with fixes"); its open findings are below, prefixed `SR1-` | — |
 | ~~SR-2~~ | Fixed: `keys.ts`, `SOURCES.md` and the 2026 config follow the key tree, including the shape, nudge-step and yield entries (SR1-M1). The fetch candidates in `private/` still use the old keys | — |
-| ~~SR1-M1~~ | Fixed: `planning.shapes` holds stock changes (placeholders, unvalidated until O26); the bracket-target nudge step is removed; the six yields are sourced as author decisions | — |
-| SR1-M2 | Live recalculation: how stale runs are cancelled (a Worker can't read new messages mid-run), revisions, when tips run, and incomplete inputs | Stage 4 (Worker); Stage 5 (store) |
-| SR1-M3 | Measurement point fixed (draft 2026-11-19): from the end of the 500 ms pause everywhere, and a per-run timing log from stage 2. Still open: tips under "Let the planner pick", and reuse of identical planner runs | Stage 4 |
+| ~~SR1-M1~~ | Fixed: `planning.shapes` holds stock changes (validated 2026-11-19; O26 resolved); the bracket-target nudge step is removed; the six yields are sourced as author decisions | — |
+| SR1-M2 | Live recalculation. Worker part decided 2026-11-19 (C4): the client terminates and restarts the Worker for a newer revision. Still open: when tips run, and incomplete inputs | Stage 5 (store) |
+| SR1-M3 | Measurement point fixed 2026-11-19: from the end of the 500 ms pause everywhere, and a per-run timing log from stage 2. Still open: tips under "Let the planner pick", and reuse of identical planner runs | Stage 4 |
 | ~~SR1-M4~~ | Fixed 2026-11-19: draw-down years, fill-up spouse rule, no-draw-down case, working spouse | — |
 | SR1-M5 | "Let the planner pick": options, ranking, tie rule (with O31) | Stage 4 |
 | ~~SR1-M6~~ | Fixed 2026-11-19: net income before splitting, no margin, step 4 reordered, indexing from the tax year | — |
 | ~~SR1-M7~~ | Fixed 2026-11-19: change measured from the plan start; clamping fallbacks; fractions in the engine | — |
-| SR1-M8 | Spending: category ids, phase years and the spending nudge | Stage 5 |
+| SR1-M8 | Spending. Phase years decided 2026-11-19: counted from the first retirement year (year 0), with 0 < slower < later. Still open: category ids and the spending nudge | Stage 5 |
 | ~~SR1-M9~~ | Fixed 2026-11-19: which keys, units, validation (`overrides.ts`), stale and imported overrides | — |
-| ~~SR1-M10~~ | Fixed 2026-11-19: indexing from the tax year (`ruleFactor`); overrides store their default's tax year; risk row and admin guide updated | — |
+| ~~SR1-M10~~ | Fixed 2026-11-19: indexed values are rebased once from their tax year to the plan start (`rebaseConfig`); overrides store their default's tax year; risk row and admin guide updated | — |
 | SR1-M11 | `Result` contract fields for the Results tab and strategy cards | Stage 4 |
-| SR1-M12 | Three gaps in the mitigations for the planner's pick being read as advice | Stage 5 |
-| SR1-M13 | Undecided items with no open question or gate | Stage 5 |
+| SR1-M12 | The planner's pick could be read as advice. Still open: state that the default strategy (`defaults.ts`, the sample plan) is "Registered last"; colour only the money-left difference on the cards, and show tax differences (and opposite-direction results) in neutral text; add "Let the planner pick" to O20's FSRA check | Stage 5 |
+| SR1-M13 | Undecided items with no question or gate. Decided since: the shape reference year and clamping, the Early RRSP spouse rule and draw-down years, which keys can be overridden, indexing from the tax year, and the Worker cancel mechanism. Still open: the planner's options, ranking with shortfalls and ties (with O31, SR1-M5); the incomplete-plan state (SR1-M2); the spending category ids (SR1-M8); the default strategy (SR1-M12) | Stage 5 |
 | ~~SR-3~~ | Fixed 2026-11-19: covered by the FR-M6 fix | — |
+| FR2 | The second full review (2026-11-19, `docs/reviews/2026-11-19/`) left its feature-spec findings unresolved: `zoom_out_report.md` (12 Major), `comprehension_report.md` (5 Major), `critic_report.md` (23 Major) and `intermediate_zoom_out_report.md` (7 Major), overlapping. Those touching stage 2 were folded into the implementation-plan fixes; the rest, including how the final return relates to that year's ordinary return, the stock-share readout above 100%, the Worker's security policy, two open tabs, and the scope cuts (planner, override scope, readout), are to be triaged | Stage 3 |
+| FR2-N | Implementation-readiness round 2 Nits left for the editorial pass: define the C1-C4 decision tags; reword "the Stage 9 re-run" in the Known gaps sources; the M3 wording; one form for file-header labels | Stage 5 |
 | SR-4 | Open questions O24–O31 | As listed in [Open Questions](#open-questions) |
 
 The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`). The working rules for agents (whole-function rewrites, protected files, units) are in file 13, `AGENTS.md`.
@@ -1103,8 +1161,8 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 | Stage | Content | Gate before starting |
 |---|---|---|
 | 0 | Repository setup, conventions documents, config contract and 2026 values, tax fixtures, placeholder app | O16 checked with the test friends (done 2026-11-19) |
-| 1 | Tax for one person (`jurisdiction/*`, `tax/personalTax.ts`) | Stage 0 config validated |
-| 2 | Couple engine with fixed returns: `units`, `accounts/*`, `benefits/*`, `withdraw/*` (all four strategies), `tax/split.ts`, `solver/*`, `project/workingYear.ts`, `project/runPath.ts`, `invest/*`, rule overrides, invariants | O25, O26, O29 |
+| 1 | Tax for one person (`jurisdiction/*`, `tax/personalTax.ts`) | `federal.json` and `ontario.json` validated |
+| 2 | Couple engine with fixed returns: `units`, `accounts/*`, `benefits/*`, `withdraw/*` (the three fixed strategies; `solveYear` rejects `planner_pick` until stage 4), `tax/split.ts`, `solver/*`, `project/workingYear.ts`, `project/runPath.ts`, the first-death transfer in `project/death.ts`, `invest/*`, rule overrides, invariants. See the [stage 2 file boundary](#stage-2-file-boundary) | O25, O26, O29 (all resolved); the author enters and validates `market.us_equity.yield`, `market.intl_equity.yield`, `market.em_equity.yield`, `market.cash.yield` (author decisions, O30) and `market.cash.geometric_return` (FP Canada) |
 | 3 | Deaths and estate (`project/death.ts`); reference plan test | — |
 | 4 | Variants, the strategy runs and planner search, comparisons, results, Worker | O31 |
 | 5 | Store, screens (six tabs and Settings), live recalculation, change summary | O24, O27, O28 |
@@ -1112,21 +1170,51 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 | 7 | Saving, export/import, sample plan | — |
 | 8 | Testing with the author and two friends | Paid-tool comparison done; speed check passed |
 
+Every gate also includes the [Known gaps](#known-gaps-from-review) rows whose "Close before" cell names that stage. A row marked "(during)" is closed by code, tests or config built within that stage, and closes by the stage's tag.
+
 ### Target Files to Create/Modify
+
+#### Stage 2 file boundary
+
+The files stage 2 may create or change. Anything not listed here is out of bounds for stage 2.
+
+*   **Create:**
+    *   `src/engine/units.ts`;
+    *   `src/engine/accounts/rrspRrif.ts`, `liraLif.ts`, `tfsa.ts`, `nonRegistered.ts`;
+    *   `src/engine/benefits/cpp.ts`, `oas.ts`, `db.ts`, `survivor.ts`;
+    *   `src/engine/withdraw/registeredLast.ts`, `fillBrackets.ts`, `earlyRrsp.ts`, `surplus.ts`;
+    *   `src/engine/tax/split.ts`;
+    *   `src/engine/solver/bisect.ts`, `yearSolve.ts`, `startOfYear.ts`, `incomeAssembly.ts`;
+    *   `src/engine/project/initialState.ts`, `spendingNeed.ts`, `workingYear.ts`, `runPath.ts`, and `death.ts` with `firstDeathTransfer` only;
+    *   `src/engine/invest/returns.ts`, `glide.ts`, `placement.ts`, `rebalance.ts`;
+    *   `src/engine/config/overrides.ts`;
+    *   `src/engine/invariants.ts`;
+    *   a `README.md` in each new folder (`accounts`, `benefits`, `withdraw`, `solver`, `project`, `invest`);
+    *   `tests/unit/helpers/couplePlan.ts`, the unit test files whose Stage column says 2, `tests/property/helpers/zeroTax.ts` and the stage 2 property test files (file 57).
+*   **Modify:**
+    *   `src/engine/constants.ts` (`SOLVER_MAX_STEPS`), `types.ts` (engine state, `YearContext.jurisdiction`, `PlanSummary` totals, `RuleOverrides`);
+    *   `src/engine/config/read.ts` (`ageTable`, `planValue`), `load.ts` (`rebaseConfig`, `configStatus` with overrides), `schema.ts` (`checkValue` export, `planning.fee_levels` schema), `keys.ts` (comments only);
+    *   `src/engine/jurisdiction/types.ts` (`lifMaxFactor`, `unlockShare`; its comment about `lifLimits` is replaced) and `ontario.ts`;
+    *   `tools/configCheck.ts` (passes `{}` for overrides; prints `yieldWarnings`) and `tools/lib.ts` (adds `yieldWarnings(bundle): string[]`, so the warning can be tested without running the script);
+    *   `tests/unit/taxContext.ts` (adds `jurisdiction`), `tests/unit/config.test.ts` (the three-argument `configStatus`, passing `{}`);
+    *   `.github/workflows/ci.yml` (`ENFORCE_COVERAGE`) and `vitest.config.ts` (the non-engine glob);
+    *   `config/2026/planning.json` (`planning.fee_levels` values from O25, recorded as "author decision, 2026-11-19", validated by the author) and `config/2026/market.json` (only the values the author enters for the stage 2 gate);
+    *   `docs/units-and-conventions.md` (a worked `rebaseConfig` example);
+    *   `src/engine/README.md`, `src/engine/config/README.md`, `src/engine/jurisdiction/README.md` (LIF values only; rules in `accounts/liraLif.ts`), `src/engine/tax/README.md` (`split.ts`) and `tools/README.md` (`configStatus` with overrides; `yieldWarnings`).
 
 #### Repository and build (stage 0)
 
-##### 1. `./.gitignore` (Exists — modify)
+##### 1. `./.gitignore` (Exists, stage 0)
 
 *   **Type / Scope**: Git configuration.
-*   **Proposed Changes**: Already ignores `private/`, `node_modules/`, `dist/`, `coverage/`, `playwright-report/`. Add `test-results/`.
+*   **Proposed Changes**: None. It ignores `private/`, `node_modules/`, `dist/`, `coverage/`, `playwright-report/` and `test-results/`.
 
 ##### 2. `./.gitattributes`, `./LICENSE`, `./private/retirement-planner-context.md` (Exist — keep)
 
 *   **Type / Scope**: Line endings (LF), MIT licence, private history (not committed).
 *   **Proposed Changes**: None. The licence stays MIT unless the author chooses another before the repository is made public.
 
-##### 3. `./package.json` and `./package-lock.json` (Create)
+##### 3. `./package.json` and `./package-lock.json` (Exists, stage 0)
 
 *   **Type / Scope**: Build configuration and lockfile.
 *   **Proposed Changes**: Majors are pinned as below; exact versions are resolved at stage 0 and frozen by the committed lockfile.
@@ -1161,20 +1249,20 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     | `config:check` | `tsx tools/configCheck.ts` |
     | `config:compare` | `tsx tools/configCompare.ts <a.json> <b.json>` |
 
-##### 4. `./.nvmrc` (Create)
+##### 4. `./.nvmrc` (Exists, stage 0)
 
 *   **Proposed Changes**: `22`.
 
-##### 5. `./tsconfig.json`, `./tsconfig.app.json`, `./tsconfig.worker.json`, `./tsconfig.node.json` (Create)
+##### 5. `./tsconfig.json`, `./tsconfig.base.json`, `./tsconfig.app.json`, `./tsconfig.worker.json`, `./tsconfig.node.json` (Exists, stage 0)
 
 *   **Type / Scope**: TypeScript configuration as project references.
-*   **Proposed Changes**: All strict, with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`, and path alias `@engine/*` → `src/engine/*`.
+*   **Proposed Changes**: `tsconfig.base.json` holds the shared options: all strict, with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`, and the path alias `@engine/*` → `src/engine/*`. The others extend it.
     *   `app`: `lib: ["ES2022", "DOM"]`, includes `src` except `src/worker`.
     *   `worker`: `lib: ["ES2022", "WebWorker"]`, includes `src/worker` and `src/engine`.
     *   `node`: includes `tools`, `tests`, and the config files.
     *   Add `src/vite-env.d.ts`.
 
-##### 6. `./vite.config.ts` (Create)
+##### 6. `./vite.config.ts` (Exists, stage 0)
 
 *   **Type / Scope**: Build configuration.
 *   **Proposed Changes**:
@@ -1190,14 +1278,14 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     base-uri 'none'; object-src 'none'
     ```
 
-##### 7. `./vitest.config.ts` (Create)
+##### 7. `./vitest.config.ts` (Exists, stage 0; modify at stage 2)
 
 *   **Type / Scope**: Test configuration.
 *   **Proposed Changes**:
     *   Include `tests/{unit,property,reference}/**/*.test.ts`; exclude `tests/e2e/**`.
-    *   Coverage with v8: branch coverage of 90% for `src/engine/**` and 70% for other `src/**`, enforced from the `stage-2` tag onward.
+    *   Coverage with v8, enforced when `ENFORCE_COVERAGE=true` (set in `ci.yml` by the last commit of stage 2): 90% branches for `src/engine/**`; 70% for `src/{state,ui,worker}/**` (target pending M3). The last commit of stage 2 changes the thresholds key `'src/**'` to `'src/{state,ui,worker}/**'`, so the two globs do not overlap.
 
-##### 8. `./playwright.config.ts` (Create)
+##### 8. `./playwright.config.ts` (Exists, stage 0)
 
 *   **Type / Scope**: End-to-end test configuration.
 *   **Proposed Changes**:
@@ -1205,26 +1293,26 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     *   `webServer`: `npm run build && npm run preview -- --port 4173`.
     *   `baseURL: 'http://localhost:4173/retirement-planner/'`.
 
-##### 9. `./eslint.config.js`, `./.prettierrc`, `./.prettierignore` (Create)
+##### 9. `./eslint.config.js`, `./.prettierrc`, `./.prettierignore` (Exists, stage 0)
 
 *   **Type / Scope**: Lint and formatting.
 *   **Proposed Changes**:
     *   `.prettierignore` lists `docs/`, `*.md`, `package-lock.json`, `config/**/*.json`, `src/engine/config/bundle.ts`, `dist/`, `coverage/`, `playwright-report/`, `test-results/`. Markdown and config JSON keep their hand-written layout; Prettier formats code only.
-    *   `@typescript-eslint/no-magic-numbers` in `src/engine/**`, ignoring `[0, 1, -1, 2, 100]`, with `ignoreNumericLiteralTypes: true` (so types such as `schemaVersion: 1` pass) and `ignoreEnums: true`. The only exempt file is `src/engine/constants.ts`, which also holds `MONTHS_PER_YEAR = 12`.
+    *   `@typescript-eslint/no-magic-numbers` in `src/engine/**`, ignoring `[0, 1, -1, 2, 100]`, with `ignoreNumericLiteralTypes: true` (so types such as `schemaVersion: 1` pass), `ignoreEnums: true`, `ignoreReadonlyClassProperties: true` and `ignoreArrayIndexes: true` (which `federalBasicAmount` relies on). The only exempt file is `src/engine/constants.ts`, which also holds `MONTHS_PER_YEAR = 12`.
     *   `ignores`: `dist/`, `coverage/`, `playwright-report/`, `test-results/`, `src/engine/config/bundle.ts`.
     *   `no-restricted-imports`:
         *   `src/engine/**` may not import `src/ui/**` or `src/state/**`;
         *   `src/engine/{solver,project,simulate}/**` may not import the `TodayDollars` type.
     *   `react-hooks` rules for `src/ui/**`.
 
-##### 10. `./index.html` and `./src/main.tsx` (Create)
+##### 10. `./index.html` and `./src/main.tsx` (Exists, stage 0; replaced at stage 5)
 
 *   **Type / Scope**: App entry.
 *   **Proposed Changes**:
     *   `index.html`: a root element, a `<noscript>` message, and a module script pointing to `src/main.tsx`. It contains no CSP; the build plugin adds it.
     *   `src/main.tsx` at stage 0 renders "Under construction"; stage 5 replaces it.
 
-##### 11. `./.github/workflows/ci.yml` (Create)
+##### 11. `./.github/workflows/ci.yml` (Exists, stage 0; modify at stage 2)
 
 *   **Type / Scope**: CI pipeline.
 *   **Proposed Changes**: Runs on every push and pull request, on `ubuntu-latest`, in this order:
@@ -1233,12 +1321,12 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     3.  `npm ci`;
     4.  `npx playwright install --with-deps chromium`;
     5.  `npm run config:check`, `typecheck`, `lint`, `format:check`;
-    6.  `npm test -- --coverage`;
+    6.  `npm test -- --coverage`. The last commit of stage 2 (the one tagged `stage-2`) adds `env: { ENFORCE_COVERAGE: 'true' }` to this step, so coverage is enforced from that commit on and never while stage 2 is half built;
     7.  `npm run build`;
     8.  `npm run test:e2e`;
     9.  `npm audit --omit=dev`, with `continue-on-error: true` (report only).
 
-##### 12. `./.github/workflows/deploy.yml` (Create)
+##### 12. `./.github/workflows/deploy.yml` (Exists, stage 0)
 
 *   **Type / Scope**: Deployment.
 *   **Proposed Changes**:
@@ -1251,21 +1339,12 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     *   **Permissions:** `pages: write`, `id-token: write`, `contents: read`; environment `github-pages`.
     *   **Repository setting:** Pages source is "GitHub Actions".
 
-##### 13. `./AGENTS.md` and `./CLAUDE.md` (Create)
+##### 13. `./AGENTS.md` and `./CLAUDE.md` (Exists, stage 0)
 
 *   **Type / Scope**: Instructions for AI coding agents. `CLAUDE.md` contains one line pointing to `AGENTS.md`.
-*   **Proposed Changes**: Rules:
-    *   **Values:** never supply a rule value from memory; every value comes from `config/`, and every engine setting from `src/engine/constants.ts`.
-    *   **Protected files:** never modify a validated config entry or an existing file under `tests/fixtures/`. Create a fixture file only where the current stage's plan calls for one. The author reviews `git diff tests/fixtures config` before tagging each stage.
-    *   **Code changes:** rewrite whole functions rather than patching them.
-    *   **Units:** the engine works in future dollars only; conversion happens only in `normalizeInputs` and `toDisplay`.
-    *   **Engine boundary:** no screen or store code in `src/engine`.
-    *   **Personal data:** never put real household data in the repository.
-    *   **Wording:** all user-facing text stays conditional ("under these assumptions…").
-    *   **Before finishing:** run `npm run typecheck && npm run lint && npm test`.
-    *   **Stages:** follow the stage order and its gates, and tag each green stage.
+*   **Proposed Changes**: None. The rules are as committed in `AGENTS.md`, in these sections: Values, Protected files, Code, Personal data, Before finishing, Stages. Change that file, not this entry.
 
-##### 14. `./README.md` (Create)
+##### 14. `./README.md` (Exists, stage 0)
 
 *   **Type / Scope**: Project documentation.
 *   **Proposed Changes**:
@@ -1282,10 +1361,10 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 *   **Proposed Changes**: This document. Updated when a decision changes.
 
-##### 16. `./docs/reviews/2026-11-17/` (Exists — keep)
+##### 16. `./docs/reviews/` (Exists — keep)
 
-*   **Type / Scope**: Review history, already committed.
-*   **Proposed Changes**: None. The folder holds:
+*   **Type / Scope**: Review history.
+*   **Proposed Changes**: None. It holds one folder per review date: `2026-11-17/` (the full review), `2026-11-18/` and `2026-11-19/` (focused reviews, the drift report and the second full review). The 2026-11-17 folder holds:
     *   `zoom_out_report.md`
     *   `comprehension_report.md`
     *   `critic_report.md`
@@ -1296,7 +1375,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
     `concepts_brief.md` stays at the root.
 
-##### 17. `./docs/units-and-conventions.md` (Create)
+##### 17. `./docs/units-and-conventions.md` (Exists, stage 0; modify at stage 2)
 
 *   **Type / Scope**: Normative reference for engine authors.
 *   **Proposed Changes**: The rules from [Units and conventions](#units-and-conventions) with worked examples:
@@ -1306,7 +1385,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     *   mixed working/retired years;
     *   same-year deaths.
 
-##### 18. `./docs/history/decision-log.md` and `./docs/history/prototype-postmortem.md` (Create)
+##### 18. `./docs/history/decision-log.md` and `./docs/history/prototype-postmortem.md` (Exists, stage 0)
 
 *   **Type / Scope**: Project history, written from `private/retirement-planner-context.md` with personal figures removed.
 *   **Proposed Changes**:
@@ -1315,27 +1394,27 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
     Both carry a note that the prototype's calculation model is superseded by this design.
 
-##### 19. `./docs/admin-config-guide.md` (Create)
+##### 19. `./docs/admin-config-guide.md` (Exists, stage 0)
 
-*   **Type / Scope**: Admin procedure for fetching or refreshing the default values. Done for 2026; repeating it in later years is optional (2026-11-19), since users can change any value in Settings.
+*   **Type / Scope**: Admin procedure for fetching or refreshing the default values. Done for 2026; repeating it in later years is optional (2026-11-19), since users can change rule values in Settings.
 *   **Proposed Changes**:
-    1.  Two separate AI sessions each fetch every tax and benefit rule (`federal.json`, `ontario.json`) listed in `config/SOURCES.md` into a candidate file. One of them also fetches the market assumptions (`market.json`) and the life-expectancy tables (`planning.life_expectancy.*`). fsrao.ca pages are fetched with curl; Ontario probate is read by the admin.
+    1.  Two separate AI sessions each fetch every tax and benefit rule (`federal.json`, `ontario.json`) listed in `config/SOURCES.md` into a candidate file. One of them also fetches the market assumptions (`market.json`) and the life-expectancy tables (`planning.life_expectancy.*`). fsrao.ca pages are fetched with curl. The admin reads Ontario probate from the Estate Administration Tax Act.
     2.  Run `npm run config:compare` on the two tax and benefit candidates (`federal.json`, `ontario.json`).
-    3.  The admin resolves each disagreement against the source page, and spot-checks the values fetched once against theirs.
+    3.  The admin resolves each disagreement against the source page, and spot-checks the values fetched once against the source pages.
     4.  The admin sets each entry's validation status, name and date, and updates `config/CURRENT_YEAR`.
     5.  Run `npm run config:bundle` and `npm run config:check -- --strict`.
     6.  Commit.
 
     Planning choices other than life expectancy are reviewed in the same pass but not fetched.
 
-##### 20. `./config/SOURCES.md` (Create)
+##### 20. `./config/SOURCES.md` (Exists, stage 0)
 
 *   **Type / Scope**: Key list and sources.
 *   **Proposed Changes**: Exactly the dotted keys in the [Config contract](#config-contract)'s key tree, each with its unit, its official page URL and where on the page the value appears. Planning-choice keys are marked "author decision". `config:check` fails if this file and `src/engine/config/keys.ts` disagree; the design's key tree is kept in step by hand.
 
 #### Config (stage 0)
 
-##### 21. `./config/CURRENT_YEAR` and `./config/2026/{federal,ontario,market}.json` (Create)
+##### 21. `./config/CURRENT_YEAR` and `./config/2026/{federal,ontario,market}.json` (Exists, stage 0; `market.json` modify at stage 2)
 
 *   **Type / Scope**: Rule values, following the [Config contract](#config-contract).
 *   **Proposed Changes**: Every key in `SOURCES.md`, fetched and validated per the admin guide. `market.json` holds:
@@ -1343,12 +1422,12 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     *   one cash yield per class (author decisions, O30);
     *   the foreign withholding rate.
 
-##### 22. `./config/2026/planning.json` and `./config/2026/warnings.json` (Create)
+##### 22. `./config/2026/planning.json` and `./config/2026/warnings.json` (Exists, stage 0; `planning.json` modify at stage 2)
 
 *   **Type / Scope**: The author's planning choices, plus FP Canada's life-expectancy tables.
 *   **Proposed Changes**: The values in [Design values](#design-values-version-1):
     *   `planning.shapes` and `planning.presets`;
-    *   `planning.mixes`, `planning.fee_levels`, `planning.spending_phases` and `planning.planner_search` (O24, O25, O27, O31);
+    *   `planning.mixes` (O24), `planning.fee_levels` (O25, values set at stage 2), `planning.spending_phases` (O27) and `planning.planner_search` (O31);
     *   `planning.override_margin`;
     *   `planning.survivor_spending`;
     *   `warnings.triggers` and `warnings.nudge_steps`;
@@ -1358,124 +1437,129 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 #### Engine (stages noted per file)
 
-##### 23. `./src/engine/constants.ts` (Create, stage 1)
+##### 23. `./src/engine/constants.ts` (Exists, stage 0; modify at stage 2)
 
 *   **Proposed Changes**:
     *   `MONTHS_PER_YEAR = 12`
     *   `SOLVER_PRECISION = 0.01`
-    *   `SOLVER_MAX_STEPS = 32`
+    *   `SOLVER_MAX_STEPS = 40` (stage 2: enough to narrow $10 billion to $0.01)
     *   `SPLIT_STEP = 0.05`
     *   `MAX_SPLIT_PASSES = 2`
     *   `INVARIANT_TOLERANCE = 0.05`
     *   `WEIGHT_SUM_TOLERANCE = 1e-9` (planning weights must sum to 1)
     *   `CONFIG_YEAR_MIN = 2000`, `CONFIG_YEAR_MAX = 2100` (sanity range for a config entry's tax year)
 
-    `MONTHS_PER_YEAR` and the three config constants exist from stage 0.
+    All exist from stage 0 except the stage 2 change to `SOLVER_MAX_STEPS`.
 
-##### 24. `./src/engine/config/keys.ts`, `./schema.ts`, `./load.ts`, `./bundle.ts` (Create, stage 0)
+##### 24. `./src/engine/config/keys.ts`, `./schema.ts`, `./load.ts`, `./bundle.ts`, `./read.ts` (Exist, stages 0-1; modify at stage 2), `./overrides.ts` (Create, stage 2)
 
 *   **Proposed Changes**:
     *   `keys.ts`: the code copy of the [Config contract](#config-contract)'s key list. Each key has its file, value kind and whether it is an author decision.
-    *   `schema.ts`: Zod schemas for the entry shape, each value kind and each structured planning value.
+    *   `schema.ts`: Zod schemas for the entry shape, each value kind and each structured planning value. Stage 2 exports `checkValue(spec: KeySpec, value): string[]` for reuse by `overrides.ts`, and adds the `planning.fee_levels` schema, `Record<'index_etf' | 'robo' | 'advisor', rate 0..0.05>`.
     *   `bundle.ts`: generated by `tools/configBundle.ts`. It imports the JSON files for `CURRENT_YEAR`.
     *   `load.ts`:
         *   `checkBundle(bundle)`, which lists missing, unknown and malformed keys;
         *   `loadConfig(): Config`, which validates the bundle and returns the entries, converting `CAD_per_month` amounts to `CAD_per_year` (× 12; a null value stays null);
-        *   `configStatus(config, overrides, today): { taxYear, unfetchedKeys: string[], unvalidatedKeys: string[], overriddenKeys: string[], staleOverrideKeys: string[], outOfDate: boolean }` (stage 2; `configStatus(config, today)` until then);
+        *   `rebaseConfig(cfg, planStartYear): Config` (stage 2, C1), rebasing by value kind as in [Units and conventions](#units-and-conventions);
+        *   `toAnnual` (stage 2 change) also records `publishedUnit` on each loaded entry, so overrides of monthly keys can be converted;
+        *   `configStatus(config, overrides: RuleOverrides, today): { taxYear, unfetchedKeys: string[], unvalidatedKeys: string[], overriddenKeys: string[], staleOverrideKeys: string[], outOfDate: boolean }` (stage 2; `configStatus(config, today)` until then; `tools/configCheck.ts` passes `{}`);
         *   `configDefaults()`, which returns the values shown next to user overrides (stage 4).
-    *   `overrides.ts` (stage 2, SR1-M9): `validateOverride(key, value, cfg): string[]` (kind, unit range, structure and cross-key checks, per the [Config contract](#config-contract)), `applyRuleOverrides(cfg, overrides): Config`, and `dropInvalidOverrides(overrides, cfg): { kept, dropped }` for import.
-    *   `read.ts` (stage 2 change, SR1-M10): indexed reads use `ctx.ruleFactor(year)`, counting from the tax year, instead of the display deflator.
+    *   `overrides.ts` (stage 2, SR1-M9): `validateOverride(key, value, overrides, cfg): string[]` (kind via `checkValue`, unit range, structure and cross-key checks, per the [Config contract](#config-contract)), `applyRuleOverrides(cfg, overrides): Config` (reuses `toAnnual`), and `dropInvalidOverrides(overrides, cfg): { kept: RuleOverrides, dropped: { key, value, reasons: string[] }[] }` for import.
+    *   `read.ts` (exists, stage 1; stage 2 adds): `ageTable(ctx, key, age): number | undefined` for age tables (rates, never indexed; an age between two rows uses the row at or below it; an age above the last row uses the last row; an age below the first row returns `undefined` so the caller applies its own rule); and `planValue(cfg, key): number` for unindexed values read once per plan (`market.inflation`, yields, returns), used by `makeDeflator` and `classReturns`. Indexed reads keep using `ctx.deflator`, because `rebaseConfig` has already moved every indexed value to the plan start.
 
 ##### 25. `./src/engine/units.ts` (Create, stage 2)
 
 *   **Proposed Changes**:
     *   Branded types `TodayDollars` and `FutureDollars`.
     *   `makeDeflator(cfg)` returns `factor(yearIndex)`, counting from the plan start (display).
-    *   `makeRuleFactor(cfg, planStartYear)` returns `ruleFactor(year)` = (1 + inflation)^(year − cfg.taxYear), for indexing rule values (SR1-M10). `YearContext` gains `ruleFactor`.
-    *   `normalizeInputs(inputs, cfg): NormalizedInputs` converts every `…Today` field once.
+    *   `normalizeInputs(inputs, cfg): NormalizedInputs` converts every `…Today` field once, except DB amounts with `fixed` or `none` indexing, which are nominal. It runs after `applyRuleOverrides` and `rebaseConfig`.
     *   `toDisplay(rows, deflator)` converts results back.
 
-##### 26. `./src/engine/types.ts` (Create, stage 1)
+##### 26. `./src/engine/types.ts` (Exists, stage 1; modify at stage 2)
 
 *   **Proposed Changes**: The definitions in [Data contracts](#data-contracts), plus:
-    *   `YearContext { yearIndex, deflator, cfg }`, passed to every engine function that needs indexing;
+    *   `YearContext { yearIndex, deflator, cfg, jurisdiction }`, passed to every engine function that needs indexing (`jurisdiction` added at stage 2; `runPath` builds one per year);
+    *   the engine state types in [Data contracts](#data-contracts) (`PlanState`, `AccountState`, `SpouseYearState`, `Draw`, `Variant`, `NormalizedInputs`, `EngineIntegrityError`, `RuleOverrides`, `YearInProgress`, `Death`), the new `YearRow` fields and `PlanSummary` totals, added at stage 2; `PlanInputs.ruleOverrides` changes from `Record<string, unknown>` to `RuleOverrides`;
     *   `TaxableIncome { pensionEligible, oas, cpp, otherOrdinary, eligibleDividends, foreignDividends, capitalGains }`. `eligibleDividends` is the cash amount received (the tax code grosses it up) and `capitalGains` is the full realized gain (the tax code applies the inclusion rate), matching what the TaxTips.ca calculator asks for.
 
-    Filling rule for `pensionEligible`: DB payments at any age, and RRIF/LIF payments when the owner is 65 or older. RRSP and LIRA withdrawals, and RRIF/LIF before 65, go to `otherOrdinary`.
+    Filling rule for `pensionEligible`: DB payments at any age, and RRIF/LIF payments when the owner is at least `federal.credits.pension.min_age_rrif`. RRSP and LIRA withdrawals, RRIF/LIF below that age, and interest go to `otherOrdinary`. Splitting eligibility reads `federal.split.min_age_rrif` separately. `solver/incomeAssembly.ts` (stage 2) builds each spouse's `TaxableIncome` with this rule: `assembleIncome(spouse, fixedIncome, draws, cashYield, realizedGains, ctx): TaxableIncome`.
 
-##### 27. `./src/engine/jurisdiction/types.ts`, `./federal.ts`, `./ontario.ts` (Create, stage 1)
+##### 27. `./src/engine/jurisdiction/types.ts`, `./federal.ts`, `./ontario.ts` (Exist, stage 1; modify at stages 2 and 3)
 
 *   **Proposed Changes**:
     *   `federalTax(income: TaxableIncome, age, ctx): { tax, clawback }`, covering brackets, credits, dividend credit and OAS recovery tax.
     *   The `Jurisdiction` interface:
         *   `provincialTax(income, age, ctx): number`, covering brackets, credits, surtax, Health Premium and Tax Reduction;
-        *   `probate(estateAssets: number, ctx): number`;
-        *   `lifLimits(balance, ageAtStartOfYear, ctx): { min, max }` (Ontario's minimum reads `federal.rrif.min_factor`, as FSRA requires);
-        *   `unlockShare(ctx): number`.
-    *   `ontario.ts` implements `Jurisdiction`.
+        *   `id: string` (exists);
+        *   `lifMaxFactor(ageAtStartOfYear, ctx): number` (stage 2): the `ontario.lif.max_factor` row, the last row above 90;
+        *   `unlockShare(ctx): number` (stage 2);
+        *   `probate(estateAssets: number, ctx): number` (stage 3).
+    *   `ontario.ts` implements `Jurisdiction`. The LIF rules themselves (minimum, the earnings floor, the opening year) live in `accounts/liraLif.ts`; the jurisdiction supplies only Ontario's values.
 
-##### 28. `./src/engine/tax/personalTax.ts` (stage 1) and `./src/engine/tax/split.ts` (stage 2) (Create)
+##### 28. `./src/engine/tax/personalTax.ts` and `./src/engine/tax/tables.ts` (Exist, stage 1) and `./src/engine/tax/split.ts` (Create, stage 2)
 
 *   **Proposed Changes**:
     *   `personalTax(income, age, jurisdiction, ctx): { federal, provincial, clawback, total }`.
-    *   `bestSplit(a, b, ctx): { from, share, householdTax }` tries 0–50% in `SPLIT_STEP` steps in both directions (21 points, M13), respecting eligibility; ties go to the smaller transfer, then spouse 1 transferring.
+    *   `bestSplit(a: { income: TaxableIncome; age: number }, b: same, ctx): { from, share, householdTax }` calls `personalTax` with `ctx.jurisdiction`. It tries 0 to `federal.split.max_share` in `SPLIT_STEP` steps in both directions, 2 × (max_share ÷ `SPLIT_STEP`) + 1 points (M13), respecting eligibility (`federal.split.min_age_rrif`); a spouse who is working or not alive is left out (C2); ties go to the smaller transfer, then spouse 1 transferring.
 
 ##### 29. `./src/engine/benefits/cpp.ts`, `./oas.ts`, `./db.ts`, `./survivor.ts` (Create, stage 2)
 
 *   **Proposed Changes**: Each uses the formulas in [Accounts](#accounts), with coefficients from config. The first year is pro-rated by birth month (months after the start birthday ÷ 12), and the OAS 75+ increase is pro-rated the same way.
     *   `cppAt(estimateAt65, startAge, age, birthMonth, ctx)`
     *   `oasAt(residenceYears, startAge, age, birthMonth, ctx)`
-    *   `dbPayment(db, age, birthMonth, ctx, alive)`, covering the lifetime amount, the bridge until its end age, and indexing (full uses the deflator; fixed uses `indexRate`)
+    *   `dbPayment(db, age, birthMonth, ctx, alive)`, covering the lifetime amount, the bridge until its end age, and indexing per [Accounts](#accounts): `full` grows with the deflator; `fixed` is nominal at the start age and grows by `indexRate` from then; `none` is nominal and flat
     *   `survivorBenefits(deceased, survivor, ctx)`
 
 ##### 30. `./src/engine/accounts/rrspRrif.ts`, `./liraLif.ts`, `./tfsa.ts`, `./nonRegistered.ts` (Create, stage 2)
 
 *   **Proposed Changes**: Pure functions on account state:
-    *   **RRSP/RRIF:** conversion; the minimum uses the start-of-year age and is zero in the opening year; `minFactor(age, ctx)` uses the table, the last row above 95, and 1 ÷ (`federal.rrif.min_factor_base_age` − age) below 71 (FR-M4).
-    *   **LIRA/LIF:** conversion (validated by 71), minimum and maximum from the jurisdiction (zero minimum in the opening year), and the optional unlock to the owner's RRSP/RRIF. The LIF keeps last year's investment earnings for the maximum (FR-M9). A LIRA is never drawn.
-    *   **TFSA:** room tracking, contributions within room, and successor transfer without using room.
-    *   **Non-registered:** pooled positions with original cost; `sellProRata(amount)` returns cash and realized gain or loss; `cashYield(ctx)` returns income by type; `netGains(realized, carriedLoss)` returns the taxable gain and the new carried-forward loss (FR-M5).
+    *   **RRSP/RRIF:** conversion; the minimum uses the start-of-year age and is zero in the opening year; `minFactor(age, ctx)` uses the table, the last row above 95, and 1 ÷ (`federal.rrif.min_factor_base_age` − age) below the table's first age (when `ageTable` returns `undefined`) (FR-M4).
+    *   **LIRA/LIF:** conversion (validated by 71) and the optional unlock (`ctx.jurisdiction.unlockShare`) to the owner's RRSP/RRIF. `lifLimits(account, ageAtStartOfYear, isOpeningYear, ctx): { min, max }`: min = 0 in the opening year, else `minFactor(age, ctx)` × balance; max = the greater of `ctx.jurisdiction.lifMaxFactor(age, ctx)` × balance and `lifPrevEarningsNom` (the factor alone in the opening year) (FR-M4, FR-M9). A LIRA is never drawn.
+    *   **TFSA:** room is per spouse (`SpouseYearState.tfsaRoomNom`), shared by all their TFSAs: the indexed yearly limit, unrounded, plus last year's withdrawals, added on January 1 (C3). Contributions and deposits within room go to the spouse's first TFSA by id. Successor transfer uses no room.
+    *   **Non-registered:** pooled positions with original cost; `sellProRata(account, amount)` returns cash and realized gain or loss; `cashYield(account, returns)` returns income by type; `netGains(realized, carriedLoss)` returns the taxable gain and the new carried-forward loss (FR-M5).
     *   **Sheltered yield:** `reinvestYield(account, returns, ctx)` adds each class's yield back to the account, net of `market.foreign_withholding_rate` on foreign dividends (M15).
 
-##### 31. `./src/engine/invest/glide.ts`, `./placement.ts`, `./rebalance.ts` (Create, stage 2)
+##### 31. `./src/engine/invest/returns.ts`, `./glide.ts`, `./placement.ts`, `./rebalance.ts` (Create, stage 2)
 
 *   **Proposed Changes**:
     *   `returns.ts` (FR-M6): `classReturns(cfg, investing): Record<AssetClass, { total, yield, price, incomeType }>`, per [Asset classes and returns](#asset-classes-and-returns-o3).
-    *   `mixForYear(userMix, startingMixId, shapeId, yearsFromFirstRetirement, planStartYearsFromRetirement, cfg)` applies shape(*t*) − shape(*t₀*) to the user's stock share, keeping proportions within stocks and within bonds and cash, with the clamping fallbacks (SR1-M7). It returns fractions.
-    *   `targetHoldings(accounts, overallMix, presetId, cfg)` fills cash, bonds, then emerging-market, international, U.S. and Canadian stocks, each in its preset's account order, at face value. The baseline puts the same mix in every account.
-    *   Rebalancing off (O29) skips `rebalance` and the shape after the plan start; draws and deposits follow current holdings.
-    *   `rebalance(accounts, targets)` returns new holdings and the realized gains for the year.
-    *   `afterTaxStockShare(accounts, avgWithdrawalRate)`.
+    *   `glide.ts`: `mixForYear(userMix, startingMixId, shapeId, yearsFromFirstRetirement, planStartYearsFromRetirement, cfg)` applies shape(*t*) − shape(*t₀*) to the user's stock share, keeping proportions within stocks and within bonds and cash, with the clamping fallbacks (SR1-M7). It returns fractions. `startingMixId` is `investing.mixId`; until `planning.mixes` has values (O24), the 0%-stock fallback puts the points in Canadian stocks.
+    *   `placement.ts`: `targetHoldings(accounts, overallMix, presetId, cfg)` works at face value. For each class in the fill order (cash, bonds, then emerging-market, international, U.S. and Canadian stocks), the target is its share × the household total. It fills the account groups in the preset's order; within a group, the amount is split across the group's accounts (both spouses) in proportion to each account's room not yet assigned; whatever doesn't fit continues into the next group. Cash follows the preset's `bonds` column; U.S., international and emerging-market stocks follow its `global_equity` column. The baseline puts the same mix in every account. `afterTaxStockShare(accounts, avgWithdrawalRate)` is also in `placement.ts`.
+    *   `rebalance.ts`: `rebalance(accounts, targets)` returns new holdings and the realized gains for the year by owner (`YearRow.spouse[i].realizedGainsNom`). With rebalancing off (O29), `rebalance` and the shape are skipped after the plan start; draws and deposits follow current holdings.
 
 ##### 32. `./src/engine/withdraw/registeredLast.ts`, `./fillBrackets.ts`, `./earlyRrsp.ts`, `./surplus.ts` (Create, stage 2)
 
 *   **Proposed Changes**:
-    *   `registeredLast(W, accounts, ctx)` draws non-registered first (pro rata across spouses), then RRSP/RRIF and LIF pro rata across both spouses (LIF capped, overflow to the owner's RRSP/RRIF, then the other spouse; never a LIRA; M6), then TFSA (pro rata).
-    *   `bracketTopUp(spouses: SpouseYearState[], accounts: AccountState[], level: BracketLevel, ctx: YearContext): Draw[]` returns the required draws; `level` resolves to a dollar amount from the rule values in use; it tops up net income before splitting, after minimums and the cash yield (SR1-M6).
-    *   `earlyRrsp(W, spouses, accounts, ctx)` uses the fill-up rule in the draw-down years and calls `registeredLast` otherwise; `drawDownYears(spouses, deaths)` returns those years (SR1-M4).
-    *   `placeSurplus(surplus, accounts)` puts surplus in the owner's TFSA within room, then their non-registered account.
+    *   All four take `year: YearInProgress` (state, inputs, each spouse's income so far, draws already taken) and return `Draw[]`. Income is measured with `incomeTotals` from `jurisdiction/federal.ts`.
+    *   `registeredLast(W, year, ctx)` draws non-registered first (pro rata across spouses), then RRSP/RRIF and LIF pro rata across both spouses (each LIF capped at its `lifLimits` maximum less the draws already taken from it; overflow to the owner's RRSP/RRIF, then the other spouse; never a LIRA; M6), then TFSA (pro rata).
+    *   `bracketTopUp(year, level: BracketLevel, ctx)` returns the required draws. `level` resolves to a dollar amount from the rule values in use: `first_bracket` is the second row's `from` of `brackets(ctx, 'federal.tax.brackets')`; `oas_threshold` is `amount(ctx, 'federal.oas.recovery.threshold')`. It tops up net income before splitting, counting fixed income, minimums, the non-registered cash yield and gains already realized by the rebalance (SR1-M6). A spouse still working is skipped (C2).
+    *   `drawDownYears(inputs: NormalizedInputs, deaths: Death[]): number[]` returns the draw-down years from each spouse's CPP and OAS start ages and birth months (SR1-M4). `earlyRrsp(W, year, drawDown: number[], ctx)` uses the fill-up rule in those years (a spouse still working is skipped, C2) and calls `registeredLast` otherwise.
+    *   `placeSurplus(surplus, year): { accountId, amountNom }[]` splits the surplus by each spouse's share of the forced draws (`YearRow.spouse[i].forcedDrawsNom`, C3), then puts each share in that spouse's TFSA within room, then their non-registered account.
 
-##### 33. `./src/engine/solver/bisect.ts` and `./src/engine/solver/yearSolve.ts` (Create, stage 2)
-
-*   **Proposed Changes**:
-    *   `bisect(f, lo, hi): { x, converged }` uses `SOLVER_PRECISION` and `SOLVER_MAX_STEPS`.
-    *   `solveYear(state, inputs, ctx, variant): { nextState, row }` implements the [year solver](#the-year-solver) steps in order, with the two-pass split.
-    *   Non-convergence or an invariant failure throws `EngineIntegrityError { year, variant, check, before, after }`.
-
-##### 34. `./src/engine/project/workingYear.ts` (stage 2), `./runPath.ts` (stage 2), `./death.ts` (stage 3) (Create)
+##### 33. `./src/engine/solver/bisect.ts`, `./yearSolve.ts`, `./startOfYear.ts`, `./incomeAssembly.ts` (Create, stage 2)
 
 *   **Proposed Changes**:
-    *   `workingYear(...)` runs years before the first retirement, per [The year solver](#the-year-solver).
-    *   `runPath(inputs, ctx, variant, detail: 'full' | 'summary')` runs the plan at fixed returns and returns rows and a `PlanSummary`. It adds up `lifetimeTaxNom` and `lifetimeTaxToday` (M5).
+    *   `bisect(f, lo, hi): { x, converged }` uses `SOLVER_PRECISION` (on *x*, the withdrawal) and `SOLVER_MAX_STEPS`.
+    *   `startOfYear(state, inputs, ctx): PlanState` does step 0 of the year solver (conversions, the unlock, TFSA room).
+    *   `assembleIncome(...)` builds each spouse's `TaxableIncome` (file 26's filling rule).
+    *   `solveYear(state: PlanState, inputs: NormalizedInputs, ctx: YearContext, variant: Variant): { nextState, row }` implements the [year solver](#the-year-solver) steps in order, with the two-pass split. In stage 2 it throws `UnsupportedStrategyError` for `planner_pick`. Non-convergence or an invariant failure throws `EngineIntegrityError { year, variantId, check, before, after }` (types in [Data contracts](#data-contracts)).
+
+##### 34. `./src/engine/project/initialState.ts`, `./spendingNeed.ts`, `./workingYear.ts`, `./runPath.ts` (stage 2) and `./death.ts` (stage 2: `firstDeathTransfer`; stage 3: the rest) (Create)
+
+*   **Proposed Changes**:
+    *   `initialState(inputs: NormalizedInputs, ctx, variant): PlanState` builds the first year's state: RRSP, LIRA and TFSA balances placed by `targetHoldings` (non-registered from its entered positions and costs); each spouse's TFSA room from the sum of their `tfsaRoomToday`; an account whose owner is already past its conversion age starts converted, with `openedYear` = plan start − 1, so its minimum applies from the first year.
+    *   `spendingNeed(inputs, state, ctx): number` returns the year's need from the phases, category overrides and `keepPct` ([Data contracts](#data-contracts), Spending need), × the survivor percentage after the first death, zero before the first retirement.
+    *   `workingYear(state, inputs, ctx, variant): { nextState, row }` runs years before the first retirement, following the numbered working-year steps in [The year solver](#the-year-solver); `variant` gives the preset for the rebalance.
+    *   `runPath(inputs: NormalizedInputs, cfg, jurisdiction, variant, detail: 'full' | 'summary')` builds one `YearContext` per year, runs the plan at fixed returns and returns rows and a `PlanSummary`. It adds up `lifetimeTaxNom`, `lifetimeTaxToday`, `totalShortfallNom` and `totalShortfallToday` (M5). In stage 2 it stops after the second death year without a final return; `afterTaxLegacyNom` is the total of balances before tax, and `legacyIsPreTax` is `true`.
     *   `death.ts` holds:
-        *   the first-death transfer;
+        *   the first-death transfer, `firstDeathTransfer(state, inputs, ctx): PlanState` (stage 2, used by solver step 1, following its rules: accounts keep id and type and change owner, the survivor's age drives minimums and conversion, the deceased's carried loss is dropped);
         *   same-year death handling;
         *   `finalReturn` (registered balances converted or not, deemed sale, tax);
         *   `estate` (probate per O23, optional home, after-tax legacy).
 
 ##### 35. (Removed 2026-11-18: no market generator or stress paths with fixed returns)
 
-##### 36. `./src/engine/simulate/variants.ts` and `./src/engine/simulate/simulate.ts` (Create, stage 4)
+##### 36. `./src/engine/simulate/variants.ts`, `./simulate.ts` and `./plannerSearch.ts` (Create, stage 4)
 
 *   **Proposed Changes**:
     *   `variants(inputs)` returns the user's plan, the placement baseline, and one variant per withdrawal strategy, reusing the user's run for the chosen one.
@@ -1491,7 +1575,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 ##### 38. `./src/engine/invariants.ts` (Create, stage 2)
 
-*   **Proposed Changes**: `checkYear(prev, next, row, ctx)` applies the [Verification](#verification-g10) checks within `INVARIANT_TOLERANCE`.
+*   **Proposed Changes**: `checkYear(prev: PlanState, next: PlanState, row: YearRow, ctx)` applies the [Verification](#verification-g10) checks within `INVARIANT_TOLERANCE`, including the account and household conservation identities stated there.
 
 ##### 39. `./src/engine/warnings/definitions.ts`, `./evaluate.ts`, `./tips.ts` (Create, stage 6)
 
@@ -1514,7 +1598,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 ##### 41. `./src/worker/engine.worker.ts` and `./src/worker/client.ts` (Create)
 
 *   **Proposed Changes**:
-    *   The Worker receives `{ type: 'run', inputs, revision }` and posts `result` (with `revision`), then `tips` (with `revision`), or `error` (including `EngineIntegrityError` details). Between runs it checks for a newer revision and abandons the old one.
+    *   The Worker receives `{ type: 'run', inputs, revision }` and posts `result` (with `revision`), then `tips` (with `revision`), or `error` (including `EngineIntegrityError` details). It runs one revision at a time; when a newer revision is sent during a run, `client.ts` terminates the Worker and starts a new one (C4).
     *   The client exposes `run(inputs, revision)` with callbacks for the result and the tips.
 
 #### State and persistence (stages 5, 7)
@@ -1600,19 +1684,19 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 #### Tools (stage 0)
 
-##### 51. `./tools/configBundle.ts`, `./tools/configCheck.ts`, `./tools/configCompare.ts`, `./tools/lib.ts` (Create)
+##### 51. `./tools/configBundle.ts`, `./tools/configCheck.ts`, `./tools/configCompare.ts`, `./tools/lib.ts` (Exist, stage 0; `configCheck` modified at stage 2)
 
 *   **Proposed Changes**:
     *   **`configBundle`:** generates `src/engine/config/bundle.ts` for `CURRENT_YEAR`.
-    *   **`configCheck`:** validates every config file against the schema, checks that `SOURCES.md` and `keys.ts` list exactly the same keys (both directions), and lists unfetched and unvalidated entries. It exits non-zero on schema or key-list errors; with `--strict` it also fails on any unfetched or unvalidated entry.
+    *   **`configCheck`:** validates every config file against the schema, checks that `SOURCES.md` and `keys.ts` list exactly the same keys (both directions), and prints the number of unfetched and unvalidated entries (with `--strict`, it lists them and fails). It exits non-zero on schema or key-list errors. From stage 2 it also prints a warning, without failing, for each class whose yield is above its gross return (FR-M5); the 2026 bond values trigger it.
     *   **`configCompare a b`:** lists every key whose value, unit, year or indexed flag differs.
     *   **`lib.ts`:** shared helpers: reading `CURRENT_YEAR`, reading a year's config files, and reading the key column of `SOURCES.md`.
 
 #### Tests and fixtures
 
-##### 52. `./tests/fixtures/tax-cases.json` (Create, stage 0, by the author)
+##### 52. `./tests/fixtures/tax-cases.json` (Exists, stage 0; entered by an agent from TaxTips.ca, spot-checked by the author)
 
-*   **Proposed Changes**: At least 20 cases in the format `{ id, pairId?, age, income: TaxableIncome, federalTax, ontarioTax, clawback, source: "TaxTips.ca Ontario calculator", checkedOn }`.
+*   **Proposed Changes**: 21 cases (at least 20 for any later version) in the format `{ id, pairId?, age, income: TaxableIncome, federalTax, ontarioTax, clawback, source: "TaxTips.ca Ontario calculator", checkedOn }`.
     *   `federalTax` excludes the OAS recovery tax, which goes in `clawback`, matching how TaxTips.ca reports it.
     *   `income` is after any pension split.
     *   The two spouses of a split case share a `pairId`.
@@ -1623,9 +1707,9 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     *   a high-dividend case;
     *   a pension-split pair.
 
-    Answers must match within $1 per return.
+    Federal tax, Ontario tax and the clawback must each match within $1.
 
-    **How the cases were made (author, 2026-11-19):** an agent entered the 21 cases in `private/tax-cases-checklist.md` into the TaxTips.ca calculator (2026, Ontario, single) and recorded its results; the author re-ran a sample by hand before the file was committed. TaxTips' "Ontario tax" is line 42800, which includes the Health Premium; its federal tax is line 42000, without the clawback.
+    **How the cases were made (author, 2026-11-19):** an agent entered the 21 cases in `private/tax-cases-checklist.md` into the TaxTips.ca calculator (2026, Ontario, single) and recorded its results; the author re-ran 3 cases by hand (`65-rrif-99k`, `65-high-dividends`, `split-a`), all matching to the dollar, before the file was committed. TaxTips' "Ontario tax" is line 42800, which includes the Health Premium; its federal tax is line 42000, without the clawback.
 
 ##### 53. `./tests/fixtures/reference-plan/inputs.json` and `./expected-rows.csv` (Create, stage 3)
 
@@ -1645,34 +1729,47 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
     An agent may draft it; the author completes and commits it.
 
-##### 56. `./tests/unit/` (Create, stages 1–7)
+##### 56. `./tests/unit/` (stages 0-7; files below by stage)
 
-*   **Proposed Changes**: One file per module.
+*   **Proposed Changes**: Test files and their cases. Shared stage 2 helper: `tests/unit/helpers/couplePlan.ts`, a minimal two-spouse `PlanInputs` and a `yearContext(yearIndex)` built from the bundle, with test-only values (never rule values) for entries still unfetched.
 
-    | File | Test cases |
-    |---|---|
-    | `personalTax.test.ts` | Every `tax-cases.json` case within $1 |
-    | `ontario.test.ts`, `federal.test.ts` (FR-M13) | Each step of the [Ontario calculation order](#tax-scope-o11), checked separately. Health Premium at each band's start, $1 above it and at the income where it reaches the cap. Surtax at, $1 below and $1 above each threshold, and above both. Tax Reduction: full (tax brought to zero), partial, and zero at high tax; the Health Premium is never reduced. Dividend credit and other credits can't make basic tax negative. Bracket indexing in a later year: rows marked `indexed: false` keep their threshold while the rest grow with `ctx.deflator`. Expected values are worked out in the test from the config entries in use, not typed in as numbers |
-    | `split.test.ts` | Eligibility (no RRIF splitting under 65; DB at any age); hand-checked pairs; both directions; the tie rule |
-    | `cpp.test.ts`, `oas.test.ts`, `db.test.ts`, `survivor.test.ts` | Start ages 60/65/70; birth-month pro-rating; OAS residence and the 75+ increase; DB bridge stop and indexing; survivor cap, both age bands |
-    | `rrspRrif.test.ts`, `liraLif.test.ts`, `tfsa.test.ts`, `nonRegistered.test.ts` | Minimums against the config table; the minimum at ages 60 and 70 from the base age, and above 95 (FR-M4, FR-M13); zero minimum in the opening year; LIF maximum from the table and from last year's earnings, and above age 90 (FR-M9); a LIRA is never drawn; unlock; TFSA room and successor; original cost on partial sales; a realized loss offsets same-year gains and carries forward, never against other income (FR-M5); sheltered yield reinvested, net of withholding on foreign dividends (M15) |
-    | `returns.test.ts` | Override before the fee; the fee subtracted; price = total − yield; one row per class; the optimistic-return limit at +0.5 and +0.51 points (FR-M6, FR-M13) |
-    | `overrides.test.ts` | Unit ranges; table structure (rising `from`, no age gaps, caps never fall, equal surtax lengths); cross-key rules; a monthly override × 12; an unknown or invalid key dropped on import with a message; a stale override marked (SR1-M9, SR1-M10) |
-    | `glide.test.ts`, `placement.test.ts`, `rebalance.test.ts` | Shape interpolation and end points applied to the user's mix, measured from the plan start (plan starts before and after retirement give today's mix in year one); clamped at 0% and 100%, with 100%-stock and 0%-stock mixes; fill order for six classes; baseline mix; realized gains; rebalancing off (no shape, drift with returns) |
-    | `registeredLast.test.ts`, `fillBrackets.test.ts`, `earlyRrsp.test.ts`, `surplus.test.ts` | Draw order; pro rata between spouses; LIF cap overflow (M6); bracket top-up creates surplus; top-up with dividends and realized gains in income (SR1-M6); both levels follow a changed rule value; survivor keeps the level; draw-down years from the start ages, including the last start year, a death before benefits start and zero draw-down years; the fill-up rule with equal incomes and with one spouse exhausted (SR1-M4); surplus to TFSA within room |
-    | `yearSolve.test.ts` | Convergence for every tax case; shortfall recorded; mixed working/retired year; two-pass split; logs the time of one 40-year run (SR1-M3) |
-    | `death.test.ts` | Rollover at original cost; same-year deaths; final return includes unconverted RRSP/LIRA; probate |
-    | `units.test.ts` | `normalizeInputs` and `toDisplay` round trip; `ruleFactor` with `planStartYear = taxYear + 3` (SR1-M10); lifetime tax in today's dollars summed year by year (M5) |
-    | `compare.test.ts`, `plannerSearch.test.ts` | Spending-covered and legacy-goal flags; differences against a baseline; opposite-direction flag; the planner's pick and runner-up for each goal; ties |
-    | `warnings.test.ts`, `tips.test.ts` | Each trigger at and around its threshold; collapsed years; tips ranked by effect |
-    | `changeSummary.test.ts`, `store.test.ts` | Diff fields and the named edit; a run scheduled 500 ms after the last edit; an older revision's result dropped; rule overrides set and reset |
-    | `persistence.test.ts` | Round trip including rule overrides; newer-version refusal; the frozen v1 file loads |
-    | `config.test.ts` (exists from stage 0) | Key list has no duplicates and matches `SOURCES.md`; entry shape by value kind; structured planning values; missing, unknown and wrong-year keys; unfetched and out-of-date status; monthly amounts × 12 on load; the committed config passes; `configCompare` differences |
-    | `configCompare.test.ts`, `configCheck.test.ts` | Detects value, unit, year and indexed-flag differences; rejects a malformed file (may be folded into `config.test.ts`) |
+    | File | Stage | Test cases |
+    |---|---|---|
+    | `personalTax.test.ts` | 1 | Every `tax-cases.json` case within $1 |
+    | `ontario.test.ts`, `federal.test.ts` (FR-M13) | 1 | Each step of the [Ontario calculation order](#tax-scope-o11), checked separately. Health Premium at each band's start, $1 above it and at the income where it reaches the cap. Surtax at, $1 below and $1 above each threshold, and above both. Tax Reduction: full (tax brought to zero), partial, and zero at high tax; the Health Premium is never reduced. Dividend credit and other credits can't make basic tax negative. Bracket indexing in a later year: rows marked `indexed: false` keep their threshold while the rest grow with `ctx.deflator`. Expected values are worked out in the test from the config entries in use, not typed in as numbers |
+    | `split.test.ts` | 2 | Eligibility (no RRIF splitting under 65; DB at any age); hand-checked pairs; both directions; the tie rule |
+    | `cpp.test.ts`, `oas.test.ts`, `db.test.ts`, `survivor.test.ts` | 2 | Start ages 60/65/70; birth-month pro-rating; OAS residence and the 75+ increase; DB bridge stop; DB indexing for `full`, `fixed` (nominal at start, then `indexRate`) and `none` (nominal, flat); survivor cap, both age bands |
+    | `rrspRrif.test.ts`, `liraLif.test.ts`, `tfsa.test.ts`, `nonRegistered.test.ts` | 2 | TFSA room: unrounded indexed limit, withdrawals added back next January 1 (C3); minimums against the config table; the minimum at ages 60 and 70 from the base age, and above 95 (FR-M4, FR-M13); zero minimum in the opening year; LIF maximum from the table and from last year's earnings, and above age 90 (FR-M9); a LIRA is never drawn; unlock; TFSA room and successor; original cost on partial sales; a realized loss offsets same-year gains and carries forward, never against other income (FR-M5); sheltered yield reinvested, net of withholding on foreign dividends (M15) |
+    | `returns.test.ts` | 2 | Override before the fee; the fee subtracted; price = total − yield; one row per class; the optimistic-return limit at +0.5 and +0.51 points (FR-M6, FR-M13) |
+    | `overrides.test.ts` | 2 | Unit ranges; table structure (rising `from`, no age gaps, caps never fall, equal surtax lengths); cross-key rules; a monthly override × 12 through `publishedUnit`; an override of a 5-year life-expectancy table is accepted; an object override (`planning.shapes`) checked by `checkValue`; an unknown or invalid key dropped on import with a message; a stale override marked (SR1-M9, SR1-M10) |
+    | `glide.test.ts`, `placement.test.ts`, `rebalance.test.ts` | 2 | Shape interpolation and end points applied to the user's mix, measured from the plan start (plan starts before and after retirement give today's mix in year one); clamped at 0% and 100%, with 100%-stock and 0%-stock mixes; fill order for six classes; baseline mix; realized gains; rebalancing off (no shape, drift with returns) |
+    | `registeredLast.test.ts`, `fillBrackets.test.ts`, `earlyRrsp.test.ts`, `surplus.test.ts` | 2 | Draw order; pro rata between spouses; LIF cap overflow (M6); bracket top-up creates surplus; top-up with dividends and realized gains in income (SR1-M6); both levels follow a changed rule value; survivor keeps the level; draw-down years from the start ages, including the last start year, a death before benefits start and zero draw-down years; the fill-up rule with equal incomes and with one spouse exhausted (SR1-M4); surplus to TFSA within room |
+    | `yearSolve.test.ts` | 2 | Converges for the helper couple at spending of $0, $60,000 and $200,000 today; shortfall recorded; a working spouse in a retired-household year (C2); two-pass split |
+    | `bisect.test.ts` | 2 | Converges; precision on *x*; reports non-convergence |
+    | `workingYear.test.ts` | 2 | Each step of the working-years list: yield taxed at the marginal rate, benefits while working, TFSA overflow to non-registered, contributions at year end |
+    | `runPath.test.ts` | 2 | Logs the time of one 40-year couple run (no assertion; SR1-M3). Row span from the start year to the second death year; `full` and `summary` detail; `PlanSummary` totals, including lifetime tax and shortfall in today's dollars summed year by year (M5); stage 2 legacy without a final return |
+    | `invariants.test.ts` | 2 | Each conservation identity holds on a normal year and fails on a broken account |
+    | `read.test.ts` | 2 | `ageTable` above the last row and below the first; `planValue` |
+    | `death.test.ts` | 2 (first-death transfer); 3 (the rest) | Stage 2: accounts keep id and type and change owner; the survivor's age drives minimums; the deceased's carried loss is dropped; the TFSA transfer uses no room. Stage 3: rollover at original cost; same-year deaths; final return includes unconverted RRSP/LIRA; probate |
+    | `units.test.ts` | 2 | `normalizeInputs` and `toDisplay` round trip; DB `fixed` and `none` amounts left nominal; `rebaseConfig` with `planStartYear = taxYear + 3` for each value kind (number, bracket rows by their flags, list, phase-in `from` and `cap`; age tables untouched), including a stale override rebased from its own year (SR1-M10) |
+    | `compare.test.ts`, `plannerSearch.test.ts` | 4 | Spending-covered and legacy-goal flags; differences against a baseline; opposite-direction flag; the planner's pick and runner-up for each goal; ties |
+    | `warnings.test.ts`, `tips.test.ts` | 6 | Each trigger at and around its threshold; collapsed years; tips ranked by effect |
+    | `changeSummary.test.ts`, `store.test.ts` | 5 | Diff fields and the named edit; a run scheduled 500 ms after the last edit; an older revision's result dropped; rule overrides set and reset |
+    | `persistence.test.ts` | 7 | Round trip including rule overrides; newer-version refusal; the frozen v1 file loads |
+    | `config.test.ts` (exists from stage 0) | 0 (changed at 2) | Key list has no duplicates and matches `SOURCES.md`; entry shape by value kind; structured planning values; missing, unknown and wrong-year keys; unfetched and out-of-date status; monthly amounts × 12 on load; the committed config passes; `configCompare` differences |
+    | `configCheck.test.ts` | 2 | `yieldWarnings` (from `tools/lib.ts`) flags a class whose yield is above its gross return |
 
-##### 57. `./tests/property/*.test.ts` (Create, stages 2–4)
+##### 57. `./tests/property/` (Create, stages 2-3; files below)
 
-*   **Proposed Changes**: The property tests listed in [Verification](#verification-g10). They use fast-check, plus a test-only config under `tests/property/configs/` (zero tax) that is never part of the validated config.
+*   **Proposed Changes**: The property tests listed in [Verification](#verification-g10). They use fast-check. The zero-tax config is built in `tests/property/helpers/zeroTax.ts` from the bundle with `applyRuleOverrides`, setting to 0: every rate in `federal.tax.brackets` and `ontario.tax.brackets`, both `ontario.surtax.rates`, every `rate` and `cap` in `ontario.health_premium.schedule`, and `federal.oas.recovery.rate`. Plans used with it have `workingMarginalRate = 0` for both spouses. It is never part of the validated config.
+
+    | File | Properties | Stage |
+    |---|---|---|
+    | `tests/property/determinism.test.ts` | The same inputs give the same result | 2 |
+    | `tests/property/solver.test.ts` | After-tax cash rises when the withdrawal rises; the chosen split never gives more tax than a 0% split; the two-pass split is never below the full search and within 1% of it | 2 |
+    | `tests/property/symmetry.test.ts` | Swapping the spouses gives the same totals (identical spouses skipped); moving money between two accounts of the same type and owner changes nothing | 2 |
+    | `tests/property/zeroTax.test.ts` | With zero tax, the loop matches the closed-form annuity | 2 |
+    | `tests/property/legacy.test.ts` | Higher spending never raises the after-tax legacy (needs the final return) | 3 |
 
 ##### 58. `./tests/reference/referencePlan.test.ts` (Create, stage 3)
 
@@ -1682,7 +1779,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 
 ##### 60. `./tests/e2e/*.spec.ts` (Create, stages 5–7)
 
-*   **Proposed Changes**: One spec per CUJ, plus two checks.
+*   **Proposed Changes**: One spec per CUJ, plus one check.
     *   **CUJ 1 (`first-plan.spec.ts`):** load the sample plan; results appear without a button press. Both goal cards show their result, the lifetime tax is shown, each yearly chart's table view has one row per year, and the plan survives a page reload.
     *   **CUJ 2 (`cross-tab.spec.ts`):** click each strategy card on Withdrawals. The cards, chart and breakdown keep their positions; after selecting one, the Results tab shows "Updating" and then "What your last change did" with lifetime tax and clawback years.
     *   **CUJ 3 (`placement.spec.ts`):** change the preset. The comparison shows lifetime tax and money left for the preset and the baseline.
@@ -1690,16 +1787,17 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
     *   **CUJ 5 (`resume.spec.ts`):** export, clear storage, import. The inputs are identical. A file with `schemaVersion: 2` is refused with both versions named.
     *   **CUJ 6 (`settings.spec.ts`):** change the OAS clawback threshold in Settings. It is marked changed with the default beside it, the header reads "1 value changed", results update, the change survives export and import, and Reset restores the default. (The config-notice check for an unvalidated key moves here too, if M2 is resolved.)
     *   **`no-network.spec.ts`:** a full session makes no request outside the app's own origin.
+
 ### Verification Plan
 
 *   **Compilation/Build**: `npm run typecheck` and `npm run build` succeed.
 *   **Unit Tests**: `npm test` passes, including every tax fixture, the reference plan and the property tests.
 *   **Static Analysis & Linting**: `npm run lint`, `npm run format:check` and `npm run config:check` pass.
-*   **Test Coverage Requirement**: 90% branch coverage for `src/engine/**` and 70% branch coverage elsewhere, from stage 2.
+*   **Test Coverage Requirement**: from the `stage-2` tag (CI sets `ENFORCE_COVERAGE`): 90% branches for `src/engine/**`; 70% for the rest of `src/` (target pending M3).
 *   **E2E/Integration**: `npm run test:e2e` passes in Chromium, including the no-network test.
 *   **Fixtures**: before each stage tag, the author reviews `git diff tests/fixtures config`.
 *   **Paid-tool comparison (manual, before stage 8)**: recorded in `tests/fixtures/paid-tool-comparison.md`. Any difference the tools' assumptions don't explain is investigated before stage 8.
-*   **Performance (manual, before stage 8)**: results within 1 second and tips within 2 seconds of the end of the 500 ms pause after the last edit, on the reference machine; typing stays smooth during runs.
+*   **Performance (manual, before stage 8)**: results within 1 second and tips within 2 seconds of the end of the 500 ms pause after the last edit, on the reference machine; no main-thread task over 50 ms while a run is in progress (Chrome DevTools Performance panel).
 *   **Stage 8 (people)**: the author judges each tester against the [Success Criteria](#success-criteria-for-version-1).
 
 --------------------------------------------------------------------------------
