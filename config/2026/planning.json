@@ -1,0 +1,262 @@
+{
+  "planning.life_expectancy.female": {
+    "value": {
+      "20": 98,
+      "25": 97,
+      "30": 97,
+      "35": 97,
+      "40": 97,
+      "45": 97,
+      "50": 97,
+      "55": 96,
+      "60": 96,
+      "65": 96,
+      "70": 96,
+      "75": 96,
+      "80": 96,
+      "85": 97,
+      "90": 98,
+      "95": 100,
+      "100": 103
+    },
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "2026 Guidelines p.4 'Probability of Survival Table', 25% column group, F column, one entry per Age row 20-100"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "planning.life_expectancy.male": {
+    "value": {
+      "20": 95,
+      "25": 95,
+      "30": 95,
+      "35": 95,
+      "40": 95,
+      "45": 94,
+      "50": 94,
+      "55": 94,
+      "60": 94,
+      "65": 94,
+      "70": 94,
+      "75": 94,
+      "80": 94,
+      "85": 95,
+      "90": 97,
+      "95": 99,
+      "100": 103
+    },
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf",
+      "locator": "2026 Guidelines p.4 'Probability of Survival Table', 25% column group, M column, one entry per Age row 20-100"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "planning.shapes": {
+    "value": {
+      "steady": {
+        "points": [
+          {
+            "yearsFromRetirement": 0,
+            "stockChange": 0
+          }
+        ]
+      },
+      "gradual_shift": {
+        "points": [
+          {
+            "yearsFromRetirement": -10,
+            "stockChange": 0.1
+          },
+          {
+            "yearsFromRetirement": 0,
+            "stockChange": -0.1
+          },
+          {
+            "yearsFromRetirement": 15,
+            "stockChange": -0.2
+          }
+        ]
+      },
+      "safety_first_regrow": {
+        "points": [
+          {
+            "yearsFromRetirement": -5,
+            "stockChange": 0
+          },
+          {
+            "yearsFromRetirement": 0,
+            "stockChange": -0.2
+          },
+          {
+            "yearsFromRetirement": 15,
+            "stockChange": 0
+          }
+        ]
+      }
+    },
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-19",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1 (O26: values accepted by the author)"
+    },
+    "fetchedOn": "2026-11-19",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "planning.presets": {
+    "value": {
+      "bonds_sheltered_first": {
+        "bonds": [
+          "registered",
+          "tfsa",
+          "nonreg"
+        ],
+        "global_equity": [
+          "tfsa",
+          "registered",
+          "nonreg"
+        ],
+        "cad_equity": [
+          "nonreg",
+          "tfsa",
+          "registered"
+        ]
+      },
+      "growth_tax_free_first": {
+        "bonds": [
+          "registered",
+          "nonreg",
+          "tfsa"
+        ],
+        "global_equity": [
+          "tfsa",
+          "nonreg",
+          "registered"
+        ],
+        "cad_equity": [
+          "nonreg",
+          "registered",
+          "tfsa"
+        ]
+      }
+    },
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  },
+  "planning.mixes": {
+    "value": null,
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, open (O24)",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "planning.fee_levels": {
+    "value": null,
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, open (O25)",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "planning.spending_phases": {
+    "value": null,
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, open (O27)",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "planning.planner_search": {
+    "value": null,
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, open (O31)",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "planning.survivor_spending": {
+    "value": 0.7,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1 (square-root household equivalence scale: 1/sqrt(2) ~ 0.71)"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  },
+  "planning.override_margin": {
+    "value": 0.005,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "author decision, 2026-11-17",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1 (matches FP Canada 2026 PAG section 3 d, deviation margin of 0.5%)"
+    },
+    "fetchedOn": "2026-11-17",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-17"
+    }
+  }
+}

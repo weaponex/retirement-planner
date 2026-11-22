@@ -1,0 +1,344 @@
+{
+  "ontario.tax.brackets": {
+    "value": [
+      {
+        "from": 0,
+        "rate": 0.0505
+      },
+      {
+        "from": 53891,
+        "rate": 0.0915
+      },
+      {
+        "from": 107785,
+        "rate": 0.1116
+      },
+      {
+        "from": 150000,
+        "rate": 0.1216,
+        "indexed": false
+      },
+      {
+        "from": 220000,
+        "rate": 0.1316,
+        "indexed": false
+      }
+    ],
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html",
+      "locator": "Provincial or territorial rates for 2026 > Ontario > table 'Ontario rate: 2026'. Non-indexation of $150,000 and $220,000 shown in T4127 (Jan 2026) Table 8.1 (2026) vs Table 8.22 (2025): lower thresholds moved 52,886->53,891 and 105,775->107,785 while 150,000 and 220,000 are unchanged."
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.credits.basic": {
+    "value": 12989,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan.html",
+      "locator": "T4127 Jan 2026 (PDF t4127-01-26e.pdf), Chapter 8, Table 8.2 'Other rates and amounts for 2026', row ON, column 'Basic amount' (index rate 0.019); Chapter 3 note: 'all Ontario credits are indexed'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.credits.age.amount": {
+    "value": 6342,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1on/td1on-26e.pdf",
+      "locator": "Form TD1ON 2026 (TD1ON E (26)), page 1, line 2 \"Age amount\": \"net income will be $47,210 or less, enter $6,342\""
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.credits.age.reduction_threshold": {
+    "value": 47210,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1on/td1on-26e.pdf",
+      "locator": "Form TD1ON 2026 (TD1ON E (26)), page 1, line 2 \"Age amount\": full amount if net income \"will be $47,210 or less\" (also TD1ON-WS 2026 line 2 section, line 3 \"Base amount\" 47,210.00)"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.credits.age.reduction_rate": {
+    "value": 0.15,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1on-ws/td1on-ws-26e.pdf",
+      "locator": "Form TD1ON-WS 2026 (TD1ON-WS E (26)), section \"Line 2 of Form TD1ON – Age amount\", line 5 \"Applicable rate\": 15%"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.credits.pension.amount": {
+    "value": 1796,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1on/td1on-26e.pdf",
+      "locator": "Form TD1ON 2026 (TD1ON E (26)), page 1, line 3 \"Pension income amount\": \"enter whichever is less: $1,796 or your estimated annual pension\""
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.dividend.eligible.credit_rate": {
+    "value": 0.1,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5006-d/5006-d-25e.pdf",
+      "locator": "Worksheet ON428 2025 (5006-D E (25)), page 2, \"Line 61520 – Ontario dividend tax credit\", line 2: amount C (A minus B) x 10%"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.tax_reduction.basic": {
+    "value": 300,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan.html",
+      "locator": "T4127 Jan 2026 (PDF), Table 8.2, row ON, column 'S2' = 300; Chapter 4 Step 5 Ontario factor S: '[2 x ($300 + Y)] - [T4 + V1]' (2025 Table 8.23 shows 294)"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.probate.threshold": {
+    "value": null,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "ontario.probate.rate": {
+    "value": null,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "see config/SOURCES.md",
+      "locator": "to be fetched"
+    },
+    "fetchedOn": null,
+    "validation": {
+      "status": "unfetched"
+    }
+  },
+  "ontario.lif.unlock_share": {
+    "value": 0.5,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.fsrao.ca/media/8326/download",
+      "locator": "FSCO policy L200-303 'Schedule 1.1 Life Income Funds (New LIFs)' (effective January 1, 2012, updated January 2014), page 5 of 18, 'The 50% Unlocking Withdrawal or Transfer': up to 50% of the total market value of the assets transferred into a New LIF from a LIRA or registered pension plan on or after January 1, 2010 (Schedule 1.1 s. 8(2.1)). Page 6: one application per transfer, on Form 5.2 within 60 days (s. 8(4)); not available for money from another New LIF, Old LIF, LRIF or life annuity."
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.surtax.thresholds": {
+    "value": [
+      5818,
+      7446
+    ],
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan.html",
+      "locator": "T4127 Jan 2026 (PDF), Chapter 4 Step 5, Ontario factor V1; Table 8.2 row ON, columns 'T4 to V1' 5,818 / 7,446 (2025 Table 8.23: 5,710 / 7,307)"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.surtax.rates": {
+    "value": [
+      0.2,
+      0.36
+    ],
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan.html",
+      "locator": "T4127 Jan 2026 (PDF), Chapter 4 Step 5, Ontario factor V1: 0.20 x (T4 - $5,818) + 0.36 x (T4 - $7,446); Table 8.2 row ON, column 'V1 rate'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.health_premium.schedule": {
+    "value": [
+      {
+        "from": 20000,
+        "rate": 0.06,
+        "cap": 300
+      },
+      {
+        "from": 36000,
+        "rate": 0.06,
+        "cap": 450
+      },
+      {
+        "from": 48000,
+        "rate": 0.25,
+        "cap": 600
+      },
+      {
+        "from": 72000,
+        "rate": 0.25,
+        "cap": 750
+      },
+      {
+        "from": 200000,
+        "rate": 0.25,
+        "cap": 900
+      }
+    ],
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan.html",
+      "locator": "T4127 Jan 2026 (PDF), Chapter 4 Step 5, Ontario factor V2 (Ontario Health Premium): A <= $20,000 -> $0; then lesser of cap or previous cap + rate x (A - band start) for bands starting $20,000, $36,000, $48,000, $72,000, $200,000"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "ontario.lif.max_factor": {
+    "value": {
+      "41": 0.0598531,
+      "42": 0.06006,
+      "43": 0.0602808,
+      "44": 0.0605167,
+      "45": 0.0607687,
+      "46": 0.0610382,
+      "47": 0.0613265,
+      "48": 0.061635,
+      "49": 0.0619655,
+      "50": 0.0623197,
+      "51": 0.0626996,
+      "52": 0.0631073,
+      "53": 0.0635454,
+      "54": 0.0640164,
+      "55": 0.0645234,
+      "56": 0.0650697,
+      "57": 0.0656589,
+      "58": 0.0662952,
+      "59": 0.0669833,
+      "60": 0.0677285,
+      "61": 0.0685367,
+      "62": 0.0694147,
+      "63": 0.0703703,
+      "64": 0.0714124,
+      "65": 0.0725513,
+      "66": 0.0737988,
+      "67": 0.0751689,
+      "68": 0.0766778,
+      "69": 0.0783449,
+      "70": 0.080193,
+      "71": 0.0822496,
+      "72": 0.084548,
+      "73": 0.0871288,
+      "74": 0.0900423,
+      "75": 0.0933511,
+      "76": 0.0971347,
+      "77": 0.1014952,
+      "78": 0.1065661,
+      "79": 0.1125255,
+      "80": 0.119616,
+      "81": 0.1281773,
+      "82": 0.1387002,
+      "83": 0.1519207,
+      "84": 0.1689953,
+      "85": 0.1918515,
+      "86": 0.2239589,
+      "87": 0.2722561,
+      "88": 0.3529338,
+      "89": 0.5145631,
+      "90": 1
+    },
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.fsrao.ca/industry/pensions/regulatory-framework/guidance-pensions/life-income-fund-lif-and-locked-retirement-income-fund-lrif-maximum-annual-income-payment-amount-table",
+      "locator": "FSRA guidance PE0196INF (effective January 1, 2021), 'Appendix A: maximum annual income payment amount table for an Ontario LIF or LRIF (Using C/F formula in section 6 of Schedules 1, 1.1 and 2 to the Regulation)', column 'Maximum payment as a percentage of the LIF or LRIF balance at start of fiscal year', every row, ages 41 to 90 (age 41 = 5.98531%, age 90 = 100.00000%). The page says the table holds for any year unless the November CANSIM V122487 rate (long-term Government of Canada bond rate) exceeds 6.00%; F uses 6.00% (greater of CANSIM V122487 and 6.00%) for the first 15 years and 6.00% thereafter. The page also says the maximum is the greater of the C/F amount and the previous fiscal year's investment earnings, including unrealized gains or losses (for a Post-2008 LIF after a transfer from another LIF or LRIF, the greatest of those and the transferring fund's plus receiving LIF's previous-year earnings). Percentages are prorated for a first fiscal year shorter than 12 months. The value holds only the table."
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  }
+}

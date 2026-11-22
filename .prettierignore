@@ -1,0 +1,10 @@
+docs/
+*.md
+package-lock.json
+config/**/*.json
+src/engine/config/bundle.ts
+dist/
+coverage/
+playwright-report/
+test-results/
+private/

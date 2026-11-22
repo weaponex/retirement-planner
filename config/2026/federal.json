@@ -1,0 +1,625 @@
+{
+  "federal.tax.brackets": {
+    "value": [
+      {
+        "from": 0,
+        "rate": 0.14
+      },
+      {
+        "from": 58523,
+        "rate": 0.205
+      },
+      {
+        "from": 117045,
+        "rate": 0.26
+      },
+      {
+        "from": 181440,
+        "rate": 0.29
+      },
+      {
+        "from": 258482,
+        "rate": 0.33
+      }
+    ],
+    "unit": "none",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html",
+      "locator": "Federal rate for 2026 > table 'Federal rate: 2026' (from / up to / is taxed at); indexation: 'Each year, income bracket thresholds increase based on inflation.'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.credits.basic": {
+    "value": 16452,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/adjustment-personal-income-tax-benefit-amounts.html",
+      "locator": "Indexation chart, 2026 column, row 'Basic personal amount (maximum) for individuals whose net income for the year is less than or equal to the amount at which the 29% tax bracket begins' (Footnote 1: indexed after 2023). Minimum BPA at/above the 33% bracket start is $14,829; enhancement $1,623."
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.credits.basic_min": {
+    "value": 14829,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/adjustment-personal-income-tax-benefit-amounts.html",
+      "locator": "Indexation chart, 2026 column, minimum basic personal amount for individuals whose net income is at or above the amount at which the 33% tax bracket begins. Value taken from the federal.credits.basic entry's locator ('Minimum BPA at/above the 33% bracket start is $14,829'), fetched 2026-11-18."
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.credits.age.amount": {
+    "value": 9208,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/adjustment-personal-income-tax-benefit-amounts.html",
+      "locator": "Indexation chart, 2026 column, row 'Age amount'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.credits.age.min_age": {
+    "value": 65,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1/td1-26e.pdf",
+      "locator": "Form TD1 2026 (TD1 E (26)), page 1, line 3 \"Age amount\": \"If you will be 65 or older on December 31, 2026\""
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.credits.age.reduction_threshold": {
+    "value": 46432,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/adjustment-personal-income-tax-benefit-amounts.html",
+      "locator": "Indexation chart, 2026 column, row 'Net income threshold for age amount'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.credits.age.reduction_rate": {
+    "value": 0.15,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1-ws/td1-ws-26e.pdf",
+      "locator": "Form TD1-WS 2026 (TD1-WS E (26)), section \"Line 3 of Form TD1 – Age amount\", line 5 \"Applicable rate\": 15%"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.credits.pension.amount": {
+    "value": 2000,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/about-your-tax-return/tax-return/completing-a-tax-return/deductions-credits-expenses/line-31400-pension-income-amount.html",
+      "locator": "Main text: claim whichever is less of $2,000 or the amount from the Federal Worksheet chart for line 31400 (page is labelled 'Tax year: 2025')"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.credits.pension.min_age_rrif": {
+    "value": 65,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/about-your-tax-return/tax-return/completing-a-tax-return/deductions-credits-expenses/line-31400-pension-income-amount.html",
+      "locator": "'Eligible pension and annuity income (65 years of age or older)' list: RRIF income (T4RIF boxes 16 and 22) condition 'None'; under 65 only if received upon death of spouse (page labelled 'Tax year: 2025')"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.capital_gains.inclusion_rate": {
+    "value": 0.5,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/forms-publications/publications/t4037/capital-gains.html",
+      "locator": "Guide T4037 Capital Gains 2025 (T4037(E) Rev. 25), Chapter 5 \"Inclusion rate\" table, row \"From 2001 to 2025: 1/2 (50%)\"; Chapter 5 capital losses example: \"The inclusion rate for 2025 is 50%.\" The guide states no rate for 2026 or later."
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.dividend.eligible.gross_up": {
+    "value": 0.38,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5000-d1/5000-d1-25e.pdf",
+      "locator": "Federal Worksheet 5000-D1 (T1-2025, 5000-D1 E (25)), page 1, \"Lines 12000 and 12010\", line 12 \"Applicable rate\" for eligible dividends: 138%"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.dividend.eligible.credit_rate": {
+    "value": 0.150198,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5000-d1/5000-d1-25e.pdf",
+      "locator": "Federal Worksheet 5000-D1 (T1-2025, 5000-D1 E (25)), page 8, \"Line 40425 – Federal dividend tax credit\", line 7: amount C (A minus B) x 15.0198%"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.oas.base_at_65": {
+    "value": 742.31,
+    "unit": "CAD_per_month",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/employment-social-development/programs/pensions/pension/statistics/2026-quarterly-january-march.html",
+      "locator": "ESDC quarterly report January–March 2026, Table 5 \"OAS amounts – January to March 2026\", row \"Old Age Security pension (age 65 to 74)\", Maximum monthly amount: $742.31"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.oas.residence.min_years": {
+    "value": 10,
+    "unit": "years",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/eligibility.html",
+      "locator": "Eligibility, living in Canada: 'Have resided in Canada for at least 10 years since the age of 18'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.oas.residence.full_years": {
+    "value": 40,
+    "unit": "years",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://laws-lois.justice.gc.ca/eng/acts/O-9/section-3.html",
+      "locator": "Old Age Security Act, s. 3(1)(c)(iii) (current to 2026-10-29): resided in Canada after age 18 \"for an aggregate period of at least forty years\""
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.oas.deferral.per_month": {
+    "value": 0.006,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/when-start.html",
+      "locator": "'If you wait until after age 65 to start your OAS pension, payments increase by 0.6% each month (7.2% per year), up to 36% at age 70.'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.oas.deferral.max_months": {
+    "value": 60,
+    "unit": "count",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/when-start.html",
+      "locator": "Delay examples: '60 months X 0.6% = 36%'; 'the maximum monthly amount is reached when you turn 70'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.oas.increase_age": {
+    "value": 75,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/payments.html",
+      "locator": "'In July 2022, the Old Age Security pension was permanently increased by 10% for seniors aged 75 and over.'; table row 'I am age 75 and over'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.oas.increase_rate": {
+    "value": 0.1,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/payments.html",
+      "locator": "'In July 2022, the Old Age Security pension was permanently increased by 10% for seniors aged 75 and over.'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.oas.recovery.threshold": {
+    "value": 95323,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/recovery-tax.html",
+      "locator": "Table 'Minimum income recovery thresholds by income year', row income year 2026 (recovery period July 2027 to June 2028), column 'Minimum income recovery threshold'; indexation shown by yearly rows and by the CRA indexation chart row 'Old age security repayment threshold'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.oas.recovery.rate": {
+    "value": 0.15,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/recovery-tax.html",
+      "locator": "Repayment calculation: 'You must repay 15% of that amount.'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.cpp.start.earliest": {
+    "value": 60,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/when-start.html",
+      "locator": "'You can start as early as age 60 or as late as age 70'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.cpp.start.latest": {
+    "value": 70,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/when-start.html",
+      "locator": "'You can start as early as age 60 or as late as age 70'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.cpp.adjust.early_per_month": {
+    "value": 0.006,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/when-start.html",
+      "locator": "'Payments decrease by 0.6% each month (7.2% per year), up to a maximum reduction of 36% if you start at age 60.'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.cpp.adjust.late_per_month": {
+    "value": 0.007,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/when-start.html",
+      "locator": "'Payments increase by 0.7% each month (8.4% per year), up to 42% at age 70.'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.cpp.max_at_65": {
+    "value": 1507.65,
+    "unit": "CAD_per_month",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/payment-amounts.html",
+      "locator": "Table 'Canada Pension Plan pensions and benefits - Monthly and maximum payment amounts', row 'Retirement pension (at age 65)', column 'Maximum monthly payment amount (2026)' (benefits beginning January 2026)"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.cpp.survivor.pct_65_plus": {
+    "value": 0.6,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://laws-lois.justice.gc.ca/eng/acts/C-8/section-58.html",
+      "locator": "CPP s. 58(1)(b): basic monthly amount equal to 60% of the amount of the contributor's retirement pension (survivor 65 or older)"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.cpp.survivor.flat_under_65": {
+    "value": 238.17,
+    "unit": "CAD_per_month",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/employment-social-development/programs/pensions/pension/statistics/2026-quarterly-january-march.html",
+      "locator": "ESDC quarterly report January–March 2026, Table 1 \"Maximum amount of new CPP benefits, month of January 2026\", row \"Survivor's pension – younger than 65\", Flat rate portion: $238.17"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.cpp.survivor.pct_under_65": {
+    "value": 0.375,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://laws-lois.justice.gc.ca/eng/acts/C-8/section-58.html",
+      "locator": "CPP s. 58(1)(a)/(a.1): flat rate benefit (s. 58(1.1)) plus 37.5% of the amount of the contributor's retirement pension (survivor under 65)"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.cpp.survivor.max_combined": {
+    "value": 1531.56,
+    "unit": "CAD_per_month",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/payment-amounts.html",
+      "locator": "Table 'Canada Pension Plan pensions and benefits - Monthly and maximum payment amounts', row 'Combined survivor's and retirement pension (at age 65)', column 'Maximum monthly payment amount (2026)'. The listed survivor page (cpp-survivor-pension.html, Step 2) gives no figure and says the limit is the maximum retirement pension."
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.rrif.latest_conversion_age": {
+    "value": 71,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/rrsps-related-plans/rrsp-options-when-you-turn-71/options-your-rrsps.html",
+      "locator": "CRA page \"Options for your own RRSPs\" (date modified 2025-01-03): \"In the year you turn 71 years old, you have to choose one of the following options for your RRSPs\""
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.tfsa.annual_limit": {
+    "value": 7000,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/adjustment-personal-income-tax-benefit-amounts.html",
+      "locator": "Tax-free savings account (TFSA) chart, 2026 column, row 'Annual TFSA dollar limit' (Footnote 5: indexed to inflation, rounded to the nearest $500)"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.split.max_share": {
+    "value": 0.5,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/pension-income-splitting.html",
+      "locator": "'You can allocate up to 50% of your eligible pension income to your spouse or common-law partner.'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.split.min_age_rrif": {
+    "value": 65,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/about-your-tax-return/tax-return/completing-a-tax-return/deductions-credits-expenses/line-31400-pension-income-amount.html",
+      "locator": "Eligible pension income lists '(65 years of age or older)' vs '(less than 65 years of age)': RRIF income qualifies without condition at 65+ (page labelled 'Tax year: 2025'); confirmed on pension-income-splitting page: 'the transferring spouse or common-law partner is 65 years of age or older at the end of the year'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.rrif.min_factor": {
+    "value": {
+      "71": 0.0528,
+      "72": 0.054,
+      "73": 0.0553,
+      "74": 0.0567,
+      "75": 0.0582,
+      "76": 0.0598,
+      "77": 0.0617,
+      "78": 0.0636,
+      "79": 0.0658,
+      "80": 0.0682,
+      "81": 0.0708,
+      "82": 0.0738,
+      "83": 0.0771,
+      "84": 0.0808,
+      "85": 0.0851,
+      "86": 0.0899,
+      "87": 0.0955,
+      "88": 0.1021,
+      "89": 0.1099,
+      "90": 0.1192,
+      "91": 0.1306,
+      "92": 0.1449,
+      "93": 0.1634,
+      "94": 0.1879,
+      "95": 0.2
+    },
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/completing-slips-summaries/t4rsp-t4rif-information-returns/payments/chart-prescribed-factors.html",
+      "locator": "Chart of prescribed factors, column 'All other RRIFs', ages 71 to '95 or older' (key 95 = 95 or older); ages 70 and under: '1 divided by (90 minus the age)'"
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  },
+  "federal.rrif.min_factor_base_age": {
+    "value": 90,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/completing-slips-summaries/t4rsp-t4rif-information-returns/payments/chart-prescribed-factors.html",
+      "locator": "Chart of prescribed factors: ages 70 and under use '1 divided by (90 minus the age)'. Value taken from the federal.rrif.min_factor entry's locator, fetched 2026-11-18."
+    },
+    "fetchedOn": "2026-11-18",
+    "validation": {
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-19"
+    }
+  }
+}
