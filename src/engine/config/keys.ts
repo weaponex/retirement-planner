@@ -1,7 +1,6 @@
-// The complete list of config keys: the code copy of the Config contract's key
-// list in docs/designs/retirement-planner.md. Change the design first, then
-// this list. `npm run config:check` fails unless config/SOURCES.md lists exactly
-// these keys; the design is kept in step by hand.
+// The complete, authoritative list of config keys (design: Config contract,
+// which describes the key groups). `npm run config:check` fails unless
+// config/SOURCES.md lists exactly these keys, so a new key is added to both.
 
 // Persisted ids (design: Config contract). These match FP Canada's published classes.
 export const ASSET_CLASSES = [

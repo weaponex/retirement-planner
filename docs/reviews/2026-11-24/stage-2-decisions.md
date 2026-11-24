@@ -7,7 +7,7 @@ has a recommendation, and none of the choices changes a rule value.
 Once you've decided, the choices go into the design (a "Stage 2 implementation decisions" note)
 and, where you pick a change, into the code.
 
-**Decided by the author on 2026-11-24** and recorded in the design (Stage 2 implementation decisions). Three changed the code: 8 (start from no split), 13b (the survivor share from the year after the death) and 15 (up to 3 passes, which matched the full search exactly over 1,054 plans; 2 passes missed by up to $157).
+**Decided by the author on 2026-11-24** and recorded in the design; since the editorial pass the table is in docs/history/build-decisions.md. Three changed the code: 8 (start from no split), 13b (the survivor share from the year after the death) and 15 (up to 3 passes, which matched the full search exactly over 1,054 plans; 2 passes missed by up to $157).
 
 | # | Topic | Recommendation | Decided |
 |---|---|---|---|

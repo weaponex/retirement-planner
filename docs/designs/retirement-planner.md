@@ -3,22 +3,21 @@
 *   **Author:** weaponex
 *   **Status:** Proposed
 *   **Date:** 2026-11-17
-*   **Review:** EGM interactive review (Stages 5–9) on 2026-11-17. Round-1 findings were resolved with the author in `docs/reviews/2026-11-17/goldfish_review_report.md`. Stage 9 was re-run once (`implementation_readiness_report_r2.md`): all three reviewers rated the plan "Ready with fixes", with no Blockers. The author concluded the review with the round-2 findings open; they are listed in [Known gaps from review](#known-gaps-from-review) and must be closed before the stage each affects. The 2026-11-18 revision (fixed returns, config sources) had a focused review only (`docs/reviews/2026-11-18/focused_review_report.md`, "Ready with fixes"); its open findings are in the same table, prefixed `FR-`. The 2026-11-19 revision (screens redesigned from clickable mockups with the author: six tabs including Savings, Estate and Results, a Settings screen for every rule value, live recalculation, spending by category, a user-set investment mix with six asset classes, and four withdrawal strategies) had a focused review (`docs/reviews/2026-11-19/focused_review_report.md`, "Ready with fixes"); its open findings are in the same table, prefixed `SR1-`. See [Screen design revision (2026-11-19)](#screen-design-revision-2026-11-19) and its open questions, O24–O31.
-*   **Brief:** [concepts_brief.md](../../concepts_brief.md). Open-question numbers (O1–O23) refer to it; see [Open Questions](#open-questions).
-
---------------------------------------------------------------------------------
+*   **Last revised:** 2026-11-24 (editorial pass after stage 3)
+*   **Reviews:** one folder per date under [docs/reviews/](../reviews/). Findings still open are in [Known gaps from review](#known-gaps-from-review), which explains their id prefixes. Decisions the author made while the engine was built are recorded in [docs/history/build-decisions.md](../history/build-decisions.md); this document states the rules that resulted.
+*   **Brief:** [concepts_brief.md](../../concepts_brief.md). Open questions O1–O21 come from it; [Open Questions](#open-questions) lists the rest.
 
 ## Overview
 
 A free retirement planner that runs entirely in a desktop web browser. It helps a Canadian couple see how three groups of decisions affect each other:
 
-1.  **Spending:** what the couple plans to spend each month, after tax, by category, in three phases of retirement (active early years, slower middle years, late years). What the survivor spends after the first death and how much the couple wants to leave to their children after tax are set on the Estate tab.
+1.  **Spending:** what the couple plans to spend each month, after tax, by category, in three phases of retirement (active years, slower years, later years). What the survivor spends after the first death and how much the couple wants to leave to their children after tax are set on the Estate tab.
 2.  **Savings and investing with taxes in mind:** the couple's accounts and workplace pensions, their overall investment mix, which kinds of investments to hold in which accounts (RRSP/RRIF, TFSA, non-registered, workplace pension accounts), and whether to shift toward safer investments as retirement goes on.
 3.  **Withdrawals:** which accounts to draw from and in what order, when each spouse starts CPP and OAS, RRIF minimum withdrawals, pension income splitting, the OAS clawback, and the tax due at each death.
 
-The app has five input tabs (Household, Savings, Spending, Withdrawals, Estate) and a Results tab, all over one shared plan, plus a Settings screen where every tax and benefit rule value can be changed from its default. The user can change anything on any tab, and the whole plan recalculates as they edit. Each asset class earns a steady average return every year (FP Canada's figures by default, editable), so every result can be traced and repeated. The app warns when something is at or near a known threshold and says which inputs affect it. It also shows what each tax-related choice is worth: lifetime tax paired with after-tax money left, for every withdrawal strategy side by side.
+The app has five input tabs (Household, Savings, Spending, Withdrawals, Estate) and a Results tab, all over one shared plan, plus a Settings screen where every tax and benefit rule value can be changed from its default. The user can change anything on any tab, and the whole plan recalculates as they edit. Each asset class earns a steady average return every year (FP Canada's figures by default, editable), so every result can be traced and repeated. The app warns when something is at or near a known threshold and says which inputs affect it. For two choices, account placement and the withdrawal strategy, it shows what the choice is worth: lifetime tax paired with the after-tax legacy, against a same-mix-everywhere baseline for placement, and for all three strategies side by side.
 
-The tool shows the effect of choices the user makes and explains why they differ. It does not give personal advice and never moves money. Nothing the user enters leaves the browser.
+The tool shows the effect of choices the user makes and explains why they differ. It does not give personal advice and never moves money. The app's security policy blocks it from sending network requests, so what the user enters stays in their browser; [Hosting](#hosting-and-repository-author) states the limits of that protection.
 
 Version 1 is for the author and two friends, modelled as Ontario couples. The long-term intent is to release it free to all Canadians.
 
@@ -63,19 +62,33 @@ Its tax constants were also wrong or out of date (the lowest federal rate entere
 
 ### Product goals
 
-*   **G1. Linked planning.** The user can change inputs on any of the five input tabs and see the effect everywhere, without pressing a button: the plan recalculates as they edit (author, 2026-11-19). The Results tab lists what the last change did (for example "first shortfall year 2041 → none; after-tax legacy −$62k; clawback years 3 → 7").
+*   **G1. Linked planning.** The user can change inputs on any of the five input tabs and see the effect everywhere, without pressing a button: the plan recalculates as they edit. The Results tab lists what the last change did (for example "first shortfall year 2041 → none; after-tax legacy −$62k; clawback years 3 → 7").
 *   **G2. Tax-aware results for an Ontario couple.** Each year of the plan computes federal and Ontario tax for each spouse separately, including credits, the OAS clawback, and pension income splitting, based on actual taxable income by account type.
 *   **G3. Both deaths modelled.** Each spouse has an editable life expectancy target. The plan handles the first death (rollovers, survivor benefits, single-filer tax, survivor spending) and the second death (final-return tax on the RRIF, investments taxed as if sold, Ontario probate) and reports the after-tax legacy.
 *   **G4. Steady, traceable returns.** Each asset class earns one fixed compound return every year, from FP Canada's guidelines by default, and the user can override it. The same inputs and config always give the same results. Year-to-year market swings are not modelled in version 1 (see [Risks](#risks--mitigations)).
-*   **G5. Show what placement and the withdrawal strategy are worth.** For placement, the app shows lifetime tax paired with after-tax money left against a same-mix-everywhere baseline at the same returns. For withdrawals, it shows those two numbers for all four strategies side by side, and a year-by-year chart of where the money comes from under the selected one (see [Result definitions](#result-definitions)).
-*   **G6. Threshold warnings.** On every result, the app shows warnings when a defined threshold is near or crossed, each with the inputs that affect it. The list starts with 8 warnings and grows through use.
-*   **G7. Private, with a file to keep.** No user data leaves the app's page. The plan saves automatically in the browser, but browsers can clear that storage, so the export file is the copy to keep. Exports can be imported again, including into a newer version of the app. Export files are not encrypted.
+*   **G5. Show what placement and the withdrawal strategy are worth.** For placement, the app shows lifetime tax paired with the after-tax legacy against a same-mix-everywhere baseline at the same returns. For withdrawals, it shows those two numbers for all three strategies side by side, and a year-by-year chart of where the money comes from under the selected one (see [Result definitions](#result-definitions)).
+*   **G6. Threshold warnings.** On every result, the app shows warnings when a defined threshold is near or crossed, each with the inputs that affect it. The list starts with 8 warnings; the author adds more after tester sessions.
+*   **G7. Private, with a file to keep.** The app's page cannot send network requests, so plan data is not sent anywhere (limits in [Hosting](#hosting-and-repository-author)). The plan saves automatically in the browser, but browsers can clear that storage, so the export file is the copy to keep. Exports can be imported again, including into a newer version of the app. Export files are not encrypted.
 *   **G8. Defined-benefit pensions.** Either spouse can enter a DB pension from their pension statement, and the engine includes it in tax, splitting and survivor calculations.
 
 ### Correctness goals
 
-*   **G9. Sourced rule values, editable by the user.** Every default rule value lives in a config file, one per tax year, with its unit, inflation indexing, source link, date fetched and validation status. The app shows which tax year its defaults come from and flags any unvalidated default. The user can change any rule value in Settings; a changed value is marked as changed, shows the default next to it, and is saved with the plan (author, 2026-11-19). Refreshing the defaults every year is optional, not a required yearly task.
+*   **G9. Sourced rule values, editable by the user.** Every default rule value lives in a config file, one per tax year, with its unit, inflation indexing, source link, date fetched and validation status. The app shows which tax year its defaults come from and flags any unvalidated default. The user can change any rule value in Settings; a changed value is marked as changed, shows the default next to it, and is saved with the plan. Refreshing the defaults every year is optional, not a required yearly task.
 *   **G10. Verified engine.** Tax results match an outside tax calculator within $1 per return on a fixed set of test cases. The full year-by-year loop matches, within $1 per cell, a reference plan built by a separate AI session from the written design; that session can share the design's misreadings (see [Risks](#risks--mitigations)). The engine's accounting checks pass on every run in production, and a run that fails them shows an error instead of results.
+
+## Non-Goals
+
+*   **Other provinces and Quebec.** Version 1 is Ontario only. No Ontario-specific values are hard-coded in the engine, so other provinces can be added later; Quebec (QPP, separate tax system) is not part of that promise.
+*   **Single people.** Version 1 models couples; all three test households are couples (O16).
+*   **Child-related planning other than legacy.** No RESP, no Canada Child Benefit.
+*   **Personal advice or open-ended optimization.** The app shows results of choices the user makes and compares them with simple baselines and with each other. It never says "you should", and it does not search for or pick a strategy.
+*   **Accounts, sync, servers.** No sign-in, no cloud storage, no sharing except by exporting a file.
+*   **Fetching rule values while running.** Default values are fetched at build time and bundled with the app; the user can change them in Settings.
+*   **Mobile layout, colour themes, PDF export.**
+*   **Commuted value of DB pensions** (taking a lump sum instead of the pension).
+*   **Tax features:** alternative minimum tax, GIS, tax-loss harvesting, spousal RRSP attribution rules, CPP pension sharing, the CPP death benefit, using the younger spouse's age for RRIF minimums.
+*   **Employment income detail.** A still-working spouse's pay is entered as one after-tax amount; payroll taxes and RRSP deductions are not modelled.
+*   **Other life events:** annuity purchases, random lifespans, long-term care cost shocks, one-time events such as selling a home or receiving an inheritance.
 
 ## Success Criteria for Version 1
 
@@ -85,36 +98,22 @@ The author judges each tester. A tester passes when, without help, they:
 *   change one input and name one effect on another tab;
 *   state one tax-placement idea, with a dollar figure from their own results.
 
-Separately, the headline results and the withdrawal-strategy comparison update within 1 second, and warning tips within 2 seconds, measured from the end of the 500 ms pause after the last edit (SR1-M3), on the reference machine (see [Performance](#performance)).
-
-## Non-Goals
-
-*   **Other provinces and Quebec.** Version 1 is Ontario only. No Ontario-specific values are hard-coded in the engine, so other provinces can be added later; Quebec (QPP, separate tax system) is not part of that promise.
-*   **Single people.** Version 1 models couples; all three test households are couples (O16).
-*   **Child-related planning other than legacy.** No RESP, no Canada Child Benefit.
-*   **Personal advice or open-ended optimization.** The app shows results of choices the user makes and compares them with simple baselines and with each other. It never says "you should", and it does not search for or pick a strategy (the planner search was cut from version 1; [review triage](#review-triage-decisions-author-2026-11-24), T1).
-*   **Accounts, sync, servers.** No sign-in, no cloud storage, no sharing except by exporting a file.
-*   **Fetching rule values while running.** Default values are fetched at build time and bundled with the app; the user can change them in Settings.
-*   **Mobile layout, colour themes, PDF export.**
-*   **Commuted value of DB pensions** (taking a lump sum instead of the pension).
-*   **Tax features:** alternative minimum tax, GIS, tax-loss harvesting, spousal RRSP attribution rules, CPP pension sharing, the CPP death benefit, using the younger spouse's age for RRIF minimums.
-*   **Employment income detail.** A still-working spouse's pay is entered as one after-tax amount; payroll taxes and RRSP deductions are not modelled.
-*   **Other life events:** annuity purchases, random lifespans, long-term care cost shocks, one-time events such as selling a home or receiving an inheritance.
+Separately, the headline results and the withdrawal-strategy comparison update within 1 second, and warning tips within 2 seconds, measured from the end of the 500 ms pause after the last edit, on the reference machine (see [Performance](#performance)).
 
 ## Open Questions
 
-O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose while drafting; O24–O31 arose from the 2026-11-19 screen mockups. A "mechanical default" is a choice with one sensible answer, made in design; the author may override it.
+O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose while drafting; O24–O31 arose from the screen mockups of 2026-11-19. A "mechanical default" is a choice the design made without asking the author, because the design's other rules left little room; the author may override it. "Needed before stage N" refers to the build stages in the [stage order](#detailed-implementation-plan).
 
 | ID | Topic | Status |
 |---|---|---|
 | O1 | Inflation model | Resolved: one fixed rate ([Decisions](#decisions-made-for-this-plan)) |
 | O2 | Calendar conventions | Resolved: [Units and conventions](#units-and-conventions) |
-| O3 | Return method and asset classes | Resolved: six classes, fixed returns ([Asset classes and returns](#asset-classes-and-returns-o3)); revised 2026-11-19 |
+| O3 | Return method and asset classes | Resolved: six classes, fixed returns ([Asset classes and returns](#asset-classes-and-returns-o3)) |
 | O4 | Placement model and mix counting | Resolved: presets, face value |
-| O5 | Growth-to-safety settings | Resolved: the user sets today's mix; a named shape changes the stock share over time ([Design values](#design-values-version-1)); revised 2026-11-19 |
+| O5 | Growth-to-safety settings | Resolved: the user sets today's mix; a named shape changes the stock share over time ([Design values](#design-values-version-1)) |
 | O6 | Foreign withholding tax | Resolved: one config rate ([Tax scope](#tax-scope-o11)) |
-| O7 | Withdrawal strategies | Resolved: four strategies ([Withdrawal strategies](#withdrawal-strategies-o7-o8)); revised 2026-11-19 |
-| O8 | Pension splitting | Resolved: two-pass split search |
+| O7 | Withdrawal strategies | Resolved: three strategies ([Withdrawal strategies](#withdrawal-strategies-o7-o8)) |
+| O8 | Pension splitting | Resolved: a split search in both directions, repeated while the best split changes ([Withdrawal strategies](#withdrawal-strategies-o7-o8)) |
 | O9 | DC pension as LIF | Resolved: LIF with optional 50% unlock |
 | O10 | CPP estimate for early retirees | Resolved: user estimate plus help note |
 | O11 | Tax items in or out | Resolved: [Tax scope](#tax-scope-o11) |
@@ -123,11 +122,11 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | O14 | Warnings and tips | Resolved: [Warnings](#warnings-o14) |
 | O15 | Empty start, sample plan | Resolved: [Persistence](#persistence) |
 | O16 | Test friends' situations | Resolved 2026-11-19 (author): all three test households are couples, and none needs a general "other income" stream; scope unchanged |
-| O17 | Spending categories | Resolved 2026-11-19: monthly after-tax amounts by category, or one total ([Spending inputs](#spending-inputs)); previously deferred |
-| O18 | Recalculation mode | Resolved 2026-11-19: live, as the user edits ([Components and data flow](#components-and-data-flow)); previously button only |
+| O17 | Spending categories | Resolved 2026-11-19: monthly after-tax amounts by category, or one total ([Spending tab](#spending-tab)) |
+| O18 | Recalculation mode | Resolved 2026-11-19: live, as the user edits ([Components and data flow](#components-and-data-flow)) |
 | O19 | Placement lesson in first release | Resolved: yes, built in stage 4 |
 | **O20** | **Disclaimer and FSRA check** | **Open.** Must be resolved before the URL is shared beyond testers ([Hosting](#hosting-and-repository-author)). |
-| O21 | Splitting the context document | Resolved: `docs/history/` (file 18) |
+| O21 | Splitting the context document | Resolved: `docs/history/` ([file 18](#18-docshistorydecision-logmd-and-docshistoryprototype-postmortemmd-exists-stage-0)) |
 | O22 | Volatility and correlation source | Withdrawn on 2026-11-18: version 1 uses fixed returns, so no volatility or correlation is needed ([Asset classes and returns](#asset-classes-and-returns-o3)) |
 | O23 | Probate defaults | Resolved: confirmed by the author on 2026-11-17 ([Death and estate](#death-and-estate-o12-o23)) |
 | **O24** | **Starting mixes** | **Open.** The shares behind "Conservative", "Balanced" and "Growth" on the Savings tab. The mockup used 20/25/10/5/35/5 (Canadian, U.S., international, emerging, bonds, cash) for Balanced, as a placeholder. Needed before stage 5. |
@@ -137,7 +136,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | **O28** | **Later spending above slower spending** | **Open.** Whether to allow it silently, allow it with a note (design's suggestion), or prevent it. Needed before stage 5. |
 | O29 | Rebalancing switched off | Resolved 2026-11-19 (author): holdings drift, no shape, placement at the plan start only ([Placement](#placement-and-the-growth-to-safety-shift-o4-o5)) |
 | O30 | Yields for the asset classes | Resolved 2026-11-19 (author): yields are author decisions, not fetched rule values ([Asset classes and returns](#asset-classes-and-returns-o3)) |
-| **O31** | **What "Let the planner pick" tries** | **Withdrawn 2026-11-24:** "Let the planner pick" is cut from version 1 ([review triage](#review-triage-decisions-author-2026-11-24), T1). |
+| O31 | What "Let the planner pick" tries | Withdrawn 2026-11-24: the planner is cut from version 1 ([Future Improvements](#future-improvements)) |
 
 ## Critical User Journeys (CUJs)
 
@@ -145,37 +144,37 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 
 *   **Given**: A couple opens the app for the first time. No plan is saved in the browser.
 *   **When**: They enter, tab by tab: on Household, birth years and months, retirement years and life expectancy targets; on Savings, accounts, balances, DB pension (if any) and their investment mix; on Spending, monthly spending by category or as one total; on Withdrawals, CPP and OAS start ages and a strategy; on Estate, the survivor spending percentage and legacy goal. Any value they don't enter keeps its default.
-*   **Then**: Results appear as soon as there is enough to calculate, and update as they go. The Results tab shows, in today's dollars, their two goals first (whether spending is covered every year, and the first year it isn't; whether the after-tax legacy meets their goal), then any warnings, then charts of balances, income by source, tax by spouse and the estate. The plan is saved in the browser automatically.
+*   **Then**: Results appear as soon as the plan is complete enough to run (the readiness rule is open; [Known gaps](#known-gaps-from-review)), and update as they go. The Results tab shows, in today's dollars, their two goals first (whether spending is covered every year, and the first year it isn't; whether the after-tax legacy meets their goal), then any warnings, then charts of balances, income by source, tax by spouse and the estate. The plan is saved in the browser automatically.
 
 ### CUJ 2: Change one tab, see the others
 
 *   **Given**: A plan with a warning that the OAS clawback starts at 72.
-*   **When**: The user opens the Withdrawals tab and clicks through the four strategy cards, then picks "Early RRSP drawdown".
-*   **Then**: Each card already shows its lifetime tax, money left and difference from "Registered last", so the strategies can be compared without selecting each one. Selecting a card redraws the income chart below it; the cards, chart and year breakdown stay in place, so only the numbers and shapes change. Results on every tab follow within a second. The Results tab's "What your last change did" lists the effect on lifetime tax, after-tax legacy, the first shortfall year and clawback years. While a calculation is running, the previous figures stay visible, faded, with "Updating…".
+*   **When**: The user opens the Withdrawals tab and clicks through the three strategy cards, then picks "Early RRSP drawdown".
+*   **Then**: Each card already shows its lifetime tax, after-tax legacy and difference from "Registered last", so the strategies can be compared without selecting each one. Selecting a card redraws the income chart below it; the cards, chart and year breakdown stay in place, so only the numbers and shapes change. Results on every tab follow within 1 second of the end of the 500 ms pause after the click. The Results tab's "What your last change did" lists the effect on lifetime tax, after-tax legacy, the first shortfall year and clawback years. While a calculation is running, the previous figures stay visible, faded, with "Updating…".
 
 ### CUJ 3: Learn what placement is worth
 
 *   **Given**: A plan with results.
 *   **When**: The user opens the Savings tab and, under "Which account holds what", chooses a different account placement for bonds and stocks.
-*   **Then**: The app shows lifetime tax and after-tax money left for the chosen placement compared with a same-mix-everywhere baseline at the same returns, with a short plain-English explanation of why the difference arises.
+*   **Then**: The app shows lifetime tax and the after-tax legacy for the chosen placement compared with a same-mix-everywhere baseline at the same returns, with a short plain-English explanation of why the difference arises.
 
 ### CUJ 4: First death
 
 *   **Given**: A plan where one spouse's life expectancy target is 78 and the other's is 94, with a DB pension that pays 60% to the survivor.
 *   **When**: The user looks at the years after 78 on the Withdrawals chart and the Results tab.
-*   **Then**: The deceased spouse's accounts move to the survivor without tax, the deceased's OAS stops, the CPP survivor benefit and the DB survivor share start, the survivor is taxed as a single person, and spending drops to the survivor percentage. Any jump in tax is visible and explained.
+*   **Then**: The deceased spouse's accounts move to the survivor without tax, the deceased's OAS stops, the CPP survivor benefit and the DB survivor share start, the survivor is taxed as a single person, and spending drops to the survivor percentage. The yearly charts mark the first death, so a jump in tax shows on the Tax by spouse chart, and the "Survivor tax jump" warning explains it when it passes its trigger.
 
 ### CUJ 5: Resume on another day
 
 *   **Given**: A user built a plan last week and exported it to a file.
 *   **When**: The browser storage has since been cleared, and the user imports the file into a newer version of the app.
-*   **Then**: The plan loads with all inputs intact, including any rule values changed in Settings. A file from a newer app version is refused with a message naming both versions. Results are recalculated with the current defaults plus the plan's own changes, and the app shows which tax year the defaults come from.
+*   **Then**: The plan loads with all inputs intact, including any rule values changed in Settings. A file with a newer schema version is refused with a message naming both versions. Results are recalculated with the current defaults plus the plan's own changes, and the app shows which tax year the defaults come from.
 
 ### CUJ 6: A rule value changes, or the user wants to test one
 
 *   **Given**: A plan, and a rule value the user wants different from the app's default: for example, a new year's OAS clawback threshold, or a "what if the threshold were $100,000" test.
 *   **When**: The user opens Settings from the header, finds the value (each section lists the rules it holds, with the default and its source), and types a new value. A threshold shown on another screen (for example the TFSA yearly limit under Accounts on the Savings tab) has an Edit link that opens Settings at that value.
-*   **Then**: The value is marked "changed", shows the default next to it with a "Reset" link, and the plan recalculates. The header chip reads "Tax year 2026 · 1 value changed" instead of "default values". The change is saved with the plan and in exports. (Revised 2026-11-19, author: this replaces the yearly admin refresh as the way values change. The admin may still refresh the defaults, using the [admin procedure](#19-docsadmin-config-guidemd-create), but it is not a required yearly task.)
+*   **Then**: The value is marked "changed", shows the default next to it with a "Reset" link, and the plan recalculates. The header chip reads "Tax year 2026 · 1 value changed" instead of "default values". The change is saved with the plan and in exports.
 
 ## Technical Plan (Architecture)
 
@@ -183,31 +182,35 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 
 | Topic | Decision | Chosen by |
 |---|---|---|
-| Returns (O3) | One fixed compound return per asset class every year, from FP Canada, editable; no random markets or stress paths (revised 2026-11-18, replacing generated returns) | Author |
-| Inflation (O1) | One fixed rate for every year, from FP Canada guidelines, in the config | Author |
-| Account placement (O4) | 2–3 named presets compared with a "same mix everywhere" baseline | Author |
-| How the overall mix is counted (O4) | Face value (balances as on statements); the after-tax stock-share readout was cut, and one sentence explains the effect (2026-11-24, T4) | Author |
-| Asset classes (O3) | Six: Canadian, U.S., international developed and emerging-market stocks, bonds, cash and GICs, each with FP Canada's return (revised 2026-11-19, replacing three classes with a global blend) | Author (2026-11-19) |
-| Investment mix | The user sets today's mix across the six classes, starting from a named mix or their own; sliders keep the total at 100% | Author (2026-11-19) |
-| Fees | One yearly fee for all investments, chosen from named levels (index ETFs, robo-advisor, mutual funds with an advisor) or entered; the levels' values are in Settings (O25) | Author (2026-11-19, replacing a fee per class) |
-| Withdrawal strategies (O7) | Three: Registered last, Fill lower brackets first, Early RRSP drawdown; all three shown side by side | Author (2026-11-19, replacing two; "Let the planner pick" cut 2026-11-24, T1) |
-| Growth-to-safety shift (O5) | Three named shapes that change the user's own stock share over time (O26) | Author (2026-11-19, replacing fixed percentages) |
-| Warning tips (O14) | Computed by nudging related inputs and rerunning the plan | Author (narrowed in review) |
-| Screen framework | React | Author |
-| Recalculation (O18) | Live: the plan recalculates shortly after each edit; no Recalculate button | Author (2026-11-19, replacing button only) |
-| Screens | Tabs in this order: Household, Savings, Spending, Withdrawals, Estate, Results; Settings from the header | Author (2026-11-19) |
-| Rule values | Defaults from the config; the user can change any of them in Settings, saved with the plan; no required yearly refresh | Author (2026-11-19) |
-| Spending (O17) | Monthly, after tax, by category or as one total; three phases set as a share of active-years spending | Author (2026-11-19) |
-| Retirement timing | A retirement year for each spouse; household spending starts at the first; a still-working spouse enters after-tax pay | Author (review) |
-| Foreign withholding tax | One config rate on foreign dividends in the TFSA and registered accounts | Author (review) |
-| Fetch checks | Tax and benefit rules fetched twice and compared; market assumptions fetched once and spot-checked | Author (2026-11-18) |
-| Cash yields | One yield per class, an author decision editable in Settings; each class pays one income type | Author (2026-11-18; made author decisions 2026-11-19) |
-| LIF minimum and conversion deadline | The federal RRIF minimum and age-71 rule, which Ontario applies to LIFs and LIRAs; no Ontario keys of their own | Author (2026-11-18) |
-| First-year benefits | Birth month for each spouse; first year pro-rated | Author (review) |
-| Design values | As listed in [Design values](#design-values-version-1) | Author (review) |
-| Public URL | Unlisted, `noindex`, shared only with testers until O20 | Author (review) |
-| Repository name | `retirement-planner` | Author (review) |
-| Everything else in this section | Mechanical defaults listed where they appear | Design; author may override in review |
+| Returns (O3) | One fixed compound return per asset class every year, from FP Canada, editable; no random markets or stress paths | Author, 2026-11-18 |
+| Inflation (O1) | One fixed rate for every year, from FP Canada guidelines, in the config | Author, 2026-11-17 |
+| Account placement (O4) | Two named presets compared with a "same mix everywhere" baseline | Author, 2026-11-17 |
+| How the overall mix is counted (O4) | Face value (balances as on statements); one sentence in the placement text explains the effect | Author, 2026-11-24 |
+| Asset classes (O3) | Six: Canadian, U.S., international developed and emerging-market stocks, bonds, cash and GICs, each with FP Canada's return | Author, 2026-11-19 |
+| Investment mix | The user sets today's mix across the six classes, starting from a named mix or their own; sliders keep the total at 100% | Author, 2026-11-19 |
+| Fees | One yearly fee for all investments, chosen from named levels (index ETFs, robo-advisor, mutual funds with an advisor) or entered; the levels' values are in Settings (O25) | Author, 2026-11-19 |
+| Withdrawal strategies (O7) | Three: Registered last, Fill lower brackets first, Early RRSP drawdown; all three shown side by side | Author, 2026-11-19 and 2026-11-24 |
+| Growth-to-safety shape (O5) | Three named shapes that change the user's own stock share over time (O26) | Author, 2026-11-19 |
+| Warning tips (O14) | Computed by nudging related inputs and rerunning the plan | Author, 2026-11-17 |
+| Screen framework | React | Author, 2026-11-17 |
+| Recalculation (O18) | Live: the plan recalculates shortly after each edit; no Recalculate button | Author, 2026-11-19 |
+| Screens | Tabs in this order: Household, Savings, Spending, Withdrawals, Estate, Results; Settings from the header | Author, 2026-11-19 |
+| Rule values | Defaults from the config; the user can change single values in Settings, saved with the plan; no required yearly refresh | Author, 2026-11-19 and 2026-11-24 |
+| Spending (O17) | Monthly, after tax, by category or as one total; three phases set as a share of active-years spending | Author, 2026-11-19 |
+| Retirement timing | A retirement year for each spouse; household spending starts at the first; a still-working spouse enters after-tax pay | Author, 2026-11-17 |
+| Foreign withholding tax | One config rate on foreign dividends in the TFSA and registered accounts | Author, 2026-11-17 |
+| Fetch checks | Tax and benefit rules fetched twice and compared; market assumptions fetched once and spot-checked | Author, 2026-11-18 |
+| Cash yields | One yield per class, an author decision editable in Settings; each class pays one income type | Author, 2026-11-19 |
+| LIF minimum and conversion deadline | The federal RRIF minimum and age-71 rule, which Ontario applies to LIFs and LIRAs; no Ontario keys of their own | Author, 2026-11-18 |
+| First-year benefits | Birth month for each spouse; first year pro-rated | Author, 2026-11-17 |
+| The final return | One return for the second death year; the extra tax is paid by the estate before probate | Author, 2026-11-24 |
+| Design values | As listed in [Design values](#design-values-version-1) | Author, 2026-11-17 to 2026-11-19 |
+| Public URL | Unlisted, `noindex`, shared only with testers until O20 | Author, 2026-11-17 |
+| Repository name | `retirement-planner` | Author, 2026-11-17 |
+| Points settled while building the engine | Stated in the sections they belong to | Author, 2026-11-24 |
+| Everything else in this section | Mechanical defaults listed where they appear | Design; the author may override them |
+
+Decisions of 2026-11-17 are recorded in [concepts_brief.md](../../concepts_brief.md) and the first review ([docs/reviews/2026-11-17/](../reviews/2026-11-17/)); those of 2026-11-18 and 2026-11-19 in the review folders of those dates; those of 2026-11-24 in [build-decisions.md](../history/build-decisions.md).
 
 ### Components and data flow
 
@@ -225,7 +228,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 |  | Settings     |                            v                   |           |
 |  +------+-------+                   localStorage (inputs only)   |           |
 |         | 500 ms after the last edit                             |           |
-|         v                                                         |          |
+|         v                                                        |           |
 |  +------------------------------ Web Worker ---------------------+-------+   |
 |  |  Engine (pure TypeScript, future dollars only)                        |   |
 |  |   normalizeInputs --> fixed returns (config or user overrides)        |   |
@@ -240,7 +243,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 |  |   invariants --> summaries --> warnings --> tips --> Result           |   |
 |  +-----------------------------------------------------------------------+   |
 |                                                                              |
-|  Bundled default config (one tax year) + the plan's ruleOverrides           |
+|  Bundled default config (one tax year) + the plan's ruleOverrides            |
 +------------------------------------------------------------------------------+
 
  Build time only: two AI fetch sessions --> candidate configs --> config:compare
@@ -248,36 +251,36 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
                   (done for 2026; repeating it in later years is optional)
 ```
 
-**Screens (revised 2026-11-19, author).** Six tabs, in this order, plus Settings:
-
-*   **Household:** the profile of each spouse only (name, birth year and month, sex at birth, retirement year, plan-to age, CPP estimate, years in Canada, working tax rate and after-tax pay).
-*   **Savings:** accounts and workplace pensions, the investment mix, fees, rebalancing, the growth-to-safety shape and the placement preset, in collapsible sections ([Savings tab](#savings-tab)).
-*   **Spending:** monthly after-tax spending by category or as one total, and the three phases ([Spending inputs](#spending-inputs)).
-*   **Withdrawals:** CPP and OAS start ages, RRSP and LIRA conversion, pension income splitting, and the strategy comparison with its income chart ([Withdrawals tab](#withdrawals-tab)).
-*   **Estate:** survivor spending, the legacy goal, the home, and the probate and beneficiary assumptions ([Death and estate](#death-and-estate-o12-o23)).
-*   **Results:** the two goals, warnings with tips, and four charts ([Results tab](#results-tab)). Its tab label carries a badge: the warning count, "Updating", "Short from <year>" or "Error".
-*   **Settings** (header link, not a tab): every rule value with its default and source, grouped as income tax, OAS, CPP, investing assumptions, and accounts ([Settings](#settings)).
-
-The brief named three planning areas. Household is added because ages feed all three; accounts and pensions moved to Savings, and death and legacy inputs to Estate, because users look for them there. There is no results panel on the input tabs: each input tab shows the results that belong to it (for example the strategy cards and income chart on Withdrawals, the placement comparison on Savings), and the full results are one tab away.
-
-**Defaults shown where they apply.** A rule value that matters to a screen is shown on that screen as a grey strip with the value and an "Edit" link to Settings (for example the CPP and OAS adjustment rates under the start ages, the TFSA yearly limit under Accounts, the bracket and clawback thresholds beside the Fill lower brackets levels, the probate rate on Estate).
+The screens are described in [Screens](#screens).
 
 **One store.** The plan lives in one store (Zustand, mechanical choice). Screens read from it and write inputs straight to it. No component keeps its own copy of a plan value.
 
-**Live recalculation and the change summary (revised 2026-11-19, author).** The store keeps an `inputsRevision` counter, increased by every input edit and plan load. 500 ms after the last edit, the store sends the inputs and the revision to the Worker. A Worker can't read a new message in the middle of a run, so when a newer revision is sent while a run is in progress, `client.ts` terminates the Worker and starts a new one (C4, author, 2026-11-19). Each result records the revision it was computed from; a result for an older revision is dropped. While a run is in progress, the previous figures stay on screen, faded, with "Updating…", so nothing jumps; the Results tab badge reads "Updating". Before replacing the result, the store keeps the one it replaces, and "What your last change did" on the Results tab lists the differences in the headline numbers (whether spending is covered, after-tax legacy, lifetime tax, clawback years, first shortfall year, warnings added or cleared), naming the edit and when it was made. The previous result is not saved across browser sessions.
+**Live recalculation and the change summary.**
 
-**Worker.** All calculation runs in a Web Worker so the screen stays responsive while the user types. A run happens in two parts: first the user's plan, the placement baseline and the four withdrawal strategies (what the screens need), then the warning tips, which follow in a second message. No shared memory or special headers are needed.
+*   The store keeps an `inputsRevision` counter, increased by every input edit and plan load.
+*   500 ms after the last edit, the store sends the inputs and the revision to the Worker.
+*   A Worker can't read a new message in the middle of a run, so when a newer revision is sent while a run is in progress, `client.ts` terminates the Worker and starts a new one.
+*   Each result records the revision it was computed from; a result for an older revision is dropped.
+*   While a run is in progress, the previous figures stay on screen, faded, with "Updating…", so nothing jumps; the Results tab badge reads "Updating".
+*   Before replacing the result, the store keeps the one it replaces. "What your last change did" on the Results tab lists the differences in the headline numbers (whether spending is covered, after-tax legacy, lifetime tax, clawback years, first shortfall year, warnings added or cleared), naming the edit and when it was made. The previous result is not saved across browser sessions.
+
+**Worker.** All calculation runs in a Web Worker so the screen stays responsive while the user types. The Worker is created from a `blob:` URL of the bundled Worker code, so it runs under the page's security policy. A run happens in two parts: first the user's plan, the placement baseline and the other two withdrawal strategies (what the screens need), then the warning tips, which follow in a second message. A failure in any of the first part's runs blocks the results and shows the error; a tip rerun that fails is dropped and logged, and the other tips are shown. No shared memory, streamed partial results or cache between runs are used.
 
 ### Units and conventions
 
-*   **Engine unit: future (nominal) dollars only.** Every money input is entered in today's dollars. `normalizeInputs(inputs, cfg)` converts all of them once, as the engine receives them, using a deflator built from the config's fixed inflation rate. `toDisplay(rows, deflator)` converts results back for the screens. The today's-dollar type is never imported inside `src/engine/solver`, `project` or `simulate` (enforced by lint), so the calculation has nothing in today's dollars to mix up.
-*   **Valuation date:** January 1 of the plan's start year (an input, defaulting to the current year). The inflation factor for year *t* after the start is (1 + inflation)^t, with fixed inflation.
-*   **Rows:** one per calendar year, from the start year to the year the second spouse reaches their life expectancy target. Each spouse's age in a row is the age they reach during that year (author). This matches CRA's end-of-year age rules for the age amount, the pension income credit and pension splitting. The RRIF minimum uses the age at the start of the year (row age − 1).
-*   **First year of benefits (author):** each spouse has a birth month. CPP, OAS and DB payments start the month after the start birthday, so the first year pays only those months. The OAS 75+ increase is pro-rated the same way.
-*   **Retirement (author):** each spouse has a retirement year. Household spending starts in the first spouse's retirement year. A spouse still working after that enters their after-tax pay in today's dollars, counted as cash income until they retire. CPP or OAS they collect while working is taxed at the working-years marginal rate they enter. Spending phases and growth-to-safety shapes are measured in years from the first retirement.
-*   **Timing within a year:** rebalancing happens first, then fixed income and required withdrawals, then the withdrawal solve, all at the start of the year; returns apply to what remains; contributions during working years land at the end of the year. Tax is settled in the same year.
+*   **Engine unit: future (nominal) dollars only.** Every money input is entered in today's dollars. `normalizeInputs(inputs, cfg)` converts all of them once, as the engine receives them, using a deflator built from the config's fixed inflation rate. `toDisplay(rows, deflator)` converts results back for the screens. The today's-dollar type is never imported inside the engine's year-by-year code (`src/engine/solver`, `project` and, from stage 4, `simulate`; enforced by lint). The only today's-dollar values worked out inside it are the lifetime sums in `PlanSummary` (see [Result definitions](#result-definitions)), which `runPath` adds up as plain numbers.
+*   **Valuation date:** January 1 of the plan's start year, which is the year the values are entered: `planStartYear` is set to the current year when the plan is made, stored with it, and not rechecked when a saved plan is loaded. Today's dollars are that year's dollars. The inflation factor for year *t* after the start is (1 + inflation)^t, with fixed inflation.
+*   **Rows:** one per calendar year, from the start year to the year the second spouse reaches their life expectancy target; the plan ends at the later of the two deaths. Each spouse's age in a row is the age they reach during that year. This matches CRA's end-of-year age rules for the age amount, the pension income credit and pension splitting. The RRIF minimum uses the age at the start of the year (row age − 1).
+*   **First year of benefits:** each spouse has a birth month. CPP, OAS and DB payments start the month after the start birthday, so the first year pays only those months. The OAS 75+ increase is pro-rated the same way.
+*   **Retirement:** each spouse has a retirement year. Household spending starts in the first spouse's retirement year. A spouse still working after that enters their after-tax pay in today's dollars, counted as cash income until they retire. Their other taxable income, such as CPP or OAS collected while working, is taxed at the working marginal rate they enter (see [the year solver](#the-year-solver)). Spending phases and growth-to-safety shapes are measured in years from the first retirement.
+*   **Timing within a year:** on January 1, the first-death transfers, then conversions and the new TFSA room; then the rebalance, fixed income, required withdrawals and the withdrawal solve. After the withdrawals, the sheltered accounts' yields are added, then deposits are made, then the year's price returns apply to everything. Contributions during working years land at the end of the year, after the price returns. Tax is settled in the same year.
 *   **Deaths** happen at the end of the year the spouse reaches their target. The first-death transfers apply from the following year. If both spouses die in the same year, the first-death rollover is applied and then the survivor's final return is filed, in that year.
-*   **Indexing:** each config value says whether it rises with inflation. Indexed values grow at the fixed rate **counting from the defaults' tax year, not from the plan start** (SR1-M10): an indexed value from tax year *Y* is worth value × (1 + inflation)^(year − *Y*) in calendar year *year*. A 2026 threshold used in a plan starting in 2029 has already grown by three years of inflation in its first row. This is done once per run: `rebaseConfig(cfg, planStartYear)` multiplies by (1 + inflation)^(planStartYear − the entry's `taxYear`), then sets the entry's `taxYear` to `planStartYear`. By value kind: a `number` entry marked `indexed`; each `brackets` row whose own flag (or the entry's) is indexed, on its `from` only; every number in an indexed `list`; the `from` and `cap` of every row of an indexed `phaseIn`. `ageTable` and `object` values are never rebased (they hold rates and structures). After that, every indexed read uses the display deflator, which counts from the plan start. An override is rebased the same way, from the tax year of the default it replaced. Non-indexed values (for example Ontario's $150k and $220k bracket thresholds, the $50k probate threshold) stay fixed in future dollars. Benefit amounts (OAS, the CPP maximum and the CPP survivor amounts) are indexed to inflation by law and are marked `indexed: true`.
+*   **Indexing:** each config value says whether it rises with inflation.
+    *   Indexed values grow at the fixed rate **counting from the defaults' tax year, not from the plan start**: an indexed value from tax year *Y* is worth value × (1 + inflation)^(year − *Y*) in calendar year *year*. A 2026 threshold used in a plan starting in 2029 has already grown by three years of inflation in its first row.
+    *   This is done once per run: `rebaseConfig(cfg, planStartYear)` multiplies by (1 + inflation)^(planStartYear − the entry's `taxYear`), then sets the entry's `taxYear` to `planStartYear`. By value kind: a `number` entry marked `indexed`; each `brackets` row whose own flag (or the entry's) is indexed, on its `from` only; every number in an indexed `list`; the `from` and `cap` of every row of an indexed `phaseIn`. `ageTable` and `object` values are never rebased (they hold rates and structures). After that, every indexed read uses the display deflator, which counts from the plan start.
+    *   An override is rebased the same way, from the tax year of the default it replaced.
+    *   Non-indexed values (for example Ontario's $150k and $220k bracket thresholds, the $50k probate threshold) stay fixed in future dollars. Benefit amounts (OAS, the CPP maximum and the CPP survivor amounts) are indexed to inflation by law and are marked `indexed: true`.
+    *   **Bracket thresholds never fall:** after indexing, each bracket row's `from` is at least the previous row's. Ontario's top two thresholds are not indexed, so in later years (from about 2042 with the 2026 values) the indexed third threshold passes $150,000; that row's band then shrinks to nothing, and rates never step down. This applies to every bracket table (`brackets` in `read.ts`).
 
 ### Config contract
 
@@ -285,13 +288,16 @@ The brief named three planning areas. Household is added because ages feed all t
     *   **Rule values** (`federal.json`, `ontario.json`, `market.json`): sourced from official or published pages and validated by the admin (the author, for now).
     *   **Planning choices** (`planning.json`, `warnings.json`): the author's design values. Their source is recorded as `"author decision, <date>"` and the author validates them. One exception: `planning.life_expectancy.female` and `.male` are sourced from FP Canada's guidelines and fetched like market assumptions.
 *   **Entry shape:** `{ value, unit, taxYear, indexed, source: { url, locator }, fetchedOn, validation: { status, by, on } }`.
-    *   `value` is one of: a number; a bracket table `[{ from, rate, indexed? }]` (a row's `indexed` overrides the entry flag for that threshold, because Ontario's top two thresholds are not indexed); an age-keyed table `{ "71": 0.0528, … }`; a phase-in schedule `[{ from, rate, cap }]` (within a band the amount is the previous row's `cap` (0 for the first row) plus `rate` × (income − `from`), up to this row's `cap`); a list of numbers `[n, …]` (the Ontario surtax thresholds and rates, in matching order); or, for planning choices only, a structured object (presets, shapes, weights, warning triggers).
+    *   `value` is one of: a number; a bracket table `[{ from, rate, indexed? }]` (a row's `indexed` overrides the entry flag for that threshold, because Ontario's top two thresholds are not indexed); an age-keyed table `{ "71": 0.0528, … }`; a phase-in schedule `[{ from, rate, cap }]`, where within a band the amount is the previous row's `cap`, or 0 for the first row, plus `rate` × (income − `from`), up to this row's `cap`; a list of numbers `[n, …]` (the Ontario surtax thresholds and rates, in matching order); or, for planning choices only, a structured object (presets, shapes, weights, warning triggers).
     *   `unit` is one of `CAD` (a one-time amount, such as the probate threshold), `CAD_per_year`, `CAD_per_month`, `rate`, `age`, `years`, `count`, `none`.
-*   **Key tree:** the dotted keys below are the complete, authoritative list of config keys. `src/engine/config/keys.ts` is the code copy, and `config/SOURCES.md` adds each key's unit, source page and location on the page. `config:check` fails unless `SOURCES.md` and `keys.ts` list exactly the same keys; this list is kept in step with them by hand. Adding a key means editing this list first.
-    *   **Rule values:** `federal.tax.brackets`, `federal.credits.basic`, `federal.credits.basic_min`, `federal.credits.age.amount`, `federal.credits.age.min_age`, `federal.credits.age.reduction_threshold`, `federal.credits.age.reduction_rate`, `federal.credits.pension.amount`, `federal.credits.pension.min_age_rrif`, `federal.capital_gains.inclusion_rate`, `federal.dividend.eligible.gross_up`, `federal.dividend.eligible.credit_rate`, `federal.oas.base_at_65`, `federal.oas.residence.min_years`, `federal.oas.residence.full_years`, `federal.oas.deferral.per_month`, `federal.oas.deferral.max_months`, `federal.oas.increase_age`, `federal.oas.increase_rate`, `federal.oas.recovery.threshold`, `federal.oas.recovery.rate`, `federal.cpp.start.earliest`, `federal.cpp.start.latest`, `federal.cpp.adjust.early_per_month`, `federal.cpp.adjust.late_per_month`, `federal.cpp.max_at_65`, `federal.cpp.survivor.pct_65_plus`, `federal.cpp.survivor.flat_under_65`, `federal.cpp.survivor.pct_under_65`, `federal.cpp.survivor.max_combined`, `federal.rrif.min_factor`, `federal.rrif.min_factor_base_age`, `federal.rrif.latest_conversion_age`, `federal.tfsa.annual_limit`, `federal.split.max_share`, `federal.split.min_age_rrif`, `ontario.tax.brackets`, `ontario.credits.basic`, `ontario.credits.age.amount`, `ontario.credits.age.reduction_threshold`, `ontario.credits.age.reduction_rate`, `ontario.credits.pension.amount`, `ontario.dividend.eligible.credit_rate`, `ontario.surtax.thresholds`, `ontario.surtax.rates`, `ontario.health_premium.schedule`, `ontario.tax_reduction.basic`, `ontario.probate.threshold`, `ontario.probate.rate`, `ontario.lif.max_factor`, `ontario.lif.unlock_share`, `market.<class>.geometric_return`, `market.<class>.yield`, `market.inflation`, `market.foreign_withholding_rate`. Here `<class>` is one of the six asset-class ids below.
-    *   **Sourced planning values:** `planning.life_expectancy.female`, `planning.life_expectancy.male`.
-    *   **Planning choices (author):** (`keys.ts` is the authoritative list, checked against `SOURCES.md` by `config:check`; [review triage](#review-triage-decisions-author-2026-11-24), T13) `planning.shapes`, `planning.presets`, `planning.mixes` (O24), `planning.fee_levels` (O25), `planning.spending_phases` (O27), `planning.survivor_spending`, `planning.override_margin`, `warnings.triggers`, `warnings.nudge_steps`.
-    *   **Changed 2026-11-19:** removed `market.global_equity.components.{us,intl_developed,emerging}`, `market.<class>.fee`, `planning.global_equity_weights`, `planning.stock_split.cad_share` and `planning.comparison_bracket_target`; the U.S., international and emerging-market returns become classes of their own, fees become named levels, and every strategy is run, so no separate comparison target is needed. `src/engine/config/keys.ts`, `config/SOURCES.md` and the 2026 config files must follow this list before stage 0 is tagged.
+*   **Keys:** dotted names, grouped by file:
+    *   `federal.*`: federal tax brackets and credits, dividends and capital gains, OAS, CPP, RRIF, TFSA and pension splitting;
+    *   `ontario.*`: Ontario tax brackets and credits, surtax, Health Premium, Tax Reduction, probate, and the LIF maximum table and unlock share;
+    *   `market.*`: `market.<class>.geometric_return` and `market.<class>.yield` for each of the six asset-class ids below, `market.inflation` and `market.foreign_withholding_rate`;
+    *   `planning.*`: the author's planning choices (`planning.shapes`, `planning.presets`, `planning.mixes`, `planning.fee_levels`, `planning.spending_phases`, `planning.survivor_spending`, `planning.override_margin`), plus FP Canada's life-expectancy tables, `planning.life_expectancy.female` and `.male`;
+    *   `warnings.*`: `warnings.triggers` and `warnings.nudge_steps`.
+
+    `src/engine/config/keys.ts` is the authoritative list of keys. [config/SOURCES.md](../../config/SOURCES.md) gives each key's unit, source page and where on the page the value appears, and `config:check` fails unless the two list exactly the same keys. A new key is added to both together. This document names a key only where a rule uses it.
 *   **Persisted ids** (permanent once version 1 saves plans):
     *   asset classes: `cad_equity`, `us_equity`, `intl_equity`, `em_equity`, `bonds`, `cash`;
     *   starting mixes: `conservative`, `balanced`, `growth`, `custom`;
@@ -300,27 +306,28 @@ The brief named three planning areas. Household is added because ages feed all t
     *   presets: `bonds_sheltered_first`, `growth_tax_free_first` (the baseline `same_mix` is internal and never saved);
     *   strategies: `registered_last`, `fill_brackets`, `early_rrsp`;
     *   bracket levels: `first_bracket`, `oas_threshold`;
-    *   spending categories: listed in [Spending inputs](#spending-inputs);
+    *   spending categories: to be listed on the [Spending tab](#spending-tab) (Known gaps SR1-M8);
     *   account ids: `<type>-<owner>-<n>`, for example `rrsp-0-1`, assigned once when the account is created and never reused.
-*   **User changes to rule values (2026-11-19, author; made precise for SR1-M9 and SR1-M10):** a plan may hold `ruleOverrides: RuleOverrides`, where `RuleOverrides = Record<string, { value: unknown; defaultTaxYear: number }>`, keyed by a key in the key tree. Overrides are never written to the config files.
-    *   **Which keys (narrowed 2026-11-24, T2):** only single values (`number` keys) that have a Settings row. Tables (brackets, age tables, phase-in, lists), presets, shapes, mixes, the life-expectancy tables, `warnings.*`, `market.<class>.geometric_return` and the CPP and OAS age-limit keys (`federal.cpp.start.earliest`, `federal.cpp.start.latest`, `federal.oas.deferral.max_months`), whose input ranges are fixed in the Data contracts, are shown read-only. The structure and cross-key checks below stay in `overrides.ts` for a later release. Returns are changed only through `investing.returnOverride` on the Savings tab; the Settings row for returns links there. Fee levels stay planning choices, but their values can be overridden in Settings like any other key; the plan's `feeLevel` still picks which level applies. Yields are overridable.
+*   **User changes to rule values:** a plan may hold `ruleOverrides: RuleOverrides`, where `RuleOverrides = Record<string, { value: unknown; defaultTaxYear: number }>`, keyed by a config key. Overrides are never written to the config files.
+    *   **Which keys:** only single values (`number` keys) that have a Settings row. Tables (brackets, age tables, phase-in, lists), presets, shapes, mixes, the life-expectancy tables, `warnings.*`, `market.<class>.geometric_return` and the CPP and OAS age-limit keys (`federal.cpp.start.earliest`, `federal.cpp.start.latest`, `federal.oas.deferral.max_months`), whose input ranges are fixed in the Data contracts, are shown read-only. The table-structure checks below stay in `overrides.ts` for a later release that may open tables to overrides; until then only the range and cross-key checks can reject a value. Returns are changed only through `investing.returnOverride` on the Savings tab; the Settings row for returns links there. Fee levels stay planning choices, but their values can be overridden in Settings like any other key; the plan's `feeLevel` still picks which level applies. Yields are overridable.
     *   **Units:** an override is entered in the key's published unit (OAS per month, like the config) and in the defaults' tax-year dollars. It goes through the same loader conversion and the same indexing as the default. Because a loaded `Config` holds yearly amounts, each loaded entry keeps `publishedUnit` (set by `toAnnual` to `CAD_per_month` for the four monthly keys); `applyRuleOverrides` multiplies an override by `MONTHS_PER_YEAR` when its key's `publishedUnit` is `CAD_per_month`.
     *   **Validation:** `validateOverride(key, value, overrides, cfg): string[]` in `src/engine/config/overrides.ts` checks, in order:
         *   the value kind's schema (`checkValue(spec: KeySpec, value): string[]`, exported from `schema.ts`; it uses the kind's schema, or the key's `objectSchemas` entry for an `object` key, like `checkEntry`);
         *   a range by unit: `rate` 0 to 1, `age` 40 to 110, `years` and `count` 0 to 100, `CAD_*` 0 or more; the life-expectancy tables 60 to 110;
         *   structure: bracket and phase-in `from` values rise, the first bracket row starts at 0; phase-in caps never fall; `federal.rrif.min_factor` and `ontario.lif.max_factor` have no gaps between their first and last ages (the life-expectancy tables, with a row every 5 years, are exempt); the surtax threshold and rate lists have the same length;
         *   cross-key rules, using the override set as a whole: `federal.cpp.start.earliest` < `federal.cpp.start.latest`; `federal.oas.residence.min_years` ≤ `federal.oas.residence.full_years`; `federal.credits.basic_min` ≤ `federal.credits.basic`.
+
         A failing override is rejected in Settings with the rule it broke.
     *   **Stale overrides:** each override stores the tax year of the default it replaced. When the bundled tax year differs, Settings marks it "set against <year> defaults" and shows the new default beside it; the header chip counts it as changed. The value is not changed automatically.
     *   **Import:** an override whose key is unknown to this app version, or whose value fails validation, is dropped on import, and a message lists each dropped key and its value.
     *   `applyRuleOverrides(cfg, overrides)` (same file) returns a new `Config` with the valid overrides applied, each given the `taxYear` of its `defaultTaxYear`; the engine reads only that.
     *   **Order per run:** `applyRuleOverrides`, then `rebaseConfig`, then `normalizeInputs`. An override of `market.inflation` therefore changes both the rebase and the deflator.
-*   **Engine settings** (solver tolerance and step cap, split-search step, invariant tolerance) are not config. They live in `src/engine/constants.ts`, along with `MONTHS_PER_YEAR`. It is the one engine file exempt from the no-magic-numbers lint rule.
+*   **Engine settings** (solver tolerance and step cap, split-search step and passes, invariant tolerance) are not config. They live in `src/engine/constants.ts`, along with `MONTHS_PER_YEAR` and `BENEFIT_REFERENCE_AGE` (65, the age the CPP estimate and the OAS base refer to). It is the one engine file exempt from the no-magic-numbers lint rule.
 *   **Loading:** config files are JSON, imported directly. `config/CURRENT_YEAR` names the tax year; a generated module, `src/engine/config/bundle.ts`, imports every file for that year. The Worker, the Vitest tests and the `tsx` tools all import that one module. Config is never fetched at run time.
-*   **Status:** `configStatus(config, overrides, today)` (stage 2; until then `configStatus(config, today)`) returns the tax year, the lists of unfetched and unvalidated keys, the lists of overridden keys and of stale overrides (`staleOverrideKeys`, set against an older tax year), and `outOfDate = today's year > taxYear`. The header chip shows the tax year and "default values" or "N values changed". A notice appears when a default is unvalidated; when the defaults are out of date, the notice says which year they come from and points to Settings, rather than asking for an admin update.
+*   **Status:** `configStatus(config, overrides, today)` returns the tax year, the lists of unfetched and unvalidated keys, the lists of overridden keys and of stale overrides (`staleOverrideKeys`, set against an older tax year), and `outOfDate = today's year > taxYear`. The header chip shows the tax year and "default values" or "N values changed". A notice appears when a default is unvalidated; when the defaults are out of date, the notice says which year they come from and points to Settings, rather than asking for an admin update.
 *   **Monthly amounts:** amounts the sources publish monthly (OAS, the CPP maximum, the CPP survivor flat rate and combined maximum) are stored as `CAD_per_month` exactly as published, using the January figure, and updated once a year. The loader converts them to `CAD_per_year` (× 12; an unfetched null stays null). OAS changes each quarter, so January × 12 slightly understates a full year; this is an accepted approximation.
-*   **Fetch checks (author):** tax and benefit rules (`federal.json`, `ontario.json`) are fetched twice, independently, and compared, because an error there gives a wrong tax or benefit amount in every plan. Market assumptions (`market.json`) and the FP Canada life-expectancy tables are estimates, so one fetch and a spot-check by the admin are enough.
-*   **Market yields** are author decisions (2026-11-19, O30): sourced "author decision, <date>", validated by the author, not fetched or refreshed. The keys keep their `market.<class>.yield` names.
+*   **Fetch checks:** tax and benefit rules (`federal.json`, `ontario.json`) are fetched twice, independently, and compared, because an error there gives a wrong tax or benefit amount in every plan. Market assumptions (`market.json`) and the FP Canada life-expectancy tables are estimates, so one fetch and a spot-check by the admin are enough.
+*   **Market yields** are author decisions (O30): sourced "author decision, <date>", validated by the author, not fetched or refreshed. They keep their `market.<class>.yield` keys.
 *   The engine never contains a rule value as a number in code.
 
 ### Jurisdiction
@@ -340,10 +347,10 @@ The engine calls a jurisdiction module for provincial tax and credits, the Ontar
     *   Ontario Health Premium, phased in by income band up to each band's cap (`phaseIn` shape);
     *   Ontario Tax Reduction, basic amount only (no dependants are modelled);
     *   OAS recovery tax (clawback), calculated inside the tax function from actual net income.
-*   **Foreign withholding tax (author):** one config rate applies to the foreign-dividend yield of global stocks held in the TFSA and in RRSP/RRIF/LIRA/LIF, where it can't be recovered. In non-registered accounts it is treated as recovered through the foreign tax credit, which is not modelled in detail. The rate assumes Canadian-listed funds.
+*   **Foreign withholding tax:** one config rate applies to the foreign-dividend yield of U.S., international and emerging-market stocks held in the TFSA and in RRSP/RRIF/LIRA/LIF, where it can't be recovered. In non-registered accounts it is treated as recovered through the foreign tax credit, which is not modelled in detail. The rate assumes Canadian-listed funds.
 *   **Out:** non-eligible dividends, alternative minimum tax, GIS, the CPP death benefit, other credits. Foreign dividends in non-registered accounts are taxed as ordinary income.
 *   **Income, net income and the clawback (follows the T1 return).** Total income is the sum of the `TaxableIncome` fields, with eligible dividends grossed up by `federal.dividend.eligible.gross_up` and capital gains multiplied by `federal.capital_gains.inclusion_rate`. The OAS recovery tax = min(OAS received, `federal.oas.recovery.rate` × max(0, total income − `federal.oas.recovery.threshold`)). It is also a deduction (line 23500): net income and taxable income are total income minus the recovery tax. The age amount's reduction and the Health Premium use that net or taxable income.
-*   **Order of the Ontario calculation (FR-M10; follows Form ON428 Part C, checked against the 2025 form).** All amounts are for one person's return, after any pension split.
+*   **Order of the Ontario calculation (follows Form ON428 Part C, checked against the 2025 form).** All amounts are for one person's return, after any pension split.
     1.  **Bracket tax:** `ontario.tax.brackets` applied to taxable income.
     2.  **Non-refundable credits:** the basic, age (after its income-based reduction) and pension amounts, added together and multiplied by the rate of the first row of `ontario.tax.brackets`.
     3.  **Basic Ontario tax** (line 53) = max(0, bracket tax − non-refundable credits).
@@ -354,203 +361,230 @@ The engine calls a jurisdiction module for provincial tax and credits, the Ontar
     8.  **Ontario tax** (line 90) = step 6 + Health Premium. This is what `provincialTax` returns and what `tax-cases.json` calls `ontarioTax`.
 
     The Low-income individuals and families tax (LIFT) credit (line 85) falls between steps 6 and 7. It is out of scope; it can be non-zero only in a year with employment income.
-
-    The federal basic personal amount (TC-1) is `federal.credits.basic` up to taxable income equal to the `from` of the fourth row of `federal.tax.brackets`, `federal.credits.basic_min` at or above the fifth row's `from`, and falls in a straight line between them.
-
-    Federal tax = max(0, federal bracket tax − federal non-refundable credits × the first-row rate of `federal.tax.brackets` − `federal.dividend.eligible.credit_rate` × the grossed-up eligible dividends). The OAS recovery tax is reported separately as `clawback`; it is not part of `federalTax`.
-
-    Checked on 2026-11-19: these rules, with the 2026 config (including `federal.credits.basic_min`), reproduce all 21 TaxTips.ca cases to the dollar.
+*   **The federal calculation.**
+    *   **Basic personal amount:** `federal.credits.basic` up to taxable income equal to the `from` of the fourth row of `federal.tax.brackets`, `federal.credits.basic_min` at or above the fifth row's `from`, and a straight line between them.
+    *   **Federal tax** (line 42000) = max(0, federal bracket tax − federal non-refundable credits × the first-row rate of `federal.tax.brackets` − `federal.dividend.eligible.credit_rate` × the grossed-up eligible dividends). The OAS recovery tax is reported separately as `clawback`; it is not part of `federalTax`.
+*   **Checked:** with the 2026 config, these rules match all 21 cases in `tests/fixtures/tax-cases.json` (from the [TaxTips.ca](https://www.taxtips.ca/) Ontario calculator) within $1 per return; `personalTax.test.ts` checks this on every build.
 
 ### Accounts
 
 Every account has an owner (spouse 1 or spouse 2). Types:
 
 *   **RRSP**, converting to a **RRIF** at an age the user sets (no later than the end of the year the owner turns 71). An RRSP that has not been converted can still be drawn (a lump-sum withdrawal, taxed as `otherOrdinary`). RRIF minimums use the CRA factor for the owner's age at the start of the year. No minimum applies in the year the RRIF opens.
-    *   **Minimum factor (FR-M4):** for a start-of-year age in `federal.rrif.min_factor` (71 to 95), the table's factor; above its last age, the last age's factor (the table's 95 means "95 or older"); below its first age, 1 ÷ (`federal.rrif.min_factor_base_age` − age). The base age is a new key (value 90, from the validated entry's source note: "ages 70 and under: '1 divided by (90 minus the age)'"). The minimum is the factor × the balance at the start of the year.
-*   **LIRA**, converting to a **LIF** at a user-set age, no later than the end of the year the owner turns 71 (a validation rule), with a yearly minimum and maximum. No minimum applies in the year the LIF opens. A LIRA is never drawn before conversion (M6).
-    *   **The maximum is Ontario's (FR-M9):** max = the greater of `ontario.lif.max_factor`[start-of-year age] × the start-of-year balance, and the LIF's investment earnings in the previous year (its yield plus price return, after fees). Conversion is modelled at January 1 of the conversion year, so the opening year is a full year and needs no pro-rating; in that year the maximum is the table factor alone, because the LIF has no previous year's earnings. Ages above the table's last age (90) use its last factor (100%). The table applies while the CANSIM V122487 rate is 6% or less; the engine assumes it is (the admin guide's yearly check, when a refresh is done, confirms it).
+    *   **Minimum factor:** for a start-of-year age in `federal.rrif.min_factor` (71 to 95), the table's factor; above its last age, the last age's factor (the table's 95 means "95 or older"); below its first age, 1 ÷ (`federal.rrif.min_factor_base_age` − age), CRA's rule for ages 70 and under. The minimum is the factor × the balance at the start of the year.
+    *   An RRSP or LIRA whose owner is already past its conversion age at the plan start starts converted, as if opened the year before, so its minimum applies from the first year.
+*   **LIRA**, converting to a **LIF** at a user-set age, no later than the end of the year the owner turns 71 (a validation rule), with a yearly minimum and maximum. No minimum applies in the year the LIF opens. A LIRA is never drawn before conversion. Money in a former employer's DC pension, including a plan still held by the employer (at its current value), is entered as a LIRA.
+    *   **The maximum is Ontario's:** max = the greater of `ontario.lif.max_factor`[start-of-year age] × the start-of-year balance, and the LIF's investment earnings in the previous year (its yield plus price return, after fees). Conversion is modelled at January 1 of the conversion year, so the opening year is a full year and needs no pro-rating; in that year the maximum is the table factor alone, because the LIF has no previous year's earnings. Ages above the table's last age (90) use its last factor (100%). The table applies while the long-term Government of Canada bond rate that sets it (Statistics Canada series V122487, formerly CANSIM) is 6% or less. The engine assumes it is; this was confirmed for 2026 and is not rechecked unless the admin refreshes the defaults.
     *   The minimum is the federal RRIF minimum (`federal.rrif.min_factor`). Ontario sets no table of its own; FSRA policy L200-303 says the LIF minimum is the Income Tax Regulations' RRIF minimum.
-    *   The age-71 deadline is the federal RRSP rule, because a LIRA is an RRSP; it uses `federal.rrif.latest_conversion_age`. The one-time 50% unlock is an optional choice at conversion; if chosen, half moves to the owner's RRSP/RRIF (O9).
-*   **TFSA**, with contribution room tracked from a user-entered starting room plus the yearly limit from the config (`federal.tfsa.annual_limit`, indexed; the rounding of the published limit is not modelled, an accepted approximation). A withdrawal is added back to room on January 1 of the next year (C3, author, 2026-11-19).
-*   **Non-registered**, holding pooled positions per asset class with their original cost (adjusted cost base, the amount paid). Each year's interest, dividends and realized gains are taxed by type. Sales are spread across positions in proportion, at average cost.
-*   **DB pension** (income stream, not a balance): lifetime amount and start age, optional bridge amount (a temporary top-up paid until an end age, usually when CPP or OAS starts), indexing (full, fixed percentage or none), survivor percentage. **Amounts and indexing:** with `full`, the lifetime and bridge amounts are today's dollars and grow with the deflator. With `fixed` or `none`, they are the nominal amounts on the pension statement at the start age; `fixed` then grows by `indexRate` each year after the start, and `none` stays flat. `normalizeInputs` converts only the `full` amounts. If the member dies before the start age, the survivor percentage of the lifetime amount is paid from the year after the death (stage 2 decision 13b).
+    *   The age-71 deadline is the federal RRSP rule, because a LIRA is an RRSP; it uses `federal.rrif.latest_conversion_age`. The one-time 50% unlock is an optional choice at conversion; if chosen, half moves to the owner's RRSP/RRIF (O9). An owner with no RRSP or RRIF gets a new RRIF that year (id `rrsp-<owner>-<n>`), with no minimum in its first year.
+*   **TFSA**, with contribution room per spouse, shared by all their TFSAs. Room starts from the user-entered room, which is today's available room as CRA's My Account shows it, so no yearly limit is added in the plan's first year. From the second year, the yearly limit from the config (`federal.tfsa.annual_limit`, indexed; the rounding of the published limit is not modelled, an accepted approximation) is added each January 1, with the previous year's withdrawals.
+*   **Non-registered**, holding pooled positions per asset class with their original cost (adjusted cost base, the amount paid). Each year's interest, dividends and realized gains are taxed by type. Sales are spread across positions in proportion, at average cost. A spouse with no non-registered account gets an empty one at the plan start, so a surplus always has somewhere to go.
+*   **DB pension** (income stream, not a balance): lifetime amount and start age, optional bridge amount (a temporary top-up paid until an end age, usually when CPP or OAS starts), indexing (full, fixed percentage or none), survivor percentage.
+    *   **Amounts and indexing:** with `full`, the lifetime and bridge amounts are today's dollars and grow with the deflator. With `fixed` or `none`, they are the nominal amounts on the pension statement at the start age; `fixed` then grows by `indexRate` each year after the start, and `none` stays flat. `normalizeInputs` converts only the `full` amounts.
+    *   **The bridge's last year** pays up to the birthday month of its end age (birth month ÷ 12 of a year).
+    *   **Survivor share:** paid from the year after the member's death, also when the member dies before the pension's start age (then as the survivor percentage of the lifetime amount).
 
 CPP and OAS: the user enters each spouse's CPP estimate at 65 and start age, and years of Canadian residence for OAS. A help note explains that an estimate from My Service Canada assumes contributions continue to 65, and links to Service Canada's explanation of adjusting for years without contributions (O10). All coefficients below come from the config:
 
 *   **CPP:** the estimate at 65, adjusted per month before or after 65 (start between the earliest and latest ages).
 *   **OAS:** zero below the minimum residence years; otherwise `min(years, full_years) / full_years` × base × (1 + per-month deferral rate × deferral months, capped at the maximum), plus the 75+ increase.
-*   **CPP survivor benefit:** for a survivor 65 or older, a percentage of the deceased's pension; for a survivor under 65, a flat amount plus a percentage. In both cases the survivor's own pension plus the survivor benefit is capped at `federal.cpp.survivor.max_combined`, the published maximum for a combined survivor's and retirement pension (FR-M11; the survivor page's wording, "the maximum retirement pension", would use `federal.cpp.max_at_65` instead) (author, 2026-11-19). `SOURCES.md` now names the same page as the validated JSON entry (the payment-amounts table the value was read from).
+*   **CPP survivor benefit:** for a survivor 65 or older, a percentage of the deceased's pension; for a survivor under 65, a flat amount plus a percentage. In both cases the survivor's own pension plus the survivor benefit is capped at `federal.cpp.survivor.max_combined`, the published maximum for a combined survivor's and retirement pension, read from Service Canada's payment-amounts table. (The survivor page's wording, "the maximum retirement pension", would use `federal.cpp.max_at_65` instead; the author chose the published combined maximum.)
 
 ### Asset classes and returns (O3)
 
-*   **Six asset classes (author, 2026-11-19, replacing three):** Canadian stocks, U.S. stocks, international developed stocks, emerging-market stocks, bonds, and cash and GICs. These match FP Canada's published classes, so no blend is needed. Each has config entries for:
+*   **Six asset classes:** Canadian stocks, U.S. stocks, international developed stocks, emerging-market stocks, bonds, and cash and GICs. These match FP Canada's published classes, so no blend is needed. Each has config entries for:
     *   expected compound (geometric) return, from FP Canada (cash uses FP Canada's short-term rate);
     *   a fixed yearly cash yield (`market.<class>.yield`), an author decision (below).
-*   **The user's mix (author, 2026-11-19):** the Savings tab sets today's share of each class across all accounts. The user starts from a named mix (Conservative, Balanced, Growth; O24) or enters their own ("Custom"). Each class has a slider and a number box. Moving one class's share moves the others in proportion to their current shares, so the total stays at 100%; a class at 0% stays at 0% until the user sets it. The tab shows the mix as a coloured bar, the stock/bond/cash totals, and the expected return before and after fees.
-*   **Fixed returns (author, 2026-11-18):** every year, each class earns its expected compound return (or the user's override), less fees. There are no random markets and no stress paths, so results show the plan under steady average markets. They do not show sequence risk, the damage a bad market early in retirement can do, and a safer growth-to-safety shape shows only its lower return ([Alternative C](#alternative-c-fixed-returns-only)). The screens say returns are steady averages.
-*   **Cash yields (author; author decisions from 2026-11-19, O30):** each class pays one income type. A yield is an assumption like a return, not a tax rule, so the author sets each one rather than fetching it every year. It is shown with the returns under investing assumptions in Settings, where the user can change it. Starting values may be taken once from the factsheets below; after that they are not refreshed.
+*   **The user's mix:** the Savings tab sets today's share of each class across all accounts. The user starts from a named mix (Conservative, Balanced, Growth; O24) or enters their own ("Custom"). Each class has a slider and a number box. Moving one class's share moves the others in proportion to their current shares, so the total stays at 100%; a class at 0% stays at 0% until the user sets it. The tab shows the mix as a coloured bar, the stock/bond/cash totals, and the expected return before and after fees.
+*   **Fixed returns:** every year, each class earns its expected compound return (or the user's override), less fees. There are no random markets and no stress paths, so results show the plan under steady average markets. They do not show sequence risk, the damage a bad market early in retirement can do, and a safer growth-to-safety shape shows only its lower return ([Alternative C](#alternative-c-random-returns-and-stress-paths)). The screens say returns are steady averages.
+*   **Cash yields (O30):** each class pays one income type. A yield is an assumption like a return, not a tax rule, so the author sets each one rather than fetching it every year. It is shown with the returns under investing assumptions in Settings, where the user can change it. Starting values may be taken once from the factsheets below; after that they are not refreshed.
     *   Canadian stocks: eligible dividends; reference, the "Distribution Yield" on the factsheet of the iShares Core S&P/TSX Capped Composite Index ETF (XIC).
     *   U.S., international developed and emerging-market stocks: foreign dividends; reference, the "Div Yld (%)" on MSCI's USA, EAFE and Emerging Markets index factsheets.
     *   Bonds: interest; reference, the "Weighted Average Coupon" on the factsheet of the iShares Core Canadian Universe Bond Index ETF (XBB). The coupon is used rather than the yield to maturity because the yield here is the cash paid out.
     *   Cash and GICs: interest; the whole return is paid as interest, so its yield equals its return.
-*   **Fees (author, 2026-11-19, replacing a fee per class):** one yearly fee applies to all investments. The user picks a named level, "Index ETFs", "Robo-advisor", "Mutual funds with an advisor", or "Custom" with their own figure. The levels' values are planning choices (`planning.fee_levels`, O25) and can be changed in Settings. The earlier per-class iShares MER defaults are dropped.
-*   **Each class's yearly return (FR-M6, SR-3):** `classReturns(cfg, investing)` in `src/engine/invest/returns.ts` is the only place returns are worked out. For each class it returns `{ total, yield, price, incomeType }`:
+*   **Fees:** one yearly fee applies to all investments. The user picks a named level, "Index ETFs", "Robo-advisor", "Mutual funds with an advisor", or "Custom" with their own figure. The levels' values are planning choices (`planning.fee_levels`, O25) and can be changed in Settings.
+*   **Each class's yearly return:** `classReturns(cfg, investing)` in `src/engine/invest/returns.ts` is the only place returns are worked out. For each class it returns `{ total, yield, price, incomeType }`:
     *   gross return = `investing.returnOverride[class]` if set, otherwise `market.<class>.geometric_return`; an override is entered before fees, like the FP Canada figure;
-    *   total = gross return − the plan's fee (the level's value from `planning.fee_levels`, or `customFee`), a simple subtraction (author, 2026-11-19);
+    *   total = gross return − the plan's fee (the level's value from `planning.fee_levels`, or `customFee`), a simple subtraction;
     *   yield = `market.<class>.yield` (or its override); price = total − yield;
     *   `incomeType` is eligible dividends (Canadian stocks), foreign dividends (U.S., international and emerging-market stocks) or interest (bonds, cash).
+
     It is computed once per run; returns are the same every year.
-*   **Income and price:** the cash yield is applied to the start-of-year balance and paid as cash. The price return can be negative; the yield can't. `config:check` warns (does not fail) when a class's yield is above its gross return, because its price would then fall every year (FR-M5).
-*   **Yields inside sheltered accounts (M15, FR-M5):** in RRSP, RRIF, LIRA, LIF and TFSA accounts the yield stays in the account and is reinvested in the same class at the start-of-year step. Foreign dividends there lose `market.foreign_withholding_rate` first, because the tax can't be recovered. In non-registered accounts the yield is paid out as taxable cash (step 4 of the year solver) and the withholding is treated as recovered.
-*   **Capital losses (FR-M5):** a sale in a non-registered account can realize a loss. Net realized losses offset taxable gains in the same year; any remainder carries forward, per spouse, against future gains only, never against other income. At the final return, a carried-forward loss offsets the deemed gains. (Tax law also lets net capital losses reduce other income in the year of death; that is not modelled) (author, 2026-11-19).
-*   **Return overrides (author):** the user can override the expected return for each asset class, in the mix table on the Savings tab. The config default is shown next to each override, and the override is saved in the plan. Yields and income types default from the config; yields can be changed in Settings. An override more than `planning.override_margin` (0.5 percentage point) above FP Canada's figure for that class triggers the "optimistic returns" warning. With six classes, each class has its own FP Canada figure, so the limit always has a base. Inflation is shown on the Savings tab with an Edit link to Settings.
+*   **Income and price:** the cash yield is worked out on the January 1 balance. The price return can be negative; the yield can't. `config:check` warns (does not fail) when a class's yield is above its gross return, because its price would then fall every year.
+*   **Yields inside sheltered accounts:** in RRSP, RRIF, LIRA, LIF and TFSA accounts the yield stays in the account. It is worked out on the January 1 balance but added to the account after the year's withdrawals, in the same class, so it never enlarges the balance the RRIF and LIF limits use. Foreign dividends there lose `market.foreign_withholding_rate` first, because the tax can't be recovered. In non-registered accounts the yield is paid out as taxable cash (step 4 of the year solver) and the withholding is treated as recovered.
+*   **Capital losses:** a sale in a non-registered account can realize a loss. Net realized losses offset taxable gains in the same year; any remainder carries forward, per spouse, against future gains only, never against other income. At the final return, a carried-forward loss offsets the deemed gains. (Tax law also lets net capital losses reduce other income in the year of death; that is not modelled.)
+*   **Return overrides:** the user can override the expected return for each asset class, in the mix table on the Savings tab. The config default is shown next to each override, and the override is saved in the plan. Yields and income types default from the config; yields can be changed in Settings. An override more than `planning.override_margin` (0.5 percentage point) above FP Canada's figure for that class triggers the "optimistic returns" warning. With six classes, each class has its own FP Canada figure, so the limit always has a base. Inflation is shown on the Savings tab with an Edit link to Settings.
 
 ### Placement and the growth-to-safety shift (O4, O5)
 
-*   **Growth-to-safety shape (revised 2026-11-19, author):** one of three named shapes, shown on the Savings tab under "As you get older" with a small line drawing each: "Keep my mix" (`steady`), "Get safer gradually" (`gradual_shift`) and "Safer around retirement" (`safety_first_regrow`). Each changes the user's own stock share by years from the first retirement, by the points in [Design values](#design-values-version-1) (O26). Within stocks, and within bonds and cash, the user's proportions are kept.
-    *   **Reference year (SR1-M7):** the change in year *t* is shape(*t*) − shape(*t₀*), where *t₀* is the plan start in years from the first retirement. The first year therefore always uses today's mix exactly.
+*   **Growth-to-safety shape:** one of three named shapes, shown on the Savings tab under "As you get older" with a small line drawing each: "Keep my mix" (`steady`), "Get safer gradually" (`gradual_shift`) and "Safer around retirement" (`safety_first_regrow`). Each changes the user's own stock share by years from the first retirement, by the points in [Design values](#design-values-version-1) (O26). Within stocks, and within bonds and cash, the user's proportions are kept.
+    *   **Reference year:** the change in year *t* is shape(*t*) − shape(*t₀*), where *t₀* is the plan start in years from the first retirement. The first year therefore always uses today's mix exactly.
     *   **Clamping:** the stock share stays between 0% and 100%. Points taken from stocks go to bonds and cash in the user's proportions; if the user holds neither, they go to bonds. Points added to stocks come from bonds and cash in the user's proportions; if the user holds no stocks, they go to the stock classes in the proportions of the named starting mix chosen last, or to Canadian stocks for "Custom".
     *   **Fractions:** the engine works with fractional shares. Whole numbers summing to 100 are a screen rule for what the user types.
 *   **Placement preset:** one of two named presets that say, for each asset class, which account types to fill first. "Same mix everywhere" is the baseline only, not a selectable preset; it holds the overall mix in every account.
-*   **Filling accounts:** asset classes are placed in this order: cash, bonds, then emerging-market, international, U.S. and Canadian stocks. Each class fills accounts in its preset order until its target share is reached. Balances are counted at face value.
-*   **Yearly rebalance:** a "Rebalance once a year" choice on the Savings tab, on by default. When on, at the start of each year, after any first-death transfers, the engine rebalances every account to its target holdings. When off (O29, author, 2026-11-19): holdings are placed by the preset at the plan start only, then drift with returns, withdrawals and deposits; the shape is not applied, because nothing moves money between classes; withdrawals and surplus deposits within an account follow its current holdings in proportion. The Savings tab says so next to the switch. Moves inside registered accounts and the TFSA are tax-free. Sales in non-registered accounts realize gains, which are taxed in the same year inside the withdrawal solve. A full rebalance every year, in both the user's plan and the baseline, is an accepted assumption (see Risks).
-*   **Face value and hidden risk (2026-11-24, T4):** Because the mix is counted at face value, part of a placement's benefit can come from holding more stocks once tax on registered withdrawals is taken into account; the placement text says so in one sentence. (The after-tax stock-share readout was cut.)
+*   **Filling accounts:** asset classes are placed in this order: cash, bonds, then emerging-market, international, U.S. and Canadian stocks. Each class fills accounts in its preset order until its target share is reached. Within a group of accounts (for example both spouses' TFSAs), the amount is split in proportion to each account's room not yet assigned to another class. Balances are counted at face value.
+*   **Yearly rebalance:** a "Rebalance once a year" choice on the Savings tab, on by default. When on, at the start of each year, after any first-death transfers, the engine rebalances every account to its target holdings. Moves inside registered accounts and the TFSA are tax-free. Sales in non-registered accounts realize gains, which are taxed in the same year inside the withdrawal solve. A full rebalance every year, in both the user's plan and the baseline, is an accepted assumption (see [Risks](#risks--mitigations)).
+*   **Rebalancing off (O29):** holdings are placed by the preset at the plan start only, then drift with returns, withdrawals and deposits. The shape is not applied, because nothing moves money between classes, so the Savings tab disables the shape choice and says why. Withdrawals and surplus deposits within an account follow its current holdings in proportion.
+*   **Face value and hidden risk:** because the mix is counted at face value, part of a placement's benefit can come from holding more stocks once tax on registered withdrawals is taken into account; the placement text says so in one sentence.
 
 ### Withdrawal strategies (O7, O8)
 
 *   **"Registered last":** after required RRIF and LIF minimums, draw from non-registered, then RRSP/RRIF and LIF, then TFSA.
-    *   **Registered draws between spouses (M6):** pro rata across both spouses' RRSP, RRIF and LIF balances together. A LIF's share is capped at its remaining room under the LIF maximum; anything over the cap comes from the same owner's RRSP/RRIF, and if that is empty, from the other spouse's registered accounts. A LIRA is never drawn.
-*   **"Fill lower brackets first":** a required draw, taken before the withdrawal solve. Each spouse's taxable income (before splitting) is topped up from their RRSP/RRIF, then LIF, to a level, even if spending doesn't need the money. Whatever is still needed then follows the "registered last" order. After a death, the survivor keeps the same level. **Level (revised 2026-11-19, author):** the user picks one level for both spouses, either "Top of the first bracket" (the top of the lowest federal bracket, from `federal.tax.brackets`) or "Just under the OAS clawback" (`federal.oas.recovery.threshold`). Both are read from the rule values in use, so a change in Settings moves them; an "Edit thresholds" link opens Settings. This replaces a dollar target per spouse.
-    *   **Which income is topped up (SR1-M6):** each spouse's net income before pension splitting, as `incomeTotals` defines it (eligible dividends grossed up, gains at the inclusion rate), counting fixed income, minimums, the non-registered cash yield and gains already realized by the rebalance. The top-up stops exactly at the level, with no margin. Splitting and gains realized later in the withdrawal solve can move income above the level; this is accepted, and the split search keeps household tax (which includes any clawback) lowest.
+    *   **Registered draws between spouses:** pro rata across both spouses' RRSP, RRIF and LIF balances together. A LIF's share is capped at its remaining room under the LIF maximum; anything over the cap comes from the same owner's RRSP/RRIF, and if that is empty, from the other spouse's registered accounts. A LIRA is never drawn.
+*   **"Fill lower brackets first":** a required draw, taken before the withdrawal solve. Each spouse's taxable income (before splitting) is topped up from their RRSP/RRIF, then LIF, to a level, even if spending doesn't need the money. Whatever is still needed then follows the "registered last" order. After a death, the survivor keeps the same level.
+    *   **Level:** the user picks one level for both spouses, either "Top of the first bracket" (the top of the lowest federal bracket, from `federal.tax.brackets`) or "Just under the OAS clawback" (`federal.oas.recovery.threshold`). Both are read from the rule values in use, so a change in Settings moves them; an "Edit thresholds" link opens Settings.
+    *   **Which income is topped up:** each spouse's net income before pension splitting, as `incomeTotals` defines it (eligible dividends grossed up, gains at the inclusion rate), counting fixed income, minimums, the non-registered cash yield and gains already realized by the rebalance. The top-up stops exactly at the level, with no margin. Splitting and gains realized later in the withdrawal solve can move income above the level; this is accepted, and the split search keeps household tax (which includes any clawback) lowest.
     *   **Indexing:** the level grows with its threshold, counting from the defaults' tax year (see [Units and conventions](#units-and-conventions)).
-*   **"Early RRSP drawdown" (added 2026-11-19, author):** in the "draw-down years", the spending need is drawn from RRSP/RRIF and LIF first, before non-registered savings and the TFSA. After the draw-down years, it follows "registered last". Made precise for SR1-M4:
+*   **"Early RRSP drawdown":** in the "draw-down years", the spending need is drawn from RRSP/RRIF and LIF first, before non-registered savings and the TFSA. After the draw-down years, it follows "registered last".
     *   **Draw-down years:** from the first retirement year up to and including the last year in which a living spouse has a CPP or OAS pension that has not yet started. A spouse's unstarted benefits stop counting at their death. With no such years (benefits start at or before retirement), the strategy is the same as "Registered last", and the option row says "No draw-down years with these start ages; same as Registered last".
     *   **Which spouse (a fill-up rule, so the solve stays monotonic):** draw from the spouse whose net income before splitting (after fixed income, minimums and the cash yield) is lower, until the two are equal; then from both equally. If incomes are equal at the start, begin with spouse 1. Within a spouse, RRSP/RRIF and LIF are drawn in proportion to their balances, LIF capped at its maximum. When one spouse's registered money runs out (or is at the LIF cap), the rest comes from the other spouse.
-    *   **A spouse still working** in the draw-down years is not drawn from; see [the year solver](#the-year-solver) (C2). It is designed to pair with delaying CPP and OAS; the option row shows the draw-down years and where the ages are set.
-*   **"Let the planner pick": cut from version 1** (2026-11-24, [review triage](#review-triage-decisions-author-2026-11-24), T1). It is listed under [Future Improvements](#future-improvements).
-*   **All three are always run:** every run computes all three strategies at the same returns, because the Withdrawals tab shows each strategy's lifetime tax, money left, amount moved to the TFSA and clawback years on its card, with the difference from "Registered last".
+    *   **A spouse still working** in the draw-down years is not drawn from; see [the year solver](#the-year-solver).
+    *   The strategy is designed to pair with delaying CPP and OAS; the option row shows the draw-down years and where the ages are set.
+*   **All three are always run:** every run computes all three strategies at the same returns, because the Withdrawals tab shows each strategy's lifetime tax, after-tax legacy, amount moved to the TFSA and clawback years on its card, with the difference from "Registered last".
 *   **Explanations:** each strategy has a "Learn more" dialog with fixed text: what it does, its effect on income, taxes and savings, pros, cons, when it makes sense, and an "In your plan" line with this plan's figures against "Registered last" (or, for "Registered last", against "Fill lower brackets first"). The dialog has "Use this strategy" and "Close".
 *   **Between spouses:** non-registered and TFSA draws come from each spouse in proportion to their balances.
-*   **Surplus:** money forced out by minimums or the bracket level beyond what spending needs is split between the spouses in proportion to their share of the forced draws that caused it (C3); each share goes into that spouse's TFSA up to available room, then into their non-registered account.
-*   **Pension income splitting:** eligible pension income is DB payments at any age, and RRIF and LIF payments if the transferring spouse is at least `federal.split.min_age_rrif`. The split search tries 0 up to `federal.split.max_share` of the transferring spouse's eligible pension income, in `SPLIT_STEP` steps, **in both directions** (M13): spouse 1 transferring to spouse 2, and spouse 2 to spouse 1. With the 2026 values (50% in 5% steps) that is 21 points (0% counted once). It keeps the split with the lowest household tax; on a tie, the smaller transfer, then spouse 1 transferring. This approximates the split tax software finds at filing time; it is not presented as a recommendation. To keep it fast, the year is first solved with the previous year's split (no split in the first year), then the search runs at that answer, and the year is solved again while the best split changes (at most 3 passes; stage 2 decisions 8 and 15).
+*   **Surplus:** money forced out by minimums or the bracket level beyond what spending needs is split between the spouses in proportion to their share of the forced draws that caused it. With no forced draws, it is split by each living spouse's CPP, OAS, DB and pay, or equally if those are zero. Each share goes into that spouse's TFSA up to available room, then into their non-registered account: the first TFSA and the first non-registered account by id, also for a survivor who has inherited accounts.
+*   **Pension income splitting:** eligible pension income is DB payments at any age, and RRIF and LIF payments if the transferring spouse is at least `federal.split.min_age_rrif`.
+    *   **The search** tries 0 up to `federal.split.max_share` of the transferring spouse's eligible pension income, in `SPLIT_STEP` steps, **in both directions**: spouse 1 transferring to spouse 2, and spouse 2 to spouse 1. With the 2026 values (50% in 5% steps) that is 21 points (0% counted once). It keeps the split with the lowest household tax.
+    *   **Ties:** two splits whose household tax differs by less than `SPLIT_TIE_TOLERANCE` ($0.000001) are a tie, so rounding noise never picks the split. A tie goes to the smaller transfer, then to spouse 1 transferring.
+    *   **Passes:** the year is first solved with the previous year's split (no split in the plan's first year), then the search runs at that answer, and the year is solved again while the best split changes, up to `MAX_SPLIT_PASSES` (3) passes. Over 1,054 test plans, 3 passes matched a full search exactly.
+    *   This approximates the split tax software finds at filing time; it is not presented as a recommendation.
 
 ### The year solver
 
 Each year, for each variant, in this order:
 
 ```text
-0.  Start of year (solver/startOfYear.ts): convert an RRSP to a RRIF, or a
-    LIRA to a LIF (applying the optional 50% unlock), on January 1 of the year
-    the owner reaches their conversion age, and no later than the year they
-    turn federal.rrif.latest_conversion_age; set openedYear. Add the yearly
-    TFSA limit and last year's TFSA withdrawals to each spouse's room.
-1.  Set ages and who is alive. If the first death happened last year, apply the
-    first-death transfers (project/death.ts, firstDeathTransfer):
-      - every RRSP/RRIF/LIRA/LIF, TFSA and non-registered account keeps its id
-        and type and changes owner (non-registered at original cost; the TFSA
-        as successor holder, without using the survivor's room);
-      - from then on the survivor's age drives minimums, maximums and
-        conversion; openedYear and lifPrevEarningsNom are kept; the deceased's
-        carried-forward loss is dropped (losses on the first-death return are
-        not modelled);
-      - the deceased's CPP, OAS and DB stop;
-      - the CPP survivor benefit (capped) and the DB survivor share start;
-      - spending switches to the survivor percentage.
-2.  Rebalance every account to this year's target holdings. Record the gains
-    realized in non-registered accounts as this year's taxable income.
+0.  Start of year, on January 1:
+      a. If the first death happened last year, apply the first-death
+         transfers (project/death.ts, firstDeathTransfer), before anything
+         else, so the survivor's age decides when an inherited RRSP or LIRA
+         converts:
+           - every RRSP/RRIF/LIRA/LIF, TFSA and non-registered account keeps
+             its id and type and changes owner (non-registered at original
+             cost; the TFSA as successor holder, without using the survivor's
+             room);
+           - from then on the survivor's age drives minimums, maximums and
+             conversion; openedYear and lifPrevEarningsNom are kept; the
+             deceased's carried-forward loss is dropped (losses on the
+             first-death return are not modelled);
+           - the deceased's CPP, OAS and DB stop;
+           - the CPP survivor benefit (capped) and the DB survivor share start;
+           - spending switches to the survivor percentage.
+      b. (solver/startOfYear.ts) Convert an RRSP to a RRIF, or a LIRA to a LIF
+         (applying the optional 50% unlock), in the year the owner reaches
+         their conversion age, and no later than the year they turn
+         federal.rrif.latest_conversion_age; set openedYear. Add the yearly
+         TFSA limit (not in the plan's first year) and last year's TFSA
+         withdrawals to each spouse's room.
+1.  Set ages and who is alive.
+2.  Rebalance every account to this year's target holdings (at the plan start
+    only, when rebalancing is off). Record the gains realized in
+    non-registered accounts as this year's taxable income.
 3.  Fixed income for each spouse: CPP, OAS (with the 75+ increase), DB lifetime
     and bridge amounts, survivor benefits (first year pro-rated by birth month),
     and after-tax pay for a spouse still working.
-4.  Required draws, in this order (SR1-M6): RRIF and LIF minimums; the
-    non-registered cash yield (interest and dividends on the start-of-year
-    balance); then the "fill lower brackets first" top-up, if that strategy
-    uses it. Yields inside sheltered accounts are
-    reinvested in the account, net of foreign withholding (M15).
+4.  Required draws, in this order: RRIF and LIF minimums; the non-registered
+    cash yield (interest and dividends on the January 1 balance); then the
+    "fill lower brackets first" top-up, if that strategy uses it.
 5.  Solve for the extra gross withdrawal W >= 0 so that after-tax cash equals
     the spending need (the phase's yearly amount from Spending x inflation
     factor, x survivor percentage after the first death; zero before the first
     retirement):
       - W follows the "registered last" order, except in "Early RRSP
         drawdown"'s draw-down years, where RRSP/RRIF and LIF come first;
-      - tax for each spouse uses the current pension split (two-pass rule);
-      - find W by bisection between 0 and everything available; this always
-        works because after-tax cash rises when W rises (no one pays more than
-        100% tax on an extra dollar; a property test checks this);
-      - precision $0.01 on W, at most `SOLVER_MAX_STEPS` (40) steps;
+      - tax for each spouse uses the current pension split, re-solved while
+        the best split changes (see Pension income splitting);
+      - find W by bisection between 0 and everything available; this
+        converges because after-tax cash rises when W rises (no one pays more
+        than 100% tax on an extra dollar; tests/property/solver.test.ts
+        checks this);
+      - precision $0.01 on W, at most SOLVER_MAX_STEPS (40) steps;
       - if even everything available is short, record the shortfall.
-6.  Put any surplus into the TFSA (within room), then non-registered.
+6.  Settle the accounts, in this order: take the draws; add the sheltered
+    accounts' yields (worked out on the January 1 balance, net of foreign
+    withholding); then deposit any surplus, into the TFSA within room, then
+    non-registered. Each deposit is bought at the account's weights at that
+    point.
 7.  Apply the year's price returns (total return after fees, minus the
-    yield) to what remains. Update the original cost of non-registered
+    yield) to everything. Update the original cost of non-registered
     positions and each spouse's carried-forward capital loss. Record each
     LIF's investment earnings (lifPrevEarningsNom) and each spouse's TFSA
     withdrawals for next year.
-8.  If this is the second death year, file the final return:
-      - the full RRSP/RRIF/LIRA/LIF balance counts as income, converted or not;
-      - non-registered positions are taxed as if sold;
-      - TFSA balances pass tax-free;
-      - Ontario probate applies to estate assets (O23);
-      - the result is the after-tax legacy.
+8.  If this is the second death year, file the final return and settle the
+    estate (see Death and estate): registered balances, converted or not,
+    count as income; non-registered positions are taxed as if sold; TFSA
+    balances pass tax-free; Ontario probate applies to estate assets; the
+    result is the after-tax legacy.
 9.  Run invariant checks (see Verification).
 ```
 
 Years before the first retirement run in `project/workingYear.ts` instead, in this order:
 
-1.  Set ages.
-2.  Rebalance and apply the shape, as in retired years.
-3.  The non-registered cash yield is taxed at each owner's `workingMarginalRate`; the tax is paid from the yield and the rest is reinvested.
-4.  CPP, OAS and DB collected while working are taxed at that rate; the net goes to the owner's TFSA within room, then to non-registered.
-5.  Contributions (entered in today's dollars and indexed) land at the end of the year: TFSA within room, any excess to non-registered. RRSP deductions are not modelled. TFSA room grows by the yearly limit.
+1.  Start of year and ages, as in steps 0 and 1 above.
+2.  Rebalance and apply the shape, as in retired years. Gains the rebalance realizes are taxed at the owner's working marginal rate.
+3.  RRIF and LIF minimums are taken, as in retired years.
+4.  The non-registered cash yield, the rebalance gains, the minimums and any CPP, OAS and DB collected while working are taxed at each owner's `workingMarginalRate`. The tax on the minimums and benefits is paid from them. The tax on the yield and the rebalance gains is paid from the yield; if that tax is larger than the yield, the rest is sold from the same non-registered account. That sale realizes a gain or loss at average cost, which counts in the year's realized gains and in the netting with the carried-forward loss, but is not taxed again that year.
+5.  Settle the accounts: the draws; the sheltered yields; then the yield left after tax is reinvested in the owner's non-registered account, and the minimums and benefits left after tax go to the owner's TFSA within room, then to non-registered.
 6.  Apply price returns.
-7.  Run invariant checks.
+7.  Contributions (entered in today's dollars and indexed) land at the end of the year, after the price returns: TFSA within room, any excess to non-registered. A contribution set for an RRSP or LIRA that has already converted goes to the owner's non-registered account. RRSP deductions are not modelled.
+8.  Run invariant checks.
 
-**A spouse still working in a retired-household year (C2, author, 2026-11-19):** their after-tax pay counts as cash. All their other taxable income (CPP, OAS, DB, registered draws and their share of non-registered income) is taxed at their `workingMarginalRate`, not through `personalTax`. Until they retire, they are left out of pension splitting, the "fill lower brackets first" top-up and Early RRSP draws. This replaces the earlier "drawn from like a retired spouse" rule for Early RRSP drawdown.
+A working year's row shows `afterTaxCashNom` and `surplusNom` of 0: what is saved appears as deposits.
+
+**The working marginal rate** applies to taxable amounts: every `TaxableIncome` field, with capital gains at `federal.capital_gains.inclusion_rate` (after losses and the carried-forward loss) and eligible dividends as the cash received; the tax is never below 0. It is used in working years and for a spouse still working in a retired-household year.
+
+**A spouse still working in a retired-household year:** their after-tax pay counts as cash. All their other taxable income (CPP, OAS, DB, registered draws and their share of non-registered income) is taxed at their `workingMarginalRate`, not through `personalTax`. Until they retire, they are left out of pension splitting, the "fill lower brackets first" top-up and Early RRSP draws.
 
 ### Death and estate (O12, O23)
 
 *   **Probate defaults:** RRSP/RRIF/LIF and TFSA accounts are assumed to name a beneficiary (the spouse, then the children), so they skip probate. Non-registered accounts pass through the estate and pay probate.
 *   **The home:** an optional home value. If entered, it counts toward the legacy and probate, is exempt from capital gains tax, and grows at the fixed inflation rate.
-*   The author confirmed these defaults on 2026-11-17 (O23). Jointly held accounts are not modelled; every account has one owner.
-*   **The final return and the estate (stage 3; T10, M1).** In the second death year, after step 7, so on end-of-year balances. The spouse who dies last is "the deceased"; if both die in the same year, the first-death rollover moves the other spouse's accounts to them first (spouse 1 counts as dying first on a tie), so the final return covers every account.
+*   These defaults were confirmed by the author (O23). Jointly held accounts are not modelled; every account has one owner.
+*   **The final return and the estate.** In the second death year, after step 7, so on end-of-year balances. The spouse who dies last is "the deceased"; if both die in the same year, the first-death rollover moves the other spouse's accounts to them first (spouse 1 counts as dying first on a tie), so the final return covers every account.
     1.  **Deemed income:** every RRSP, RRIF, LIRA and LIF balance, converted or not, as `otherOrdinary` (it gets no pension credit); and the deemed sale of every non-registered position: value − original cost, summed over positions. Deemed gains are reduced by the deceased's carried-forward loss (after this year's update); a net deemed loss is not used. TFSA balances and the home are not income.
     2.  **One return:** the deceased's income for the year, after that year's pension split, plus the deemed income, taxed once with `personalTax` (the clawback recomputed on the full return). **Final-return tax** = that tax − the tax step 5 already settled for the deceased that year. A deceased spouse whose income was taxed at `workingMarginalRate` that year is taxed with `personalTax` on the full return instead.
     3.  **The home:** `estate.homeValueToday` × the year's deflator, if entered.
     4.  **Probate:** the estate pays the final-return tax first. Probate base = non-registered balances + the home − the final-return tax, not below 0. Probate = 0 if the base is at or below `ontario.probate.threshold`, else `ontario.probate.rate` × (base − threshold). The rounding up to each $1,000 in the Act is not modelled. Registered accounts and TFSAs skip probate (beneficiaries named).
     5.  **After-tax legacy** = all account balances + the home − final-return tax − probate.
-    Final-return tax and probate are part of lifetime tax. They are paid from the estate, not from the year's cash, so the year's spending, deposits and the household identity are unchanged.
-*   **Estate tab (2026-11-19, author):** the inputs about death and legacy sit on their own tab, not on Spending.
-    *   "When one of you dies": the survivor spending percentage (default 70%, with the reason in one line), the first death assumed at the earlier plan-to age, and a list of what changes at the first death (accounts roll over, OAS stops, CPP survivor benefit and DB survivor share start, single-person tax).
-    *   "What you leave behind": the after-tax legacy goal, the home value, the probate rate as a strip with an Edit link to Settings, the beneficiary assumption above, and a note on the final return.
+
+    Final-return tax and probate are part of lifetime tax. They are paid from the estate, not from the year's cash, so the year's spending, deposits and the household identity are unchanged. The inputs for this section are on the [Estate tab](#estate-tab).
 
 ### Results and comparisons (O13)
 
 #### Result definitions
 
 *   **Spending covered:** whether after-tax cash meets the spending need in every year of the plan. If not, the result shows the first shortfall year and the total shortfall. It is labelled "assuming deaths at the target ages and steady average returns". Whether the legacy goal is met is reported separately.
-*   **Lifetime tax:** federal and Ontario income tax, the OAS clawback, final-return tax and probate, summed in today's dollars: each year's amount is divided by that year's display deflator before it is added (M5, author, 2026-11-19). `runPath` adds up both sums, `lifetimeTaxNom` and `lifetimeTaxToday`, as plain numbers; this is the one place inside `project/` that uses the deflator, and it does not import the `TodayDollars` type. `totalShortfall` follows the same rule.
-*   **After-tax money left:** the after-tax legacy at the second death, in today's dollars. This document uses "after-tax legacy" and "money left" for the same number.
+*   **Lifetime tax:** federal and Ontario income tax, the OAS clawback, final-return tax and probate, summed in today's dollars: each year's amount is divided by that year's display deflator before it is added. `runPath` adds up both sums, `lifetimeTaxNom` and `lifetimeTaxToday`, as plain numbers; this is the one place inside `project/` that uses the deflator, and it does not import the `TodayDollars` type. `totalShortfall` follows the same rule.
+*   **After-tax legacy:** what the estate passes on after the second death, after final-return tax and probate (see [Death and estate](#death-and-estate-o12-o23)), in today's dollars. The strategy cards label it "Money left"; this document always calls it the after-tax legacy.
 *   **Clawback years:** household years in which either spouse pays any clawback.
 
 #### Comparisons
 
-*   **Variants (revised 2026-11-19):** each run also computes, at the same returns:
+*   **Variants:** each run also computes, at the same returns:
     *   the placement baseline;
     *   the withdrawal strategies the user did not choose (see [Withdrawal strategies](#withdrawal-strategies-o7-o8)).
 
-    A variant identical to the user's choice reuses the user's result. Each comparison reports lifetime tax paired with after-tax money left. When the two move in opposite directions, the app says so and explains why. Explanations are fixed templates, not generated text. The strategy comparison is shown on the strategy cards, against "Registered last"; there is no separate comparison box.
+    A variant identical to the user's choice reuses the user's result. Each comparison reports lifetime tax paired with the after-tax legacy. When the two move in opposite directions, the app says so and explains why. Explanations are fixed templates, not generated text. The strategy comparison is shown on the strategy cards, against "Registered last"; there is no separate comparison box.
+*   **The first year's sale:** the first rebalance sells some of the user's own non-registered positions to reach the preset's holdings. The tax on that year-one sale is shown as a separate line, and the placement comparison leaves it out, so the comparison shows only what the placement is worth from then on.
 *   **No shape comparison:** with steady returns a safer growth-to-safety shape only lowers returns, so a comparison would always favour more stocks. The Savings tab says so instead of showing one.
 *   **Detail:** the user's plan returns every row and every account, for the charts and their table views. The other strategies return summary numbers plus, per year, income by source, tax, amount moved to the TFSA and the spending need, so the Withdrawals chart can switch strategy without a rerun. The placement baseline returns summary numbers only.
+
+#### Advice wording
+
+All result text is conditional and comparative. Strategy, shape and preset names are descriptive, not "best" or "optimal". The disclaimer appears on first run, in the footer, and in every export; placeholder text is in `src/ui/content/disclaimer.ts` until O20 sets the final wording.
 
 ### Warnings (O14)
 
 *   **Definitions:** each warning is one code object in `src/engine/warnings/definitions.ts`, holding its check (a pure function of the result), explanation, basis (the plan's results, or inputs), years covered, scope (per spouse or household), unit and related inputs. `warnings.json` holds only the numeric triggers and nudge steps. Repeated years collapse into one line ("first at 72, for 6 years").
-*   **Starting set (8):** listed with their triggers in [Design values](#design-values-version-1). "Low chance of success" was dropped with random returns (2026-11-18). "Next tax bracket", "unbalanced incomes", "contribution room exceeded" and "high early withdrawal rate" are dropped for version 1. The first three are covered by the bracket-filling strategy and comparisons; the last fired for intentional bridge-year draw-downs.
+*   **Starting set (8):** listed with their triggers in [Design values](#design-values-version-1). Not in version 1: "low chance of success" (it needs variable returns), "next tax bracket", "unbalanced incomes" and "contribution room exceeded" (covered by the bracket-filling strategy and the comparisons), and "high early withdrawal rate" (it would fire for intentional bridge-year draw-downs).
 *   **Computed tips:** for a warning measured on the plan's results, the engine reruns the plan once with each related input nudged up and once nudged down by its configured step. It ranks the inputs by how much they move the warning and shows the top three with the size of the effect. Wording is always conditional: "Under these assumptions, delaying OAS by 2 years removes 4 of 6 clawback years."
 
 ### Design values (version 1)
 
-The author's planning choices, stored in `planning.json` and `warnings.json` as "author decision, 2026-11-17".
+The author's planning choices, stored in `planning.json` and `warnings.json`, each sourced as "author decision" with the date it was made.
 
-**Growth-to-safety shapes (revised 2026-11-19; values accepted by the author on 2026-11-19, O26).** Change to the user's stock share, in percentage points, by years from the first retirement, joined by straight lines and held flat beyond the end points. The change is measured from the plan start, and clamping follows [Placement and the growth-to-safety shift](#placement-and-the-growth-to-safety-shift-o4-o5). Values (accepted as first values; derived from the earlier fixed shapes, which were relative to a 60% stock share):
+**Growth-to-safety shapes (O26).** Change to the user's stock share, in percentage points, by years from the first retirement, joined by straight lines and held flat beyond the end points. The change is measured from the plan start, and clamping follows [Placement and the growth-to-safety shift](#placement-and-the-growth-to-safety-shift-o4-o5). Values:
 
 | Shape (screen name) | Points |
 |---|---|
@@ -558,15 +592,11 @@ The author's planning choices, stored in `planning.json` and `warnings.json` as 
 | Get safer gradually (`gradual_shift`) | +10 at −10 years, −10 at retirement, −20 at +15 years |
 | Safer around retirement (`safety_first_regrow`) | 0 at −5 years, −20 at retirement, 0 at +15 years |
 
-The earlier "Stock split" (30% Canadian, 70% global) and "Global stock blend" (60/30/10) are removed: the user's mix sets every class directly.
-
 **Starting mixes (O24, placeholder).** Share of each class for "Conservative", "Balanced" and "Growth", in the order Canadian, U.S., international, emerging, bonds, cash. Balanced: 20/25/10/5/35/5 (the mockup's placeholder). Conservative and Growth: to choose.
 
-**Fee levels (O25, author, 2026-11-19).** Yearly fee, as a rate subtracted from each class's gross return: "Index ETFs" 0.20%, "Robo-advisor" 0.60%, "Mutual funds with an advisor" 2.00%. These are rough starting points the author accepted, not sourced figures; the user can pick "Custom" or change a level in Settings.
+**Fee levels (O25).** Yearly fee, as a rate subtracted from each class's gross return: "Index ETFs" 0.20%, "Robo-advisor" 0.60%, "Mutual funds with an advisor" 2.00%. These are rough starting points the author accepted, not sourced figures; the user can pick "Custom" or change a level in Settings.
 
 **Spending phases (O27, placeholder).** Slower years from year 10 after the first retirement at 90% of active spending; later years from year 20 at 80%.
-
-**Planner search:** removed with the planner (T1).
 
 **Placement presets.** Fill order for each asset class (registered means RRSP/RRIF/LIRA/LIF). Cash follows the bonds column; U.S., international and emerging-market stocks follow the global stocks column:
 
@@ -575,7 +605,7 @@ The earlier "Stock split" (30% Canadian, 70% global) and "Global stock blend" (6
 | Bonds sheltered first | Registered, TFSA, non-registered | TFSA, registered, non-registered | Non-registered, TFSA, registered |
 | Growth tax-free first | Registered, non-registered, TFSA | TFSA, non-registered, registered | Non-registered, registered, TFSA |
 
-**Optimistic-return limit (author):** FP Canada's guideline for the class + 0.5 percentage point (compound return, before fees), matching the deviation margin FP Canada allows planners (FP Canada Projection Assumption Guidelines 2026, section 3 d, as cited in the `planning.override_margin` entry). The engine calculates the limit from `planning.override_margin`; it is not a config value of its own.
+**Optimistic-return limit:** FP Canada's guideline for the class + 0.5 percentage point (compound return, before fees), matching the deviation margin FP Canada allows planners (FP Canada Projection Assumption Guidelines 2026, section 3 d, as cited in the `planning.override_margin` entry). The engine calculates the limit from `planning.override_margin`; it is not a config value of its own.
 
 **Warning triggers** (dollar amounts in today's dollars):
 
@@ -602,20 +632,20 @@ The earlier "Stock split" (30% Canadian, 70% global) and "Global stock blend" (6
 
 **Other defaults:**
 
-*   **Life expectancy target (author):** the age a person of that sex has a 25% chance of reaching, from FP Canada's Projection Assumption Guidelines. The guidelines give this by current age (rows every 5 years from 20 to 100), so `planning.life_expectancy.female` and `.male` are age tables. The default for each spouse uses the row at or below their current age (for example, age 63 uses the 60 row). A note next to the input says a lower target raises the risk of outliving the plan.
+*   **Life expectancy target:** the age a person of that sex has a 25% chance of reaching, from FP Canada's Projection Assumption Guidelines. The guidelines give this by current age (rows every 5 years from 20 to 100), so `planning.life_expectancy.female` and `.male` are age tables. The default for each spouse uses the row at or below their current age (for example, age 63 uses the 60 row). A note next to the input says a lower target raises the risk of outliving the plan.
 *   **Survivor spending:** 70%. A single person needs about 1/√2 ≈ 71% of a couple's spending to keep the same standard of living, according to the square-root household equivalence scale. The Estate tab gives this reason in one line.
 
 ### Data contracts
 
-TypeScript-style definitions. Money fields ending in `Today` are in today's dollars; fields ending in `Nom` are in future dollars. Validation ranges are in brackets.
+Definitions in a TypeScript-like notation; `src/engine/types.ts` is the code form. Money fields ending in `Today` are in today's dollars and fields ending in `Nom` are in future dollars. The fields are plain numbers named by that suffix; the branded types `TodayDollars` and `FutureDollars` in `src/engine/units.ts` mark the two sides of the conversions, and the lint rule in [Units and conventions](#units-and-conventions) keeps `TodayDollars` out of the year-by-year code. Validation ranges are in brackets.
 
 ```text
 PlanInputs {
   schemaVersion: 1
-  planStartYear: number [current year]                 // the year the values are entered; stored, not rechecked on load (T9)
+  planStartYear: number [current year]                 // the year the values are entered; stored, not rechecked on load
   spouses: [SpouseInput, SpouseInput]
-  accounts: AccountInput[]
-  dbPensions: DbPensionInput[]
+  accounts: AccountInput[]                  // at most 8 per spouse
+  dbPensions: DbPensionInput[]              // at most 2 per spouse
   spending: {
     mode: 'by_category' | 'one_total',
     monthlyTotalToday,                       // used when mode = 'one_total'
@@ -642,7 +672,7 @@ PlanInputs {
   ruleOverrides?: RuleOverrides             // from Settings: { [ruleKey]: { value, defaultTaxYear } }
 }
 SpouseInput {
-  name: string,               // shown on the Household tab (T14)
+  name: string,               // shown on the Household tab
   birthYear [1930..2000], birthMonth [1..12], sexAtBirth: 'F' | 'M',
   retirementYear, lifeExpectancyTarget [60..105],
   cppAt65Today,              // monthly estimate at 65, as My Service Canada shows it
@@ -653,7 +683,7 @@ SpouseInput {
 assetClass = 'cad_equity' | 'us_equity' | 'intl_equity' | 'em_equity' | 'bonds' | 'cash'
 AccountInput {
   id: string,                // '<type>-<owner>-<n>', e.g. 'rrsp-0-1'
-  owner: 0 | 1, type: 'rrsp' | 'lira' | 'tfsa' | 'nonreg',
+  owner: 0 | 1, type: 'rrsp' | 'lira' | 'tfsa' | 'nonreg',   // DC pension money is a 'lira'
   balanceToday,              // rrsp, lira, tfsa; holdings are set by the preset
   annualContributionToday,
   positions?: { [assetClass]: { valueToday, originalCostToday } },
@@ -679,6 +709,9 @@ YearRow {
   estate: { deemedRegisteredNom, deemedGainsNom, finalReturnTaxNom, homeNom,
     probateNom, afterTaxLegacyNom }          // all 0 except in the second death year
 }
+// taxableIncomeNom is always the return's taxable income (line 26000), also for
+// a spouse taxed at the working rate. In a working year, afterTaxCashNom and
+// surplusNom are 0: what is saved appears as deposits.
 PlanSummary { spendingCovered, firstShortfallYear?, totalShortfallNom, totalShortfallToday,
   lifetimeTaxNom, lifetimeTaxToday, afterTaxLegacyNom, legacyIsPreTax, clawbackYears,
   savedToTfsaNom, warningFacts }             // warningFacts is {} until stage 6;
@@ -692,7 +725,7 @@ StrategyResult {                             // one per strategy, every run
 }
 ```
 
-**Engine state (stage 2, in `types.ts`).** The year solver reads and returns one `PlanState` per year:
+**Engine state.** The year solver reads and returns one `PlanState` per year:
 
 ```text
 PositionState { valueNom, costNom }            // costNom used for non-registered only
@@ -724,7 +757,7 @@ Death { spouse: 0 | 1, year }
 *   **Input paths:** dotted text such as `spouses.0.cppStartAge` or `accounts.<id>.balanceToday`, used by `setInput` and by warning definitions.
 *   **Spending need:** the active-years yearly need is 12 × the monthly total (the sum of categories, or the one total). For the slower and later phases, each category's amount is its override if set, otherwise its active amount × `keepPct`; in "one total" mode, the total × `keepPct`.
 *   **Empty plan:** the defaults in `src/state/defaults.ts`, with life expectancy and survivor percentage from the config.
-*   **Reference file (M1):** `expected-rows.csv` has one row per `YearRow`, and its header is the `YearRow` fields flattened in the order above, with dotted names:
+*   **Reference file:** `expected-rows.csv` has one row per `YearRow`, and its header is the `YearRow` fields flattened in the order above, with dotted names:
     *   `year`; then `spouse.0.<field>` for every `SpouseYear` field, then `spouse.1.<field>`;
     *   a record keyed by account id becomes one column per account id, sorted by id: `spouse.0.withdrawals.<id>`, `accounts.<id>.<field>` (each `AccountYear` field in order, all fields of one account before the next account) and `balancesEndNom.<id>`;
     *   the account ids are every id that appears in any row; a cell for an account with no entry that year is 0;
@@ -734,28 +767,33 @@ Death { spouse: 0 | 1, year }
 ### Persistence
 
 *   The plan's inputs (never results) autosave to localStorage under the key `rp.plan.v1`, one second after the last edit. Each save holds the schema version, the inputs, and metadata (saved time, app version). On startup the app loads that key if present.
+*   **Two open tabs:** when another tab saves the plan (the browser's `storage` event), the app offers "Reload it, or keep this version". Otherwise the last save wins (see [Risks](#risks--mitigations)). There are no rolling backups: the export file is the lasting copy.
 *   The app asks the browser to keep the data (persistent storage). If the browser refuses, or saving fails (storage full, private window), the app says so and prompts an export.
 *   Export and import use the same JSON format, saved as `retirement-plan-<date>.json`, with the disclaimer in its metadata. On import, the file is checked against the schema. A file with a newer schema version is refused with a message naming the file's version and the app's version.
 *   Version 1 has one schema version, so there are no migrations yet. When version 2 arrives, it saves under a new key (`rp.plan.v2`) and leaves the version 1 save in place, so rolling back the app never strands a plan.
-*   A "Load sample plan" button fills a made-up couple's data; the app otherwise starts empty (O15). All test fixtures use made-up households. The author's real numbers never enter the repository (see Hosting).
+*   A "Load sample plan" button fills a made-up couple's data; the app otherwise starts empty (O15). All test fixtures use made-up households. The author's real numbers never enter the repository (see [Hosting](#hosting-and-repository-author)).
 
 ### Hosting and repository (author)
 
 *   **Public GitHub repository `retirement-planner`, served by GitHub Pages.** GitHub Actions runs lint, type checks and all tests on every push and pull request. Only a green build of the `main` branch is deployed.
-*   **The unlisted URL is the family release (author).** The page carries a `noindex` tag, and the URL is shared only with testers. Before it is shared any wider, O20 (disclaimer and FSRA check) must be resolved and the app moved to its own origin (see Risks).
+*   **The unlisted URL is the family release.** The page carries a `noindex` tag, and the URL is shared only with testers. Before it is shared any wider, O20 (disclaimer and FSRA check) must be resolved, `npm run config:check -- --strict` must pass (no unfetched or unvalidated default), and the app must move to its own origin (see [Risks](#risks--mitigations)). The strict check is a release gate, not a CI step; the engine already refuses to run with a missing rule value.
 *   **No personal data in the repository.** Fixtures and the sample plan use made-up couples. The original prototype context document contains the author's real household figures, so it lives in `private/`, which git ignores. Copies with personal figures removed become the history documents in `docs/history/` (file 18). The author tests with real numbers by importing their own exported plan file locally; that file also lives in `private/`.
-*   **Security policy by meta tag, in the built app only.** GitHub Pages can't set response headers, so the content security policy is added as a `<meta>` tag at build time by a small Vite plugin; local development runs without it. The app's page then cannot make network requests (fetch, XHR, WebSocket, form submissions). This does not cover navigation, and it does not cover the Worker, which takes its policy from response headers; the Worker runs only bundled app code. Both gaps are recorded in Risks.
+*   **Security policy by meta tag, in the built app only.** GitHub Pages can't set response headers, so the content security policy is added as a `<meta>` tag at build time by a small Vite plugin; local development runs without it. The app's page then cannot make network requests (fetch, XHR, WebSocket, form submissions). The Worker is created from a `blob:` URL, so it inherits the page's policy (`worker-src` allows `blob:`). What the policy does not cover:
+    *   **navigation:** the policy cannot stop the page from navigating to another site; only the app's own bundled code runs, and it never does;
+    *   **the shared origin:** other GitHub Pages sites under the same account share the `github.io` origin and can read the saved plan.
+
+    Both are recorded in [Risks](#risks--mitigations).
 *   **Supply chain:** `package-lock.json` is committed and CI installs with `npm ci`, so every build uses the reviewed dependency versions. `npm audit` runs in CI as a report-only step.
 *   **No service worker, no analytics, no CDN.** All dependencies are bundled at build time. Built files carry content hashes, so a rollback is a revert commit followed by a redeploy.
 
 ### Performance
 
-*   **Targets (revised 2026-11-19 for live recalculation):** on the reference machine (the author's laptop with current Chrome, whose CPU, cores and RAM are recorded in `README.md` at stage 4), measured from the end of the 500 ms pause after the last edit:
-    *   **under 1 second** for the first message: the user's plan, the placement baseline, and the two other strategies (about 4 runs of 30–45 years; the planner's search was cut, T1);
+*   **Targets:** on the reference machine (the author's laptop with current Chrome, whose CPU, cores and RAM are recorded in `README.md` at stage 4), measured from the end of the 500 ms pause after the last edit:
+    *   **under 1 second** for the first message: the user's plan, the placement baseline, and the two other strategies (4 runs of 30–45 years);
     *   **under 2 seconds** for the second message: the warning tips (about 100 more runs).
 *   **Typing stays smooth:** a new edit cancels any run still in progress (the client terminates the Worker and starts a new one), so results never lag behind a burst of edits. Measured as: no main-thread task over 50 ms while a run is in progress, checked in the Chrome DevTools Performance panel.
-*   **Early warning (SR1-M3, from stage 2):** `runPath.test.ts` logs the time of one 40-year couple run in CI. Above 45 ms (the budget per run for about 22 runs in 1 second), the log says so; it does not fail the build.
-*   **How it's checked:** timed by hand on the reference machine before stage 8. If a target is missed, reduce work inside the year solver first, then run the other strategies with summary detail only.
+*   **Early warning:** `runPath.test.ts` logs the time of one 40-year couple run in CI. Above 45 ms (the budget per run for about 22 runs in 1 second), the log says so; it does not fail the build.
+*   **How it's checked:** timed by hand on the reference machine at the start of stage 4 and again before stage 8. If a target is missed, reduce work inside the year solver first, then run the other strategies with summary detail only. No streamed partial results or per-variant cache are built unless the speed check fails.
 
 ### Verification (G10)
 
@@ -769,42 +807,32 @@ Death { spouse: 0 | 1, year }
     *   RRIF and LIF draws respect their minimums and maximums;
     *   TFSA contributions stay within room.
 
-    Checks compare within $0.05 (`INVARIANT_TOLERANCE` in `constants.ts`). If any check fails, the app shows an "engine integrity" error and no results. The error screen shows the year, variant and failed check, with a "Copy details" button; with the user's exported plan, that is enough to reproduce the failure.
+    Checks compare within $0.05 (`INVARIANT_TOLERANCE` in `constants.ts`). If any check fails, the app shows an "engine integrity" error and no results. The error screen shows the app version, year, variant and failed check, with a "Copy details" button; with the user's exported plan, that is enough to reproduce the failure.
 *   **Tests** (detailed in the implementation plan):
     *   tax fixtures from an outside calculator, matched within $1 per return;
     *   rule-value tests against the config;
     *   a full reference plan built by a separate AI session from the written design without seeing the engine code, matched within $1 per cell;
-    *   property tests: the same inputs give the same result; higher spending never raises the after-tax legacy; swapping the spouses gives the same household totals (plans where the two spouses' inputs are identical are skipped, because the tie rules favour spouse 1); with zero tax the loop matches the closed-form annuity; moving money between two accounts of the same type and owner changes nothing; the chosen split never gives more tax than a 0% split; after-tax cash rises when the withdrawal rises; the split passes' household tax is never below the full nested search's, and stays within 1% of it (a test setting, not a rule value); swapping the spouses is compared within 0.1%, because surplus deposits after a death go to the first account by id (stage 2 decision 14);
+    *   property tests:
+        *   the same inputs give the same result;
+        *   higher spending never raises the after-tax legacy;
+        *   swapping the spouses gives the same household totals, within 0.1% because surplus deposits after a death go to the survivor's first account by id (plans where the two spouses' inputs are identical are skipped, because the tie rules favour spouse 1);
+        *   with zero tax the loop matches the closed-form annuity;
+        *   moving money between two accounts of the same type and owner changes nothing;
+        *   the chosen split never gives more tax than a 0% split;
+        *   after-tax cash rises when the withdrawal rises;
+        *   the split passes' household tax is never below the full nested search's, and stays within 1% of it (a test setting, not a rule value);
     *   the manual paid-tool comparison before stage 8;
     *   the manual speed check.
 
-### Advice wording
+### Screens
 
-All result text is conditional and comparative. Strategy, shape and preset names are descriptive, not "best" or "optimal". The disclaimer appears on first run, in the footer, and in every export; placeholder text is in `src/ui/content/disclaimer.ts` until O20 sets the final wording.
+Six tabs, in this order, plus Settings: Household, Savings, Spending, Withdrawals, Estate and Results. The brief named three planning areas. Household is added because ages feed all three; accounts and pensions are on Savings, and death and legacy inputs on Estate, because the author expects users to look for them there. There is no results panel on the input tabs: each input tab shows the results that belong to it (the strategy cards and income chart on Withdrawals, the placement comparison on Savings), and the full results are one tab away. The layouts were settled with the author from clickable mockups (a design canvas, not committed).
 
-### Spending inputs
+**Defaults shown where they apply.** A rule value that matters to a screen is shown on that screen as a grey strip with the value and an "Edit" link to Settings (for example the CPP and OAS adjustment rates under the start ages, the TFSA yearly limit under Accounts, the bracket and clawback thresholds beside the Fill lower brackets levels, the probate rate on Estate).
 
-Revised 2026-11-19 (author), replacing one yearly amount per phase.
+#### Household tab
 
-*   **Monthly and after tax:** the user enters what they would spend in a typical month early in retirement, after tax, in today's dollars, because that is how people think about spending. Yearly totals are shown beside each phase.
-*   **Two ways to enter it:** "By category" (default) or "One total" (a single monthly amount).
-*   **Categories (O17), in six groups that open and close:**
-    *   Home and utilities: Mortgage and rent, Property tax, Hydro, Gas and fuel, Internet, Mobile phone;
-    *   Getting around: Auto payment, Auto gas, Public transportation;
-    *   Insurance and banking: Home and auto insurance, Life insurance, Disability insurance, Bank fees;
-    *   Food and drink: Groceries, Restaurants, Fast food, Alcohol and bars;
-    *   Travel: Transportation, Accommodations, Food and drink, Activities, Travel insurance, Gear, Shopping (added 2026-11-19, author). Their ids carry a `travel_` prefix, so travel shopping and everyday shopping stay separate;
-    *   Everyday and other: Shopping, Pharmacy, Gifts and donations, Cash, Other.
-
-    Category ids are persisted and must not change once plans are saved.
-*   **Three phases:** active years from the first retirement; slower years and later years each start at a year the user sets (counted from the first retirement) and keep a share of active-years spending set by a slider from 0% to 100% in 5% steps. The slider is full at 100% ("Same as active years") and the user slides left to spend less; the label shows one number, for example "90% of active years". Defaults: O27.
-*   **A different amount later for one category:** each category shows what it becomes in the slower and later years. "Different later?" opens two fields to enter those amounts instead (for example, an auto payment that ends, or pharmacy costs that rise); "Use the usual change" removes them. A group's header notes when any category in it has a different later amount ("Auto payment differs later", or "2 differ later").
-*   **Survivor spending and the legacy goal** are on the Estate tab.
-*   **Later spending above slower spending:** O28.
-
-### Screen design revision (2026-11-19)
-
-The screens were redesigned with the author on 2026-11-19 from clickable mockups (a design canvas, not committed). The engine-facing rules are in the sections above; this section records how the main screens are laid out.
+The profile of each spouse only: name, birth year and month, sex at birth, retirement year, life expectancy target (with the note that a lower target raises the risk of outliving the plan), CPP estimate, years in Canada, working marginal rate and after-tax pay.
 
 #### Savings tab
 
@@ -812,21 +840,45 @@ The screens were redesigned with the author on 2026-11-19 from clickable mockups
     *   **Accounts:** the account table, "Add account", and the TFSA yearly limit as a strip with an Edit link. Summary: total, by type, yearly saving.
     *   **Workplace pensions:** DB pensions. Summary: who, how much, from what age, bridge, survivor share.
     *   **Your investment mix** (open by default): starting-mix choice, the mix bar, one row per class with slider, number box and editable expected return; tiles for total, expected return before and after fees, and inflation; the fee level; "Rebalance once a year". Summary: a small mix bar, stock/bond/cash totals, expected return, fee.
-    *   **As you get older:** the three shapes, each with a small line drawing. Summary: the chosen shape.
-    *   **Which account holds what:** the two presets and the placement comparison, with the one-sentence face-value note. Summary: the chosen preset and its effect on money left.
+    *   **As you get older:** the three shapes, each with a small line drawing. With rebalancing off, the choice is disabled with the reason beside it. Summary: the chosen shape.
+    *   **Which account holds what:** the two presets and the placement comparison, with the one-sentence face-value note. Summary: the chosen preset and its effect on the after-tax legacy.
+*   A note says returns are steady averages, so a shape shows only its effect on average returns, not on protection from a bad market; there is no shape comparison.
+
+#### Spending tab
+
+*   **Monthly and after tax:** the user enters what they would spend in a typical month early in retirement, after tax, in today's dollars, because that is how the author expects people to think about spending. Yearly totals are shown beside each phase.
+*   **Two ways to enter it:** "By category" (default) or "One total" (a single monthly amount).
+*   **Categories (O17), in six groups that open and close:**
+    *   Home and utilities: Mortgage and rent, Property tax, Hydro, Gas and fuel, Internet, Mobile phone;
+    *   Getting around: Auto payment, Auto gas, Public transportation;
+    *   Insurance and banking: Home and auto insurance, Life insurance, Disability insurance, Bank fees;
+    *   Food and drink: Groceries, Restaurants, Fast food, Alcohol and bars;
+    *   Travel: Transportation, Accommodations, Food and drink, Activities, Travel insurance, Gear, Shopping. Their ids carry a `travel_` prefix, so travel shopping and everyday shopping stay separate;
+    *   Everyday and other: Shopping, Pharmacy, Gifts and donations, Cash, Other.
+
+    Category ids are persisted and must not change once plans are saved.
+*   **Three phases:** active years from the first retirement; slower years and later years each start at a year the user sets (counted from the first retirement) and keep a share of active-years spending set by a slider from 0% to 100% in 5% steps. The slider is full at 100% ("Same as active years") and the user slides left to spend less; the label shows one number, for example "90% of active years". Defaults: O27.
+*   **A different amount later for one category:** each category shows what it becomes in the slower and later years. "Different later?" opens two fields to enter those amounts instead (for example, an auto payment that ends, or pharmacy costs that rise); "Use the usual change" removes them. A group's header notes when any category in it has a different later amount ("Auto payment differs later", or "2 differ later").
+*   **Later spending above slower spending:** O28.
+*   Survivor spending and the legacy goal are on the Estate tab.
 
 #### Withdrawals tab
 
 *   **Setup sections, closed by default, with summaries:** "When to start CPP and OAS" (each spouse's ages, with the adjustment rates as strips), "Converting RRSP and LIRA" (conversion ages and the 50% unlock), "Pension income splitting" (automatic; up to 50%, RRIF and LIF from 65). They come first because they are set once.
 *   **"Which accounts pay for your spending"**, laid out to fit one laptop screen:
-    *   four strategy cards in one row; the selected card has a dark border (no radio mark). Each card has the title and a "Learn more" button on its first line, a short description, and at the bottom, in bold, lifetime tax and money left, then the difference from "Registered last" (green or red) and the amount moved to the TFSA and clawback years;
+    *   three strategy cards in one row; the selected card has a dark border (no radio mark). Each card has the title and a "Learn more" button on its first line, a short description, and at the bottom, in bold, lifetime tax and the after-tax legacy (labelled "Money left"), then the difference from "Registered last" (green or red) and the amount moved to the TFSA and clawback years;
     *   one options row of fixed height under the cards: the bracket level for "Fill lower brackets first", the draw-down years for "Early RRSP drawdown", or "No settings" for "Registered last";
-    *   below, two columns: on the left, a stacked area chart of each year's money by source (before tax, today's dollars), with the spending target as a dashed line, tax as a red hatched band above it, and money not needed (moved to the TFSA) as a green hatched band on top; source names are written on their bands; an "i" button explains how to read it. A year slider under the chart spans exactly the chart's years, so its handle sits under the chart's year marker. On the right, that year's breakdown: always the same 11 rows in the same order (each source, tax, OAS clawback, moved to the TFSA, spending target), with a dash for zero, so nothing moves when the strategy or year changes.
+    *   below, two columns: on the left, a stacked area chart of each year's money by source (before tax, today's dollars), with the spending need as a dashed line (labelled "Spending target"), tax as a red hatched band above it, and money not needed (moved to the TFSA) as a green hatched band on top; source names are written on their bands; an "i" button explains how to read it. A year slider under the chart spans exactly the chart's years, so its handle sits under the chart's year marker. On the right, that year's breakdown: always the same 11 rows in the same order (each of the seven sources, tax, OAS clawback, moved to the TFSA, spending need), with a dash for zero, so nothing moves when the strategy or year changes.
 *   **Fixed layout:** switching strategy changes only numbers and chart shapes; nothing below the cards moves, so the user can click between strategies and compare.
+
+#### Estate tab
+
+*   "When one of you dies": the survivor spending percentage (default 70%, with the reason in one line), the first death assumed at the earlier life expectancy target, and a list of what changes at the first death (accounts roll over, OAS stops, CPP survivor benefit and DB survivor share start, single-person tax).
+*   "What you leave behind": the after-tax legacy goal, the home value, the probate rate as a strip with an Edit link to Settings, the beneficiary assumption from [Death and estate](#death-and-estate-o12-o23), and a note on the final return.
 
 #### Results tab
 
-Revised 2026-11-19 (author). Three sections, in this order; there is no year-by-year table.
+Three sections, in this order; there is no year-by-year table.
 
 *   **Your goals.** Two cards side by side, each with a "Met" or "Missed" badge:
     *   **Goal 1, spending covered every year:** the number of years covered out of the plan's years, a strip with one block per year (red for a short year), the first shortfall year and total shortfall if any, the "assuming deaths at the target ages and steady average returns" label, and a link to Spending.
@@ -834,17 +886,19 @@ Revised 2026-11-19 (author). Three sections, in this order; there is no year-by-
 
     Below the cards, one line: lifetime tax, OAS clawback years, and what the last change did (for example "switched to 'Fill lower brackets first' · tax 6,000 lower · legacy 1,000 higher").
 *   **Warnings,** each with its computed tips and links to the related input.
-*   **Charts,** one at a time, chosen with buttons: **Balances** (stacked areas by account type: RRSP/RRIF/LIF, non-registered, TFSA), **Income by source** (the Withdrawals chart for the chosen strategy, with the spending target), **Tax by spouse** (a stacked bar per year for each spouse, income tax including any clawback, after splitting), and **Estate** (a waterfall from balances and the home at the second death, less final-return tax, tax on gains and probate, to the after-tax legacy, with the legacy goal marked). The yearly charts mark the first death. Each chart has a "View as table" option with the same data, for screen readers.
+*   **Charts,** one at a time, chosen with buttons: **Balances** (stacked areas by account type: RRSP/RRIF/LIF, non-registered, TFSA), **Income by source** (the Withdrawals chart for the chosen strategy, with the spending need), **Tax by spouse** (a stacked bar per year for each spouse, income tax including any clawback, after splitting), and **Estate** (a waterfall from balances and the home at the second death, less final-return tax, tax on gains and probate, to the after-tax legacy, with the legacy goal marked). The yearly charts mark the first death. Each chart has a "View as table" option with the same data, for screen readers.
 
 A status line reads "Up to date · updates as you edit" or "Updating…". The badge on the tab label shows the warning count, "Updating", "Short from <year>" or "Error".
 
 #### Settings
 
-*   Sections: income tax (federal and Ontario brackets, credits, surtax, tax reduction, Health Premium), OAS, CPP, investing assumptions (returns, inflation, fee levels), accounts and pensions (TFSA, RRIF conversion age, splitting, probate, the RRIF minimum table, the LIF maximum table). Each value shows its default, its source, and whether it has been changed; changed values have "Reset".
+*   Opened from the header, not a tab. Sections: income tax (federal and Ontario brackets, credits, surtax, tax reduction, Health Premium), OAS, CPP, investing assumptions (returns, inflation, fee levels), accounts and pensions (TFSA, RRIF conversion age, splitting, probate, the RRIF minimum table, the LIF maximum table).
+*   Each value shows its default, its source, and whether it has been changed; changed values have "Reset". Single values can be changed; tables and the other keys listed in the [Config contract](#config-contract) are shown read-only.
+
 
 ## Alternatives Considered
 
-Decisions marked "author" were made by the document's author and are recorded in [concepts_brief.md](../../concepts_brief.md) and in [Decisions made for this plan](#decisions-made-for-this-plan).
+Each entry is an option that was rejected. "By author" means the document's author decided; where each decision is recorded is listed under [Decisions made for this plan](#decisions-made-for-this-plan). "In design" means the design chose without asking the author.
 
 ### Product scope (decided during the brainstorm)
 
@@ -854,17 +908,17 @@ Decisions marked "author" were made by the document's author and are recorded in
 *   **Cons**: A warning in Withdrawals sends the user back two steps to guess at a fix; the effect of one area on another is hidden.
 *   **Decision**: Rejected by author: the point of the product is to change any area and see the effect on the others.
 
-#### Alternative B: Live recalculation on every change, or a live fixed-return preview next to the button
+#### Alternative B: A Recalculate button
 
-*   **Pros**: Immediate feedback; supports the "see the effect" goal without a button press.
-*   **Cons**: A full run with comparisons and tip reruns takes about a second and would make inputs sluggish; results changing while the user types are hard to follow.
-*   **Decision**: First rejected by author: the user edits inputs and presses Recalculate when ready. **Chosen by author on 2026-11-19**: with fixed returns a run is fast enough, and the main use of the Withdrawals tab is clicking between strategies and comparing, which a button would interrupt. The cons are handled by a 500 ms pause after the last edit, cancelling runs that a newer edit makes stale, keeping the old figures on screen (faded) while a run is in progress, and sending the warning tips in a second message.
+*   **Pros**: No runs while the user is still typing; results change only when the user asks, so they are easy to follow.
+*   **Cons**: The main use of the Withdrawals tab is clicking between strategies and comparing, which a button press after each click would interrupt; results can be out of date without the user noticing.
+*   **Decision**: Rejected by author in favour of live recalculation. With fixed returns a run is fast enough. The risks of live results are handled by a 500 ms pause after the last edit, cancelling runs that a newer edit makes stale, keeping the old figures on screen (faded) while a run is in progress, and sending the warning tips in a second message.
 
-#### Alternative C: Fixed returns only
+#### Alternative C: Random returns and stress paths
 
-*   **Pros**: Simple, fast, easy to test and explain.
-*   **Cons**: With a fixed return every year, moving to safer investments only lowers returns, so the growth-to-safety strategy always looks worse; sequence-of-returns risk can't be shown.
-*   **Decision**: First rejected by author, because the growth-to-safety lesson can't be shown honestly without variable returns. **Chosen by author on 2026-11-18**: random markets added more machinery and sourced data (volatility, correlations, stress paths, percentiles) than the tool's purpose justified. The cons are accepted and stated on screen; variable returns are a [future improvement](#future-improvements).
+*   **Pros**: Shows sequence risk, a chance of success, and what the growth-to-safety shift protects against, which steady returns can't.
+*   **Cons**: Needs volatility and correlation figures to source and validate, generated paths, named stress paths and percentiles; results are harder to trace, test and explain.
+*   **Decision**: Rejected by author for version 1 in favour of one fixed return per class. The cost is stated on screen: results show steady average markets, and a safer shape shows only its lower return (see [Risks](#risks--mitigations)). Variable returns are a [future improvement](#future-improvements).
 
 #### Alternative D: Explain tax-efficient investing in text only
 
@@ -905,116 +959,103 @@ Decisions marked "author" were made by the document's author and are recorded in
 #### Alternative J: Hand-built reference spreadsheet for verifying the yearly loop
 
 *   **Pros**: The most independent check of the whole calculation.
-*   **Cons**: Requires the author to build and understand every rule by hand; likely to stall the project.
+*   **Cons**: Requires the author to build and understand every rule by hand, which the author judged likely to stall the project.
 *   **Decision**: Rejected by author. Rule values come from published sources in a config the admin validates. The loop is checked by runtime invariants, a reference plan built by a separate AI session, and a rough comparison with a paid tool. A rule both AI sessions misunderstand can slip through.
 
 #### Alternative K: DB pension commuted value (lump sum instead of pension)
 
 *   **Pros**: Covers a real decision some members face.
 *   **Cons**: Depends on plan funding, indexing and health; a comparison reads as advice; adds a new comparison type.
-*   **Decision**: Rejected by author for version 1: the comparison's answer depends on facts the app can't know (plan funding, health), so it would read as advice for little teaching value.
+*   **Decision**: Rejected by author for version 1: too little teaching value for the risk of reading as advice. Listed under [Future Improvements](#future-improvements).
 
 ### Architecture (decided during drafting)
 
-#### Alternative L: Resampled blocks of real Canadian history for returns
 
-*   **Pros**: Real crash patterns, extreme years and inflation-return links.
-*   **Cons**: Needs a Canadian dataset that can be redistributed; only about 100 years of data; historical averages don't match FP Canada's forward-looking guidelines.
-*   **Decision**: Rejected by author in favour of generated returns plus named stress paths. No longer applicable: version 1 uses fixed returns (2026-11-18, [Alternative C](#alternative-c-fixed-returns-only)).
-
-#### Alternative M: Historical starting-year windows ("if you retired in 1966")
-
-*   **Pros**: Easiest for lay users to understand; no random seed.
-*   **Cons**: Same dataset problem; few independent windows for a 35–40-year plan; can't use forward-looking assumptions.
-*   **Decision**: Rejected by author: a "chance of success" built on a few dozen overlapping windows has little meaning for a plan this long. No longer applicable: version 1 uses fixed returns.
-
-#### Alternative N: Random inflation on each path, or fixed inflation plus a high-inflation stress test
+#### Alternative L: Random inflation on each path, or fixed inflation plus a high-inflation stress test
 
 *   **Pros**: Shows inflation risk to unindexed income, such as some DB pensions, and to non-indexed thresholds.
 *   **Cons**: More figures to source and test; per-path conversion to today's dollars; harder to explain.
-*   **Decision**: Rejected by author: one fixed rate. Simplicity and testability won; the cost is that results do not reflect inflation risk (see Risks).
+*   **Decision**: Rejected by author in favour of one fixed rate, which is simpler to test and explain; the cost is that results do not reflect inflation risk (see [Risks](#risks--mitigations)).
 
-#### Alternative O: Placement by an editable priority list, or by a mix entered for each account
+#### Alternative M: Placement by an editable priority list, or by a mix entered for each account
 
 *   **Pros**: Lets users describe their real holdings or test their own ideas.
 *   **Cons**: Harder screens and testing; drifts toward hand-optimizing. A per-account mix also lets the overall mix drift against the growth-to-safety shift.
 *   **Decision**: Rejected by author in favour of two named presets compared with a baseline: a clear, testable comparison that stays on the "teach, don't advise" side, at the cost of not describing users' real holdings.
 
-#### Alternative P: Count the overall mix after tax
+#### Alternative N: Count the overall mix after tax
 
 *   **Pros**: A fair placement comparison: the difference reflects tax only, not hidden extra risk.
 *   **Cons**: The mix won't match statements; needs an expected tax rate assumption and an explanation.
-*   **Decision**: Rejected by author in favour of face value. The placement text explains in one sentence that part of a benefit can come from holding more stocks after tax (the readout once planned here was cut, 2026-11-24, T4).
+*   **Decision**: Rejected by author in favour of face value. The placement text explains in one sentence that part of a benefit can come from holding more stocks after tax.
 
-#### Alternative Q: One fixed withdrawal order, or a user-defined order
+#### Alternative O: One fixed withdrawal order, or a user-defined order
 
 *   **Pros**: Fixed: simplest. User-defined: most flexible.
 *   **Cons**: Fixed: nothing to compare, and it handles early retirement with deferred CPP/OAS badly. User-defined: many combinations to test, and odd orders silently cost tax.
-*   **Decision**: Rejected by author in favour of named strategies compared at the same returns: first two, then four (2026-11-19: "Early RRSP drawdown" to show the early-retirement lesson directly, and "Let the planner pick" for users who don't want to choose), then three (2026-11-24: the planner cut, T1). A user-defined order is still rejected.
+*   **Decision**: Rejected by author in favour of three named strategies compared at the same returns, including "Early RRSP drawdown" to show the early-retirement lesson directly.
 
-#### Alternative R: User-set points for the growth-to-safety shift
+#### Alternative P: User-set points for the growth-to-safety shift
 
 *   **Pros**: Can match the user's real mix.
 *   **Cons**: More to explain and test; extreme shapes allowed.
-*   **Decision**: Rejected by author in favour of three named shapes, consistent with the placement presets and simpler to test. Revised 2026-11-19: the user now sets today's mix, so results start from the user's actual portfolio, and the shapes change that mix over time; user-set points are still rejected.
+*   **Decision**: Rejected by author in favour of three named shapes, consistent with the placement presets and simpler to test. The user sets today's mix, so results start from their actual portfolio, and the shapes change that mix over time.
 
-#### Alternative S: Hand-written warning tips
+#### Alternative Q: Hand-written warning tips
 
 *   **Pros**: No extra runs; predictable, reviewable wording.
 *   **Cons**: Same tips for every plan; a tip can point at an input that does little in this plan.
 *   **Decision**: Rejected by author in favour of computed nudges, which fit each plan. Each nudge reruns the plan once.
 
-#### Alternative T: Svelte, or no framework
+#### Alternative R: Svelte, or no framework
 
 *   **Pros**: Svelte: less code, simple stores. No framework: no dependency churn.
-*   **Cons**: Svelte: AI agents are less familiar with it, and its versions get mixed. No framework: much more hand-written screen code to keep consistent as the screens grow.
-*   **Decision**: Rejected by author in favour of React: AI agents produce the most conventional, fixable React code, which matters more here than bundle size.
+*   **Cons**: Svelte: in the author's experience AI agents know it less well and mix Svelte 4 and Svelte 5 syntax. No framework: much more hand-written screen code to keep consistent as the screens grow.
+*   **Decision**: Rejected by author in favour of React, where the author expects AI agents to write the most conventional, fixable code; that matters more here than bundle size.
 
-#### Alternative U: Fixed-point iteration for the yearly tax solve
+#### Alternative S: Fixed-point iteration for the yearly tax solve
 
 *   **Pros**: Simple to write; the prototype used it.
 *   **Cons**: Not guaranteed to converge near the clawback and credit phase-out cliffs. The prototype used a damped version with 15 iterations and no defined failure behaviour.
-*   **Decision**: Rejected in design. Bisection always converges here, because after-tax cash rises with the gross withdrawal.
+*   **Decision**: Rejected in design. Bisection converges here as long as after-tax cash rises with the gross withdrawal, which a property test checks.
 
-#### Alternative V: Equalize-incomes rule for pension splitting
+#### Alternative T: Equalize-incomes rule for pension splitting
 
 *   **Pros**: One calculation, no search.
 *   **Cons**: Ignores the clawback, age-amount reduction and Health Premium steps, so it can pick a split that costs more tax.
-*   **Decision**: Rejected in design in favour of trying 0–50% in 5% steps, once per year at the solved withdrawal (two-pass rule; see [Performance](#performance) for the cost).
+*   **Decision**: Rejected in design in favour of trying 0–50% in 5% steps in both directions, re-solving the year while the best split changes (see [Withdrawal strategies](#withdrawal-strategies-o7-o8)).
 
-#### Alternative W: Cloudflare Pages / Netlify, or a downloadable file
+#### Alternative U: Cloudflare Pages / Netlify, or a downloadable file
 
 *   **Pros**: Cloudflare/Netlify: free with a private repository, real security headers, preview builds. Downloadable file: no server at all.
 *   **Cons**: Cloudflare/Netlify: a second service account. Downloadable file: no automatic updates, and browsers restrict Web Workers and storage for pages opened from a local file.
 *   **Decision**: Rejected by author in favour of GitHub Pages with a public repository: one free service for code, tests and hosting. Personal data is kept out of the repository, and the header and origin gaps are recorded in Risks.
 
-#### Alternative X: IndexedDB instead of localStorage
+#### Alternative V: IndexedDB instead of localStorage
 
 *   **Pros**: Larger storage limits; asynchronous access doesn't block the page.
 *   **Cons**: More code and an extra library or wrapper for a plan under 100 KB.
 *   **Decision**: Rejected in design: localStorage's synchronous access is simpler and the plan is small. Both are cleared by the same browser rules, so neither is more durable.
 
-### Screens (decided from mockups, 2026-11-19)
+### Screens and settings (decided from the mockups)
 
-#### Alternative Y: Results panel beside every tab
+#### Alternative W: Results panel beside every tab
 
 *   **Pros**: Headline numbers always in view while editing.
 *   **Cons**: Takes a quarter of the width on every tab; repeats numbers each tab already shows where they matter (strategy cards, placement comparison).
 *   **Decision**: Rejected by author in favour of a Results tab, last in the row, with a badge for warnings and status.
 
-#### Alternative Z: Yearly admin refresh of every rule value as the only way values change
+#### Alternative X: Yearly admin refresh of every rule value as the only way values change
 
 *   **Pros**: Every value in use is sourced and validated.
 *   **Cons**: A recurring task for the admin; users can't test "what if" values or correct a value themselves.
 *   **Decision**: Rejected by author: defaults ship with the app, and the user can change any rule value in Settings. Changed values are marked and saved with the plan; a refresh of the defaults is optional.
 
-#### Alternative AA: A fee for each asset class
+#### Alternative Y: A fee for each asset class
 
 *   **Pros**: Matches fund-by-fund portfolios.
 *   **Cons**: Users rarely know a fee per class; the total fee level matters far more than how it splits.
 *   **Decision**: Rejected by author in favour of one fee from named levels, set in Settings.
-
---------------------------------------------------------------------------------
 
 ## Non-Functional Requirements
 
@@ -1025,7 +1066,7 @@ Decisions marked "author" were made by the document's author and are recorded in
     *   The public repository never contains real household data.
 *   **Correctness:**
     *   Runtime invariants are checked on every run, and a failure blocks results.
-    *   Rule values come from the validated config, or from the user's own changes in Settings, which are marked as changed wherever they appear.
+    *   Rule values come from the config, whose validation status is shown, or from the user's own changes in Settings, which are marked as changed wherever they appear. Before the URL is shared beyond testers, every default must be validated (the strict config check in [Hosting](#hosting-and-repository-author)).
     *   The tax year of the defaults, the validation status and the number of changed values are visible on screen.
 *   **Performance:** results within 1 second and tips within 2 seconds of the end of the 500 ms pause after the last edit, on the reference machine (see [Performance](#performance)). Typing stays smooth while runs are in progress.
 *   **Durability:** see [Persistence](#persistence). The export file is the durable copy; browser storage can be cleared.
@@ -1039,57 +1080,65 @@ Decisions marked "author" were made by the document's author and are recorded in
     *   Every chart has a table view with the same data.
 *   **Legal posture:** see [Advice wording](#advice-wording) and O20.
 
---------------------------------------------------------------------------------
-
 ## Risks & Mitigations
 
 | Risk | Impact | Mitigation or acceptance |
 |---|---|---|
-| Security policy set by meta tag only | Doesn't cover navigation or the Worker | Accepted. The Worker runs only bundled code; the page can't make requests ([Hosting](#hosting-and-repository-author)) |
+| Security policy set by meta tag only | Doesn't cover navigation | Accepted. The Worker inherits the policy through its `blob:` URL; only bundled code runs, and the page can't make requests ([Hosting](#hosting-and-repository-author)) |
 | Compromised npm dependency | Could send data out from bundled code | Lockfile, `npm ci`, `npm audit` report; few runtime dependencies |
 | Shared github.io origin | Other Pages sites under the same account can read saved plans | Accepted for the family release. Before public release: dedicated GitHub account or organization, or a custom domain |
 | Browser storage cleared | Lost plan | Export is the durable copy; app prompts export when persistence is refused |
 | Export files unencrypted | Financial data readable by anyone with the file | Accepted; stated in G7 and next to the export button |
+| Two tabs open on the same plan | The last save wins, and one tab's edits can be lost | When another tab saves, the app offers to reload that version or keep its own; otherwise accepted ([Persistence](#persistence)) |
 | AI reference plan shares the engine's misreading of a rule | Wrong numbers pass tests | Outside tax fixtures, property tests, paid-tool comparison; admin-validated config |
-| Fixed inflation | Results ignore inflation risk, notably for unindexed DB pensions | Accepted ([Alternative N](#alternative-n-random-inflation-on-each-path-or-fixed-inflation-plus-a-high-inflation-stress-test)) |
+| Fixed inflation | Results ignore inflation risk, notably for unindexed DB pensions | Accepted ([Alternative L](#alternative-l-random-inflation-on-each-path-or-fixed-inflation-plus-a-high-inflation-stress-test)) |
 | Fixed death ages | Results ignore longevity risk | Accepted; 25%-survival default and "assuming deaths at the target ages" label |
-| Fixed returns | Sequence risk is not shown: a bad market early in retirement can do lasting damage the plan doesn't reveal, and a safer shape shows only its lower return | Accepted for version 1 ([Alternative C](#alternative-c-fixed-returns-only)); screens say returns are steady averages; variable returns are a future improvement |
+| Fixed returns | Sequence risk is not shown: a bad market early in retirement can do lasting damage the plan doesn't reveal, and a safer shape shows only its lower return | Accepted for version 1 ([Alternative C](#alternative-c-random-returns-and-stress-paths)); screens say returns are steady averages; variable returns are a future improvement |
 | Full rebalance every year | Realizes gains real investors might avoid | Accepted; applied equally to the user's plan and baselines |
 | Foreign withholding simplified | Single rate assumes Canadian-listed funds | Accepted; stated in the placement explanation |
-| Face-value mix counting | Placement benefit may include hidden extra risk | One sentence in the placement text says so (T4) |
+| Face-value mix counting | Placement benefit may include hidden extra risk | One sentence in the placement text says so |
 | Public URL reachable before O20 | Release beyond family before the FSRA check | `noindex`, URL shared only with testers; O20 before wider sharing |
 | 1-second target missed | Live results lag behind edits | Cancel stale runs; at most 3 split passes; reduce work in the year solver; summary-only rows for the other strategies |
 | User-changed rule values | A mistyped value in Settings gives wrong results that look official | Range checks on each override; "changed" marks, the default beside each change, and the "N values changed" header chip; Reset per value |
 | Defaults not refreshed each year | Values in use drift from current rules, and can be several years old; users are in effect asked to source changed values themselves | The header shows the defaults' tax year and the notice names it; indexed values grow from that year, not the plan start; changed values say which year's default they replaced; Settings shows each value's source as a link; refreshing stays possible with the admin procedure |
 | Schema change after a rollback | Saved plans unreadable | New schema saves under a new key; old save kept |
-| Open questions O20, O24, O27, O28 | Scope or numbers may change | Each closed before the stage named in [Open Questions](#open-questions); O20 before wider sharing |
+| Open questions O20, O24, O27, O28 | Scope or numbers may change | O24, O27 and O28 closed before stage 5; O20 before the URL is shared beyond testers ([Open Questions](#open-questions)) |
+
 ## Glossary
+
+The terms users see in the app; `src/ui/content/glossary.ts` uses them for tooltips. Terms used only in this document are defined where they first appear.
 
 | Term | Meaning |
 |---|---|
-| Admin | The person who validates the default config values when they are fetched or refreshed; the author, for now |
+| After-tax legacy ("money left") | What the estate passes on after the second death, after the final return's tax and probate, in today's dollars |
+| Bridge (DB pension) | A temporary top-up some DB pensions pay until an end age, usually when CPP or OAS starts |
+| Clawback (OAS recovery tax) | OAS repaid at the recovery rate (15% in 2026) on income above a yearly threshold, measured before the clawback itself is deducted |
 | CPP / OAS | Canada Pension Plan / Old Age Security, the two federal retirement benefits |
-| Clawback (OAS recovery tax) | OAS repaid at 15% of net income above a yearly threshold |
 | DB pension | Defined-benefit workplace pension, paying a set amount for life |
-| DC pension | Defined-contribution workplace pension; becomes a LIRA when the member leaves |
-| FSRA | Financial Services Regulatory Authority of Ontario |
-| GIS | Guaranteed Income Supplement (out of scope) |
+| DC pension | Defined-contribution workplace pension; its money is entered as a LIRA |
+| Draw-down years | Under "Early RRSP drawdown", the years from the first retirement until both spouses' CPP and OAS have started |
+| Final return | The tax return filed for the year of the second death, which taxes registered accounts in full and investments as if sold |
+| Health Premium | Ontario's health charge, collected with income tax |
+| Life expectancy target | The age the plan assumes a spouse lives to; by default, the age a person of that sex has a 25% chance of reaching |
+| Lifetime tax | Income tax, the OAS clawback, the final return's tax and probate over the whole plan, in today's dollars |
 | LIRA / LIF | Locked-in retirement account / life income fund: locked-in pension money, with yearly minimum and maximum withdrawals once it's a LIF |
+| Mix | The share of the household's investments in each asset class, across all accounts |
 | Original cost (adjusted cost base) | What was paid for investments in a non-registered account; gains are measured from it |
-| Deemed disposition | Investments treated as sold at death, so their gains are taxed |
+| Pension income splitting | Moving up to half of eligible pension income to the other spouse's tax return |
+| Placement | Which account holds each kind of investment |
 | Probate (Estate Administration Tax) | Ontario's tax on assets passing through a will |
 | RRSP / RRIF | Registered retirement savings plan / registered retirement income fund (an RRSP after conversion, with yearly minimum withdrawals) |
+| Sequence risk | The risk that bad returns early in retirement do lasting damage (not shown in version 1) |
 | TFSA | Tax-free savings account |
-| Asset location vs allocation | Which account holds each investment vs the overall mix of investments |
-| Sequence risk | The risk that bad returns early in retirement do lasting damage (not modelled in version 1) |
+| Today's dollars | Amounts in the money of the year the plan is made, with inflation taken out |
 
 ## Additional Resources
 
 *   [concepts_brief.md](../../concepts_brief.md): the brainstorm brief this design implements.
-*   `private/retirement-planner-context.md` (not committed): the prototype's decision log and defect list, history only; summarized without personal figures in `docs/history/`.
-*   Government of Canada Canadian Retirement Income Calculator: the reference for input vocabulary.
-*   FP Canada Projection Assumption Guidelines: return, inflation and life expectancy assumptions.
-*   CRA, Service Canada, Ontario Ministry of Finance, FSRA: sources for rule values.
+*   `private/retirement-planner-context.md` (not committed): the prototype's decision log and defect list, history only; summarized without personal figures in [docs/history/](../history/).
+*   [Canadian Retirement Income Calculator](https://www.canada.ca/en/services/benefits/publicpensions/cpp/retirement-income-calculator.html) (Government of Canada): the reference for input vocabulary.
+*   [FP Canada Projection Assumption Guidelines](https://www.fpcanada.ca/planners/projection-assumption-guidelines): the return, inflation and life expectancy assumptions planners in Canada use.
+*   [config/SOURCES.md](../../config/SOURCES.md): the source page for every rule value (CRA, Service Canada, Ontario, FSRA), and [docs/admin-config-guide.md](../admin-config-guide.md): how the defaults are fetched and validated.
 
 ## Future Improvements
 
@@ -1099,39 +1148,44 @@ Decisions marked "author" were made by the document's author and are recorded in
 *   **Per-category survivor percentages:** survivor spending by category instead of one percentage.
 *   **Random inflation:** inflation that varies by year, linked to returns, to show inflation risk to unindexed income.
 *   **Editable placement and growth-to-safety settings:** priority lists and user-set points, once the presets have been tested.
-*   **Narrow screens:** the four strategy cards and the chart beside the year breakdown need a stacked layout below desktop width.
-*   **"Let the planner pick":** a search across strategies and bracket levels that picks the one best meeting a goal (cut from version 1, T1).
-*   **"Bad start" variant:** one extra run with low returns in the years after retirement and high returns later, same compound return, to show sequence risk (T7).
+*   **Narrow screens:** the three strategy cards and the chart beside the year breakdown need a stacked layout below desktop width.
+*   **"Let the planner pick":** a search across strategies and bracket levels that picks the one best meeting a goal.
+*   **"Bad start" variant:** one extra run with low returns in the years after retirement and high returns later, same compound return, to show sequence risk.
 *   **DB commuted value comparison, sync between devices, mobile layout, PDF export.**
-
---------------------------------------------------------------------------------
 
 ## Detailed Implementation Plan
 
 ### Known gaps from review
 
-**Sources:** the Stage 9 re-run of 2026-11-17 (no prefix; `docs/reviews/2026-11-17/implementation_readiness_report_r2.md`), the focused review of 2026-11-18 (`FR-`), the focused review of 2026-11-19 (`SR1-`), the 2026-11-19 screen revision (`SR-`) and the tax-case check of 2026-11-19 (`TC-`), all under `docs/reviews/`. The second full review of 2026-11-19 is in `docs/reviews/2026-11-19/`. **Rule:** each open Major is closed before its stage starts, in this document; a row marked "(during)" is closed by the code, test or config it names, within its stage. Nits are fixed when their file is built; r2 Nits N12, N13 and N16 are moot (benchmark and stress paths removed). Closed and withdrawn rows are in `docs/reviews/2026-11-24/closed-known-gaps.md`; the second full review was triaged with the author on 2026-11-24 ([Review triage decisions](#review-triage-decisions-author-2026-11-24)).
+Findings from the design reviews that are still open. Each id's prefix names its review, all under [docs/reviews/](../reviews/):
+
+*   no prefix: the implementation-readiness re-run of the first full review ([2026-11-17/implementation_readiness_report_r2.md](../reviews/2026-11-17/implementation_readiness_report_r2.md));
+*   `FR-`: the focused review of the fixed-returns revision ([2026-11-18/](../reviews/2026-11-18/focused_review_report.md));
+*   `SR1-`: the focused review of the screen revision ([2026-11-19/focused_review_report.md](../reviews/2026-11-19/focused_review_report.md));
+*   `SR-`: items raised by the screen revision itself (2026-11-19).
+
+The second full review (2026-11-19) was triaged with the author on 2026-11-24; its decisions are in [build-decisions.md](../history/build-decisions.md). Closed and withdrawn rows are in [closed-known-gaps.md](../reviews/2026-11-24/closed-known-gaps.md).
+
+**Rule:** each open Major is closed in this document before the stage in its "Close before" cell starts. Nits are fixed when their file is built.
 
 | Finding | Gap | Close before |
 |---|---|---|
 | FR-M7 | When the age-based life-expectancy default is filled, and what happens above the table's last row | Stage 5 |
-| FR-M13 | Tests for the new rules. Tax rows done in stage 1. Override limit (`returns.test.ts`) and LIF minimum under 71 (`liraLif.test.ts`) added 2026-11-19; the global blend is moot. Still open: the life-expectancy lookup, with FR-M7 | Stage 5 |
+| FR-M13 | Tests for the new rules: only the life-expectancy lookup is still open, with FR-M7 | Stage 5 |
 | FR-M17 | "Spending covered: Yes" at steady returns can reassure falsely; "Money runs out" repeats the headline | Stage 4 |
 | FR-M18 | Return terminology ("compound" vs "average"); the on-screen label | Stage 5 |
-| M1 | `NormalizedInputs`, the engine state and the `YearRow` forced-draw, contribution and account fields are defined in Data contracts (2026-11-19). The `YearRow` estate fields and the reference CSV columns are defined (2026-11-24). Still open: the `Result` contract and `warningFacts` content | Stage 4 (`Result`); Stage 6 (`warningFacts`) |
-| M2 | CUJ 6 test-config build: how `VITE_CONFIG_SET=test` reaches a statically imported bundle (CUJ 6 is now user changes in Settings; this may be moot) | Stage 5 |
-| M3 | 70% coverage target for non-engine code is unreachable without UI tests; gate start date disagrees (lines in Vitest config vs Verification Plan) | Stage 5 |
+| M1 | `NormalizedInputs`, the engine state, the `YearRow` fields and the reference CSV columns are defined in [Data contracts](#data-contracts). Still open: the `Result` contract and `warningFacts` content | Stage 4 (`Result`); Stage 6 (`warningFacts`) |
+| M2 | CUJ 6 test-config build: how `VITE_CONFIG_SET=test` reaches a statically imported bundle. CUJ 6 is now tested through user changes in Settings, so this closes unless the config-notice end-to-end check needs an unvalidated key | Stage 5 |
+| M3 | The 70% coverage target for non-engine code cannot be met by unit tests alone, and the UI code has no tests until stage 5; set the target and its start for stage 5 | Stage 5 |
 | M4 | Store and persistence tests need a browser-like test environment (jsdom or happy-dom) | Stage 5 |
-| SR1-M2 | Live recalculation. The Worker is terminated and restarted for a newer revision (C4); tips run after the main results, as designed (T6). Still open: the incomplete-plan state: a `readyToRun` gate built from the plan schema plus the mix-sum check, with an "Incomplete" badge | Stage 5 (store) |
-| SR1-M8 | Spending categories stay in the engine (T3). Still open: list the persisted category ids, and the spending nudge | Stage 5 |
-| SR1-M11 | The `Result`, `Tips` and `EngineError` contracts for the Results tab and strategy cards, including Goal 1 over the years from the first retirement to the second death, the legacy-goal flag (also with no goal set), the estate waterfall inputs, and the year-one sale shown apart from the placement figure (T8) | Stage 4 |
-| SR1-M12 | Results could be read as advice. Still open: state that the default strategy (`defaults.ts`, the sample plan) is "Registered last"; colour only the money-left difference on the cards, and show tax differences (and opposite-direction results) in neutral text | Stage 5 |
+| SR1-M2 | Live recalculation. The Worker is terminated and restarted for a newer revision, and tips run after the main results ([Components and data flow](#components-and-data-flow)). Still open: the incomplete-plan state: a `readyToRun` gate built from the plan schema plus the mix-sum check, with an "Incomplete" badge | Stage 5 (store) |
+| SR1-M8 | Spending categories stay in the engine. Still open: list the persisted category ids (on the [Spending tab](#spending-tab)), and the spending nudge | Stage 5 |
+| SR1-M11 | The `Result`, `Tips` and `EngineError` contracts for the Results tab and strategy cards, including Goal 1 over the years from the first retirement to the second death, the legacy-goal flag (also with no goal set), the estate waterfall inputs, and the year-one sale shown apart from the placement figure ([Comparisons](#comparisons)) | Stage 4 |
+| SR1-M12 | Results could be read as advice. Still open: state that the default strategy (`defaults.ts`, the sample plan) is "Registered last"; colour only the after-tax legacy difference on the cards, and show tax differences (and opposite-direction results) in neutral text | Stage 5 |
 | SR1-M13 | Undecided items with no question or gate. Still open: the incomplete-plan state (SR1-M2), the spending category ids (SR1-M8) and the default strategy (SR1-M12) | Stage 5 |
-| FR2-E | The editorial pass from the second full review (T16): history and review ids out of the rules; Alternatives B and C rewritten as the options actually rejected, L and M deleted; one Screens section; one name per concept (for example "life expectancy target", "after-tax legacy"); the glossary (terms users see only); and the wording, layout and link Nits in `docs/reviews/2026-11-19/` | Stage 4 |
-| FR2-N | Implementation-readiness round 2 Nits left for the editorial pass: define the C1-C4 decision tags; reword "the Stage 9 re-run" in the Known gaps sources; the M3 wording; one form for file-header labels | Stage 5 |
 | SR-4 | Open questions O20, O24, O27 and O28 (O31 withdrawn) | As listed in [Open Questions](#open-questions) |
 
-The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`). The working rules for agents (whole-function rewrites, protected files, units) are in file 13, `AGENTS.md`.
+The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`); stages 0 to 3 are done. The working rules for agents (whole-function rewrites, protected files, units) are in [file 13](#13-agentsmd-and-claudemd-exists-stage-0), `AGENTS.md`.
 
 **Stage order:**
 
@@ -1141,7 +1195,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 | 1 | Tax for one person (`jurisdiction/*`, `tax/personalTax.ts`) | `federal.json` and `ontario.json` validated |
 | 2 | Couple engine with fixed returns: `units`, `accounts/*`, `benefits/*`, `withdraw/*` (the three strategies), `tax/split.ts`, `solver/*`, `project/workingYear.ts`, `project/runPath.ts`, the first-death transfer in `project/death.ts`, `invest/*`, rule overrides, invariants. See the [stage 2 file boundary](#stage-2-file-boundary) | O25, O26, O29 (all resolved); the author enters and validates `market.us_equity.yield`, `market.intl_equity.yield`, `market.em_equity.yield`, `market.cash.yield` (author decisions, O30) and `market.cash.geometric_return` (FP Canada) |
 | 3 | Deaths and estate (`project/death.ts`); reference plan test | — |
-| 4 | Variants, the strategy runs, comparisons, results, Worker | — |
+| 4 | Variants, the strategy runs, comparisons, results, Worker | Speed check of the stage 3 engine on the reference machine ([Performance](#performance)) |
 | 5 | Store, screens (six tabs and Settings), live recalculation, change summary | O24, O27, O28 |
 | 6 | Warnings and computed tips | — |
 | 7 | Saving, export/import, sample plan | — |
@@ -1150,67 +1204,6 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 Every gate also includes the [Known gaps](#known-gaps-from-review) rows whose "Close before" cell names that stage. A row marked "(during)" is closed by code, tests or config built within that stage, and closes by the stage's tag.
 
 ### Target Files to Create/Modify
-
-#### Stage 2 implementation decisions (author, 2026-11-24)
-
-Points the stage 2 code had to settle, decided by the author from `docs/reviews/2026-11-24/stage-2-decisions.md`, which gives the options and examples for each.
-
-| # | Decision |
-|---|---|
-| 4 | Sheltered yields are worked out on the January 1 balance and added to the account after the year's withdrawals, so they never enlarge the balance the RRIF and LIF limits use. |
-| 5 | In the year after the first death, the accounts move to the survivor before the January 1 conversions, so the survivor's age decides when an inherited RRSP or LIRA converts. |
-| 6 | The age the CPP estimate and OAS base refer to (65) is `BENEFIT_REFERENCE_AGE` in `constants.ts`, not a config key. |
-| 7 | No TFSA limit is added in the plan's first year: the entered room is today's available room, as CRA's My Account shows it. |
-| 8 | The first year's pension split starts from no split. |
-| 9a | Before the first retirement, gains realized by the rebalance are taxed at the owner's working rate and paid from the yield; any excess is sold from the same account, and that sale's own gain is not taxed. |
-| 9b | A contribution set for an RRSP or LIRA that has already converted goes to the owner's non-registered account. |
-| 10 | A surplus with no forced withdrawals is shared by each living spouse's CPP, OAS, DB and pay, or equally if those are zero. |
-| 11 | A LIRA unlock for an owner with no RRSP or RRIF opens a new RRIF that year (id `rrsp-<owner>-<n>`), with no minimum in its first year. |
-| 12 | A spouse with no non-registered account gets an empty one at the plan start. |
-| 13a | A DB bridge's last year pays up to the birthday month of its end age (birth month ÷ 12 of a year). |
-| 13b | A DB survivor share is paid from the year after the member's death, even if the member died before the pension's start age. |
-| 14 | After the first death, deposits keep going to the survivor's first TFSA, then first non-registered account, by id. |
-| 15 | The pension split is re-solved while the best split changes, up to 3 passes (`MAX_SPLIT_PASSES`). Measured over 1,054 plans: 3 passes matched the full search exactly; 2 missed by up to $157 a year. A 40-year run costs about 12% more. |
-
-Also from stage 2: RRIF and LIF minimums are taken in years before the first retirement, taxed at the owner's working rate and saved like CPP and OAS.
-
-#### Review triage decisions (author, 2026-11-24)
-
-The author's decisions on the second full review (2026-11-19, `docs/reviews/2026-11-19/`: `zoom_out_report.md`, `comprehension_report.md`, `critic_report.md` and `intermediate_zoom_out_report.md`). **Where this table and older text in this document disagree, this table wins** until the editorial pass (T16) folds it in.
-
-Already settled before the triage, so not decided again: the split test (stage 2 decision 15), the two inflation clocks (`rebaseConfig`), the override shape `{ value, defaultTaxYear }`, a working spouse's taxes and draws (C2), the Worker cancel mechanism (C4) and the fee levels (O25, validated).
-
-| # | Topic | Decision | Applies in |
-|---|---|---|---|
-| T1 | "Let the planner pick" | Cut from version 1, with no marker on the cards; listed under Future Improvements. `planner_pick`, `plannerGoal` and `planning.planner_search` are removed before any plan is saved. O31, SR1-M3 (its open part) and SR1-M5 close | Now (design, code, config) |
-| T2 | Rule overrides | Only single values (`number` keys) that have a Settings row can be overridden. Tables, presets, shapes, mixes, life-expectancy tables and the CPP and OAS age-limit keys are shown read-only. The table checks already in `overrides.ts` stay for a later release | Now (code); Settings in stage 5 |
-| T3 | Spending categories | Stay in the engine, as built in stage 2. SR1-M8 stays open: list the persisted category ids and define the spending nudge | Stage 5 |
-| T4 | After-tax stock-share readout | Cut. One sentence in the placement text says that, with the mix counted at face value, part of a placement's benefit can come from holding more stocks after tax. FR-M16 closes | Now (design, code) |
-| T5 | "Rebalance once a year" switch | Kept. When it is off, the Savings tab disables the shape choice and says why. A class split across both spouses' accounts in one group goes in proportion to each account's unassigned room (as built) | Stage 5 |
-| T6 | Performance machinery | Minimal: no streamed results or per-variant cache; tips computed as designed. A failing tip rerun is dropped and logged; a failure in any main run blocks the results. Revisit only if the speed check fails | Stages 4–5 |
-| T7 | "Bad start" variant | Not in version 1; listed under Future Improvements | — |
-| T8 | Gains realized by the rebalance | Yearly rebalancing stays as it is. The tax on the year-one sale of the user's own positions is shown as a separate line that the placement comparison leaves out | Stage 4 (`Result`) |
-| T9 | What "today's dollars" means | The plan starts in the year the values are entered (`planStartYear` is the current year; stored, not rechecked when a plan is loaded). Inputs are in that year's dollars | Now (design); schema in stage 7 |
-| T10 | The final return | One return for the second death year: that year's income plus the deemed income, taxed once with `personalTax`, with the clawback recomputed. The extra tax over what that year already paid comes from the estate before probate. A `death.test.ts` row checks it | Stage 3 |
-| T11 | Privacy claims | Reword the claims (Overview, G7, NFR) to what is enforced, naming the limits: navigation, and other sites on the same github.io origin. The Worker is created from a `blob:` URL so it inherits the page's policy, and `worker-src` allows `blob:`. No new end-to-end test | Stage 4 (Worker); wording in T16 |
-| T12 | Two open tabs | When another tab saves the plan (the `storage` event), offer "Reload it, or keep this version". A Risks row accepts last-save-wins otherwise. Rolling backups are rejected: the export file is the lasting copy | Stage 7 |
-| T13 | The config key list | `keys.ts` is the authoritative list; `config:check` keeps `SOURCES.md` in step with it. The design describes the key groups, naming and persisted ids and links to `SOURCES.md` (the full list here goes in T16) | Now; trimmed in T16 |
-| T14 | Small contract fixes | `SpouseInput.name`; DC pension money (including a plan still with the employer, at its current value) is entered as a LIRA; a `CAD` unit for one-time amounts such as `ontario.probate.threshold`; caps of 8 accounts and 2 DB pensions per spouse | Now (types, unit); caps and DC wording in stages 5 and 7 |
-| T15 | Strict config check | `config:check --strict` is a gate before the URL is shared beyond testers (with O20), not a CI step. The engine already throws on any missing value | Before wider sharing |
-| T16 | The editorial clean-up | After stage 3 and before stage 4, one editorial pass (Known gaps FR2-E). The Known gaps table now lists open rows only | Before stage 4 |
-
-#### Stage 3 decisions (2026-11-24)
-
-Settled while matching the engine against the reference plan (`tests/fixtures/reference-plan/`, whose `NOTES.md` lists every reading the separate session made). S1 to S4 were decided by the author; S5 and S6 are design choices made to match the reference (S5 applies the existing tie rule). Where these and older text disagree, these win.
-
-| # | Topic | Decision |
-|---|---|---|
-| S1 | Bracket thresholds that cross | After indexing, each bracket row's `from` is at least the previous row's. Ontario's top two thresholds are not indexed, so from about 2042 the indexed third threshold passes $150,000: its band then shrinks to nothing and rates never step down. Applies to every bracket table (`read.ts` `brackets`) |
-| S2 | The working marginal rate's base | The rate applies to taxable amounts: every `TaxableIncome` field, with capital gains at `federal.capital_gains.inclusion_rate` (after losses and the carried loss) and eligible dividends as the cash received; never below 0. For working years and a spouse still working (C2) |
-| S3 | Two row fields | `taxableIncomeNom` is always the tax-return taxable income (line 26000), also for a spouse taxed at the working rate. Working years show `afterTaxCashNom` and `surplusNom` of 0: what is saved appears as deposits |
-| S4 | A forced sale's gain | When a working year's tax exceeds the yield, the sale that pays it realizes a gain or loss at average cost. It counts in `realizedGainsNom` and in the year's netting with the carried-forward loss, but is not taxed again that year (decision 9a) |
-| S5 | Split ties | Two splits whose household tax differs by less than `SPLIT_TIE_TOLERANCE` ($0.000001) are a tie, settled by the tie rule (the smaller transfer, then spouse 1 transferring), so floating-point noise never picks the split |
-| S6 | Sheltered yields and deposits | Each year: the draws, then the sheltered yields are added, then the deposits (surplus, a working year's saved income, contributions after the price return), each bought at the account's weights at that point, then price returns on everything |
 
 #### Stage 2 file boundary
 
@@ -1247,7 +1240,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 *   **Type / Scope**: Git configuration.
 *   **Proposed Changes**: None. It ignores `private/`, `node_modules/`, `dist/`, `coverage/`, `playwright-report/` and `test-results/`.
 
-##### 2. `./.gitattributes`, `./LICENSE`, `./private/retirement-planner-context.md` (Exist — keep)
+##### 2. `./.gitattributes`, `./LICENSE`, `./private/retirement-planner-context.md` (Exists, stage 0)
 
 *   **Type / Scope**: Line endings (LF), MIT licence, private history (not committed).
 *   **Proposed Changes**: None. The licence stays MIT unless the author chooses another before the repository is made public.
@@ -1311,17 +1304,17 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     CSP content:
 
     ```text
-    default-src 'none'; script-src 'self'; style-src 'self'; worker-src 'self';
+    default-src 'none'; script-src 'self'; style-src 'self'; worker-src 'self' blob:;
     img-src 'self' data:; font-src 'self'; connect-src 'none'; form-action 'none';
     base-uri 'none'; object-src 'none'
     ```
 
-##### 7. `./vitest.config.ts` (Exists, stage 0; modify at stage 2)
+##### 7. `./vitest.config.ts` (Exists, stage 0; changed at stage 2)
 
 *   **Type / Scope**: Test configuration.
 *   **Proposed Changes**:
     *   Include `tests/{unit,property,reference}/**/*.test.ts`; exclude `tests/e2e/**`.
-    *   Coverage with v8, enforced when `ENFORCE_COVERAGE=true` (set in `ci.yml` by the last commit of stage 2): 90% branches for `src/engine/**`; 70% for `src/{state,ui,worker}/**` (target pending M3). The last commit of stage 2 changes the thresholds key `'src/**'` to `'src/{state,ui,worker}/**'`, so the two globs do not overlap.
+    *   Coverage with v8, enforced when `ENFORCE_COVERAGE=true` (set in `ci.yml` by the last commit of stage 2): 90% branches for `src/engine/**`; 70% for `src/{state,ui,worker}/**` (target to be set in stage 5; Known gaps M3). The last commit of stage 2 changes the thresholds key `'src/**'` to `'src/{state,ui,worker}/**'`, so the two globs do not overlap.
 
 ##### 8. `./playwright.config.ts` (Exists, stage 0)
 
@@ -1350,7 +1343,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   `index.html`: a root element, a `<noscript>` message, and a module script pointing to `src/main.tsx`. It contains no CSP; the build plugin adds it.
     *   `src/main.tsx` at stage 0 renders "Under construction"; stage 5 replaces it.
 
-##### 11. `./.github/workflows/ci.yml` (Exists, stage 0; modify at stage 2)
+##### 11. `./.github/workflows/ci.yml` (Exists, stage 0; changed at stage 2)
 
 *   **Type / Scope**: CI pipeline.
 *   **Proposed Changes**: Runs on every push and pull request, on `ubuntu-latest`, in this order:
@@ -1395,25 +1388,22 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
 #### Documentation (stage 0)
 
-##### 15. `./docs/designs/retirement-planner.md` (Exists — keep)
+##### 15. `./docs/designs/retirement-planner.md` (Exists, stage 0)
 
 *   **Proposed Changes**: This document. Updated when a decision changes.
 
-##### 16. `./docs/reviews/` (Exists — keep)
+##### 16. `./docs/reviews/` (Exists, stage 0)
 
 *   **Type / Scope**: Review history.
-*   **Proposed Changes**: None. It holds one folder per review date: `2026-11-17/` (the full review), `2026-11-18/` and `2026-11-19/` (focused reviews, the drift report and the second full review). The 2026-11-17 folder holds:
-    *   `zoom_out_report.md`
-    *   `comprehension_report.md`
-    *   `critic_report.md`
-    *   `intermediate_zoom_out_report.md`
-    *   `implementation_readiness_report.md`
-    *   `implementation_readiness_report_r2.md`
-    *   `goldfish_review_report.md`
+*   **Proposed Changes**: None. One folder per review date:
+    *   `2026-11-17/`: the first full review (zoom-out, comprehension, critic, intermediate zoom-out and implementation-readiness reports, the readiness re-run `implementation_readiness_report_r2.md`, and `goldfish_review_report.md` with the author's resolutions);
+    *   `2026-11-18/`: the focused review of the fixed-returns revision;
+    *   `2026-11-19/`: the focused review of the screen revision, the drift report, and the second full review (the same report set as 2026-11-17);
+    *   `2026-11-24/`: the stage 2 decisions with their options, and the Known gaps rows closed that day.
 
     `concepts_brief.md` stays at the root.
 
-##### 17. `./docs/units-and-conventions.md` (Exists, stage 0; modify at stage 2)
+##### 17. `./docs/units-and-conventions.md` (Exists, stage 0; changed at stage 2)
 
 *   **Type / Scope**: Normative reference for engine authors.
 *   **Proposed Changes**: The rules from [Units and conventions](#units-and-conventions) with worked examples:
@@ -1430,11 +1420,11 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   The decision log covers the prototype's product summary, reference material, feature set, architecture choices and UX rules.
     *   The post-mortem covers what went wrong (the patch cycles, mixed units, missing tax, untested code) and the defect list.
 
-    Both carry a note that the prototype's calculation model is superseded by this design.
+    Both carry a note that the prototype's calculation model is superseded by this design. `docs/history/build-decisions.md` (added 2026-11-24) records the decisions made while stages 2 and 3 were built.
 
 ##### 19. `./docs/admin-config-guide.md` (Exists, stage 0)
 
-*   **Type / Scope**: Admin procedure for fetching or refreshing the default values. Done for 2026; repeating it in later years is optional (2026-11-19), since users can change rule values in Settings.
+*   **Type / Scope**: Admin procedure for fetching or refreshing the default values. Done for 2026; repeating it in later years is optional, since users can change rule values in Settings.
 *   **Proposed Changes**:
     1.  Two separate AI sessions each fetch every tax and benefit rule (`federal.json`, `ontario.json`) listed in `config/SOURCES.md` into a candidate file. One of them also fetches the market assumptions (`market.json`) and the life-expectancy tables (`planning.life_expectancy.*`). fsrao.ca pages are fetched with curl. The admin reads Ontario probate from the Estate Administration Tax Act.
     2.  Run `npm run config:compare` on the two tax and benefit candidates (`federal.json`, `ontario.json`).
@@ -1448,11 +1438,11 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 ##### 20. `./config/SOURCES.md` (Exists, stage 0)
 
 *   **Type / Scope**: Key list and sources.
-*   **Proposed Changes**: Exactly the dotted keys in the [Config contract](#config-contract)'s key tree, each with its unit, its official page URL and where on the page the value appears. Planning-choice keys are marked "author decision". `config:check` fails if this file and `src/engine/config/keys.ts` disagree; the design's key tree is kept in step by hand.
+*   **Proposed Changes**: Exactly the keys in `src/engine/config/keys.ts` (see the [Config contract](#config-contract)), each with its unit, its official page URL and where on the page the value appears. Planning-choice keys are marked "author decision". `config:check` fails if this file and `keys.ts` disagree.
 
 #### Config (stage 0)
 
-##### 21. `./config/CURRENT_YEAR` and `./config/2026/{federal,ontario,market}.json` (Exists, stage 0; `market.json` modify at stage 2)
+##### 21. `./config/CURRENT_YEAR` and `./config/2026/{federal,ontario,market}.json` (Exists, stage 0; `market.json` changed at stage 2)
 
 *   **Type / Scope**: Rule values, following the [Config contract](#config-contract).
 *   **Proposed Changes**: Every key in `SOURCES.md`, fetched and validated per the admin guide. `market.json` holds:
@@ -1460,7 +1450,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   one cash yield per class (author decisions, O30);
     *   the foreign withholding rate.
 
-##### 22. `./config/2026/planning.json` and `./config/2026/warnings.json` (Exists, stage 0; `planning.json` modify at stage 2)
+##### 22. `./config/2026/planning.json` and `./config/2026/warnings.json` (Exists, stage 0; `planning.json` changed at stage 2)
 
 *   **Type / Scope**: The author's planning choices, plus FP Canada's life-expectancy tables.
 *   **Proposed Changes**: The values in [Design values](#design-values-version-1):
@@ -1475,21 +1465,23 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
 #### Engine (stages noted per file)
 
-##### 23. `./src/engine/constants.ts` (Exists, stage 0; modify at stage 2)
+##### 23. `./src/engine/constants.ts` (Exists, stage 0; changed at stage 2)
 
 *   **Proposed Changes**:
     *   `MONTHS_PER_YEAR = 12`
     *   `SOLVER_PRECISION = 0.01`
-    *   `SOLVER_MAX_STEPS = 40` (stage 2: enough to narrow $10 billion to $0.01)
+    *   `SOLVER_MAX_STEPS = 40` (enough to narrow $10 billion to $0.01)
     *   `SPLIT_STEP = 0.05`
-    *   `MAX_SPLIT_PASSES = 3` (stage 2 decision 15)
+    *   `MAX_SPLIT_PASSES = 3`
+    *   `SPLIT_TIE_TOLERANCE = 1e-6`
+    *   `BENEFIT_REFERENCE_AGE = 65`
     *   `INVARIANT_TOLERANCE = 0.05`
     *   `WEIGHT_SUM_TOLERANCE = 1e-9` (planning weights must sum to 1)
     *   `CONFIG_YEAR_MIN = 2000`, `CONFIG_YEAR_MAX = 2100` (sanity range for a config entry's tax year)
+    *   `MAX_FEE = 0.05` (the highest fee level the `planning.fee_levels` schema accepts)
+    *   `OVERRIDE_RANGES` (the override ranges by unit, from the [Config contract](#config-contract))
 
-    All exist from stage 0 except the stage 2 change to `SOLVER_MAX_STEPS`.
-
-##### 24. `./src/engine/config/keys.ts`, `./schema.ts`, `./load.ts`, `./bundle.ts`, `./read.ts` (Exist, stages 0-1; modify at stage 2), `./overrides.ts` (Create, stage 2)
+##### 24. `./src/engine/config/keys.ts`, `./schema.ts`, `./load.ts`, `./bundle.ts`, `./read.ts`, `./overrides.ts` (Exists, stages 0–2)
 
 *   **Proposed Changes**:
     *   `keys.ts`: the code copy of the [Config contract](#config-contract)'s key list. Each key has its file, value kind and whether it is an author decision.
@@ -1498,14 +1490,14 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   `load.ts`:
         *   `checkBundle(bundle)`, which lists missing, unknown and malformed keys;
         *   `loadConfig(): Config`, which validates the bundle and returns the entries, converting `CAD_per_month` amounts to `CAD_per_year` (× 12; a null value stays null);
-        *   `rebaseConfig(cfg, planStartYear): Config` (stage 2, C1), rebasing by value kind as in [Units and conventions](#units-and-conventions);
-        *   `toAnnual` (stage 2 change) also records `publishedUnit` on each loaded entry, so overrides of monthly keys can be converted;
-        *   `configStatus(config, overrides: RuleOverrides, today): { taxYear, unfetchedKeys: string[], unvalidatedKeys: string[], overriddenKeys: string[], staleOverrideKeys: string[], outOfDate: boolean }` (stage 2; `configStatus(config, today)` until then; `tools/configCheck.ts` passes `{}`);
+        *   `rebaseConfig(cfg, planStartYear): Config`, rebasing by value kind as in [Units and conventions](#units-and-conventions);
+        *   `toAnnual` also records `publishedUnit` on each loaded entry, so overrides of monthly keys can be converted;
+        *   `configStatus(config, overrides: RuleOverrides, today): { taxYear, unfetchedKeys: string[], unvalidatedKeys: string[], overriddenKeys: string[], staleOverrideKeys: string[], outOfDate: boolean }` (`tools/configCheck.ts` passes `{}`);
         *   `configDefaults()`, which returns the values shown next to user overrides (stage 4).
-    *   `overrides.ts` (stage 2, SR1-M9): `validateOverride(key, value, overrides, cfg): string[]` (kind via `checkValue`, unit range, structure and cross-key checks, per the [Config contract](#config-contract)), `applyRuleOverrides(cfg, overrides): Config` (reuses `toAnnual`), and `dropInvalidOverrides(overrides, cfg): { kept: RuleOverrides, dropped: { key, value, reasons: string[] }[] }` for import.
-    *   `read.ts` (exists, stage 1; stage 2 adds): `ageTable(ctx, key, age): number | undefined` for age tables (rates, never indexed; an age between two rows uses the row at or below it; an age above the last row uses the last row; an age below the first row returns `undefined` so the caller applies its own rule); and `planValue(cfg, key): number` for unindexed values read once per plan (`market.inflation`, yields, returns), used by `makeDeflator` and `classReturns`. Indexed reads keep using `ctx.deflator`, because `rebaseConfig` has already moved every indexed value to the plan start.
+    *   `overrides.ts`: `validateOverride(key, value, overrides, cfg): string[]` (kind via `checkValue`, unit range, structure and cross-key checks, per the [Config contract](#config-contract)), `applyRuleOverrides(cfg, overrides): Config` (reuses `toAnnual`), and `dropInvalidOverrides(overrides, cfg): { kept: RuleOverrides, dropped: { key, value, reasons: string[] }[] }` for import.
+    *   `read.ts`: the typed reads (`plain`, `amount`, `list`, `brackets` with the never-falling thresholds, `phaseIn`), `ageTable(ctx, key, age): number | undefined` for age tables (rates, never indexed; an age between two rows uses the row at or below it; an age above the last row uses the last row; an age below the first row returns `undefined` so the caller applies its own rule); and `planValue(cfg, key): number` for unindexed values read once per plan (`market.inflation`, yields, returns), used by `makeDeflator` and `classReturns`. Indexed reads keep using `ctx.deflator`, because `rebaseConfig` has already moved every indexed value to the plan start.
 
-##### 25. `./src/engine/units.ts` (Create, stage 2)
+##### 25. `./src/engine/units.ts` (Exists, stage 2)
 
 *   **Proposed Changes**:
     *   Branded types `TodayDollars` and `FutureDollars`.
@@ -1513,7 +1505,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   `normalizeInputs(inputs, cfg): NormalizedInputs` converts every `…Today` field once, except DB amounts with `fixed` or `none` indexing, which are nominal. It runs after `applyRuleOverrides` and `rebaseConfig`.
     *   `toDisplay(rows, deflator)` converts results back.
 
-##### 26. `./src/engine/types.ts` (Exists, stage 1; modify at stage 2)
+##### 26. `./src/engine/types.ts` (Exists, stage 1; changed at stage 2)
 
 *   **Proposed Changes**: The definitions in [Data contracts](#data-contracts), plus:
     *   `YearContext { yearIndex, deflator, cfg, jurisdiction }`, passed to every engine function that needs indexing (`jurisdiction` added at stage 2; `runPath` builds one per year);
@@ -1522,7 +1514,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
     Filling rule for `pensionEligible`: DB payments at any age, and RRIF/LIF payments when the owner is at least `federal.credits.pension.min_age_rrif`. RRSP and LIRA withdrawals, RRIF/LIF below that age, and interest go to `otherOrdinary`. Splitting eligibility reads `federal.split.min_age_rrif` separately. `solver/incomeAssembly.ts` (stage 2) builds each spouse's `TaxableIncome` with this rule: `assembleIncome(spouse, fixedIncome, draws, cashYield, realizedGains, ctx): TaxableIncome`.
 
-##### 27. `./src/engine/jurisdiction/types.ts`, `./federal.ts`, `./ontario.ts` (Exist, stage 1; modify at stages 2 and 3)
+##### 27. `./src/engine/jurisdiction/types.ts`, `./federal.ts`, `./ontario.ts` (Exists, stage 1; changed at stages 2 and 3)
 
 *   **Proposed Changes**:
     *   `federalTax(income: TaxableIncome, age, ctx): { tax, clawback }`, covering brackets, credits, dividend credit and OAS recovery tax.
@@ -1534,13 +1526,13 @@ The files stage 2 may create or change. Anything not listed here is out of bound
         *   `probate(estateAssets: number, ctx): number` (stage 3).
     *   `ontario.ts` implements `Jurisdiction`. The LIF rules themselves (minimum, the earnings floor, the opening year) live in `accounts/liraLif.ts`; the jurisdiction supplies only Ontario's values.
 
-##### 28. `./src/engine/tax/personalTax.ts` and `./src/engine/tax/tables.ts` (Exist, stage 1) and `./src/engine/tax/split.ts` (Create, stage 2)
+##### 28. `./src/engine/tax/personalTax.ts`, `./tables.ts`, `./split.ts` (Exists, stages 1–2)
 
 *   **Proposed Changes**:
     *   `personalTax(income, age, jurisdiction, ctx): { federal, provincial, clawback, total }`.
-    *   `bestSplit(a: { income: TaxableIncome; age: number }, b: same, ctx): { from, share, householdTax }` calls `personalTax` with `ctx.jurisdiction`. It tries 0 to `federal.split.max_share` in `SPLIT_STEP` steps in both directions, 2 × (max_share ÷ `SPLIT_STEP`) + 1 points (M13), respecting eligibility (`federal.split.min_age_rrif`); a spouse who is working or not alive is left out (C2); ties go to the smaller transfer, then spouse 1 transferring.
+    *   `bestSplit(a: { income: TaxableIncome; age: number }, b: same, ctx): { from, share, householdTax }` calls `personalTax` with `ctx.jurisdiction`. It tries 0 to `federal.split.max_share` in `SPLIT_STEP` steps in both directions, 2 × (max_share ÷ `SPLIT_STEP`) + 1 points, respecting eligibility (`federal.split.min_age_rrif`); a spouse who is working or not alive is left out; ties go to the smaller transfer, then spouse 1 transferring.
 
-##### 29. `./src/engine/benefits/cpp.ts`, `./oas.ts`, `./db.ts`, `./survivor.ts` (Create, stage 2)
+##### 29. `./src/engine/benefits/cpp.ts`, `./oas.ts`, `./db.ts`, `./survivor.ts` (Exists, stage 2)
 
 *   **Proposed Changes**: Each uses the formulas in [Accounts](#accounts), with coefficients from config. The first year is pro-rated by birth month (months after the start birthday ÷ 12), and the OAS 75+ increase is pro-rated the same way.
     *   `cppAt(estimateAt65, startAge, age, birthMonth, ctx)`
@@ -1548,54 +1540,55 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   `dbPayment(db, age, birthMonth, ctx, alive)`, covering the lifetime amount, the bridge until its end age, and indexing per [Accounts](#accounts): `full` grows with the deflator; `fixed` is nominal at the start age and grows by `indexRate` from then; `none` is nominal and flat
     *   `survivorBenefits(deceased, survivor, ctx)`
 
-##### 30. `./src/engine/accounts/rrspRrif.ts`, `./liraLif.ts`, `./tfsa.ts`, `./nonRegistered.ts` (Create, stage 2)
+##### 30. `./src/engine/accounts/rrspRrif.ts`, `./liraLif.ts`, `./tfsa.ts`, `./nonRegistered.ts` (Exists, stage 2)
 
 *   **Proposed Changes**: Pure functions on account state:
-    *   **RRSP/RRIF:** conversion; the minimum uses the start-of-year age and is zero in the opening year; `minFactor(age, ctx)` uses the table, the last row above 95, and 1 ÷ (`federal.rrif.min_factor_base_age` − age) below the table's first age (when `ageTable` returns `undefined`) (FR-M4).
-    *   **LIRA/LIF:** conversion (validated by 71) and the optional unlock (`ctx.jurisdiction.unlockShare`) to the owner's RRSP/RRIF. `lifLimits(account, ageAtStartOfYear, isOpeningYear, ctx): { min, max }`: min = 0 in the opening year, else `minFactor(age, ctx)` × balance; max = the greater of `ctx.jurisdiction.lifMaxFactor(age, ctx)` × balance and `lifPrevEarningsNom` (the factor alone in the opening year) (FR-M4, FR-M9). A LIRA is never drawn.
-    *   **TFSA:** room is per spouse (`SpouseYearState.tfsaRoomNom`), shared by all their TFSAs: the indexed yearly limit, unrounded, plus last year's withdrawals, added on January 1 (C3). Contributions and deposits within room go to the spouse's first TFSA by id. Successor transfer uses no room.
-    *   **Non-registered:** pooled positions with original cost; `sellProRata(account, amount)` returns cash and realized gain or loss; `cashYield(account, returns)` returns income by type; `netGains(realized, carriedLoss)` returns the taxable gain and the new carried-forward loss (FR-M5).
-    *   **Sheltered yield:** `reinvestYield(account, returns, ctx)` adds each class's yield back to the account, net of `market.foreign_withholding_rate` on foreign dividends (M15).
+    *   **RRSP/RRIF:** conversion; the minimum uses the start-of-year age and is zero in the opening year; `minFactor(age, ctx)` uses the table, the last row above 95, and 1 ÷ (`federal.rrif.min_factor_base_age` − age) below the table's first age (when `ageTable` returns `undefined`).
+    *   **LIRA/LIF:** conversion (validated by 71) and the optional unlock (`ctx.jurisdiction.unlockShare`) to the owner's RRSP/RRIF. `lifLimits(account, ageAtStartOfYear, isOpeningYear, ctx): { min, max }`: min = 0 in the opening year, else `minFactor(age, ctx)` × balance; max = the greater of `ctx.jurisdiction.lifMaxFactor(age, ctx)` × balance and `lifPrevEarningsNom` (the factor alone in the opening year). A LIRA is never drawn.
+    *   **TFSA:** room is per spouse (`SpouseYearState.tfsaRoomNom`), shared by all their TFSAs: the indexed yearly limit, unrounded, plus last year's withdrawals, added on January 1. Contributions and deposits within room go to the spouse's first TFSA by id. Successor transfer uses no room.
+    *   **Non-registered:** pooled positions with original cost; `sellProRata(account, amount)` returns cash and realized gain or loss; `cashYield(account, returns)` returns income by type; `netGains(realized, carriedLoss)` returns the taxable gain and the new carried-forward loss.
+    *   **Sheltered yield:** `reinvestYield(account, returns, ctx)` adds each class's yield back to the account, net of `market.foreign_withholding_rate` on foreign dividends.
 
-##### 31. `./src/engine/invest/returns.ts`, `./glide.ts`, `./placement.ts`, `./rebalance.ts` (Create, stage 2)
+##### 31. `./src/engine/invest/returns.ts`, `./glide.ts`, `./placement.ts`, `./rebalance.ts` (Exists, stage 2)
 
 *   **Proposed Changes**:
-    *   `returns.ts` (FR-M6): `classReturns(cfg, investing): Record<AssetClass, { total, yield, price, incomeType }>`, per [Asset classes and returns](#asset-classes-and-returns-o3).
-    *   `glide.ts`: `mixForYear(userMix, startingMixId, shapeId, yearsFromFirstRetirement, planStartYearsFromRetirement, cfg)` applies shape(*t*) − shape(*t₀*) to the user's stock share, keeping proportions within stocks and within bonds and cash, with the clamping fallbacks (SR1-M7). It returns fractions. `startingMixId` is `investing.mixId`; until `planning.mixes` has values (O24), the 0%-stock fallback puts the points in Canadian stocks.
+    *   `returns.ts`: `classReturns(cfg, investing): Record<AssetClass, { total, yield, price, incomeType }>`, per [Asset classes and returns](#asset-classes-and-returns-o3).
+    *   `glide.ts`: `mixForYear(userMix, startingMixId, shapeId, yearsFromFirstRetirement, planStartYearsFromRetirement, cfg)` applies shape(*t*) − shape(*t₀*) to the user's stock share, keeping proportions within stocks and within bonds and cash, with the clamping fallbacks. It returns fractions. `startingMixId` is `investing.mixId`; until `planning.mixes` has values (O24), the 0%-stock fallback puts the points in Canadian stocks.
     *   `placement.ts`: `targetHoldings(accounts, overallMix, presetId, cfg)` works at face value. For each class in the fill order (cash, bonds, then emerging-market, international, U.S. and Canadian stocks), the target is its share × the household total. It fills the account groups in the preset's order; within a group, the amount is split across the group's accounts (both spouses) in proportion to each account's room not yet assigned; whatever doesn't fit continues into the next group. Cash follows the preset's `bonds` column; U.S., international and emerging-market stocks follow its `global_equity` column. The baseline puts the same mix in every account.
     *   `rebalance.ts`: `rebalance(accounts, targets)` returns new holdings and the realized gains for the year by owner (`YearRow.spouse[i].realizedGainsNom`). With rebalancing off (O29), `rebalance` and the shape are skipped after the plan start; draws and deposits follow current holdings.
 
-##### 32. `./src/engine/withdraw/registeredLast.ts`, `./fillBrackets.ts`, `./earlyRrsp.ts`, `./surplus.ts` (Create, stage 2)
+##### 32. `./src/engine/withdraw/registeredLast.ts`, `./fillBrackets.ts`, `./earlyRrsp.ts`, `./surplus.ts` (Exists, stage 2)
 
 *   **Proposed Changes**:
     *   All four take `year: YearInProgress` (state, inputs, each spouse's income so far, draws already taken) and return `Draw[]`. Income is measured with `incomeTotals` from `jurisdiction/federal.ts`.
-    *   `registeredLast(W, year, ctx)` draws non-registered first (pro rata across spouses), then RRSP/RRIF and LIF pro rata across both spouses (each LIF capped at its `lifLimits` maximum less the draws already taken from it; overflow to the owner's RRSP/RRIF, then the other spouse; never a LIRA; M6), then TFSA (pro rata).
-    *   `bracketTopUp(year, level: BracketLevel, ctx)` returns the required draws. `level` resolves to a dollar amount from the rule values in use: `first_bracket` is the second row's `from` of `brackets(ctx, 'federal.tax.brackets')`; `oas_threshold` is `amount(ctx, 'federal.oas.recovery.threshold')`. It tops up net income before splitting, counting fixed income, minimums, the non-registered cash yield and gains already realized by the rebalance (SR1-M6). A spouse still working is skipped (C2).
-    *   `drawDownYears(inputs: NormalizedInputs, deaths: Death[]): number[]` returns the draw-down years from each spouse's CPP and OAS start ages and birth months (SR1-M4). `earlyRrsp(W, year, drawDown: number[], ctx)` uses the fill-up rule in those years (a spouse still working is skipped, C2) and calls `registeredLast` otherwise.
-    *   `placeSurplus(surplus, year): { accountId, amountNom }[]` splits the surplus by each spouse's share of the forced draws (`YearRow.spouse[i].forcedDrawsNom`, C3), then puts each share in that spouse's TFSA within room, then their non-registered account.
+    *   `registeredLast(W, year, ctx)` draws non-registered first (pro rata across spouses), then RRSP/RRIF and LIF pro rata across both spouses (each LIF capped at its `lifLimits` maximum less the draws already taken from it; overflow to the owner's RRSP/RRIF, then the other spouse; never a LIRA), then TFSA (pro rata).
+    *   `bracketTopUp(year, level: BracketLevel, ctx)` returns the required draws. `level` resolves to a dollar amount from the rule values in use: `first_bracket` is the second row's `from` of `brackets(ctx, 'federal.tax.brackets')`; `oas_threshold` is `amount(ctx, 'federal.oas.recovery.threshold')`. It tops up net income before splitting, counting fixed income, minimums, the non-registered cash yield and gains already realized by the rebalance. A spouse still working is skipped.
+    *   `drawDownYears(inputs: NormalizedInputs, deaths: Death[]): number[]` returns the draw-down years from each spouse's CPP and OAS start ages and birth months. `earlyRrsp(W, year, drawDown: number[], ctx)` uses the fill-up rule in those years (a spouse still working is skipped) and calls `registeredLast` otherwise.
+    *   `placeSurplus(surplus, year): { accountId, amountNom }[]` splits the surplus by each spouse's share of the forced draws (`YearRow.spouse[i].forcedDrawsNom`), then puts each share in that spouse's TFSA within room, then their non-registered account.
 
-##### 33. `./src/engine/solver/bisect.ts`, `./yearSolve.ts`, `./startOfYear.ts`, `./incomeAssembly.ts` (Create, stage 2)
+##### 33. `./src/engine/solver/bisect.ts`, `./yearSolve.ts`, `./startOfYear.ts`, `./incomeAssembly.ts` (Exists, stage 2)
 
 *   **Proposed Changes**:
     *   `bisect(f, lo, hi): { x, converged }` uses `SOLVER_PRECISION` (on *x*, the withdrawal) and `SOLVER_MAX_STEPS`.
     *   `startOfYear(state, inputs, ctx): PlanState` does step 0 of the year solver (conversions, the unlock, TFSA room).
     *   `assembleIncome(...)` builds each spouse's `TaxableIncome` (file 26's filling rule).
-    *   `solveYear(state: PlanState, inputs: NormalizedInputs, ctx: YearContext, variant: Variant): { nextState, row }` implements the [year solver](#the-year-solver) steps in order, with the split passes (up to `MAX_SPLIT_PASSES`). Non-convergence or an invariant failure throws `EngineIntegrityError { year, variantId, check, before, after }` (types in [Data contracts](#data-contracts)).
+    *   `solveYear(state: PlanState, inputs: NormalizedInputs, ctx: YearContext, variant: Variant, options?: { fixedSplit }): SolvedYear` (`{ nextState, row, endState, taxed }`; `endState` and `taxed` feed the final return) implements the [year solver](#the-year-solver) steps in order, with the split passes (up to `MAX_SPLIT_PASSES`). Non-convergence or an invariant failure throws `EngineIntegrityError { year, variantId, check, before, after }` (types in [Data contracts](#data-contracts)).
 
-##### 34. `./src/engine/project/initialState.ts`, `./spendingNeed.ts`, `./workingYear.ts`, `./runPath.ts` (stage 2) and `./death.ts` (stage 2: `firstDeathTransfer`; stage 3: the rest) (Create)
+##### 34. `./src/engine/project/initialState.ts`, `./spendingNeed.ts`, `./workingYear.ts`, `./runPath.ts`, `./death.ts` (Exists, stages 2–3)
 
 *   **Proposed Changes**:
     *   `initialState(inputs: NormalizedInputs, ctx, variant): PlanState` builds the first year's state: RRSP, LIRA and TFSA balances placed by `targetHoldings` (non-registered from its entered positions and costs); each spouse's TFSA room from the sum of their `tfsaRoomToday`; an account whose owner is already past its conversion age starts converted, with `openedYear` = plan start − 1, so its minimum applies from the first year.
     *   `spendingNeed(inputs, state, ctx): number` returns the year's need from the phases, category overrides and `keepPct` ([Data contracts](#data-contracts), Spending need), × the survivor percentage after the first death, zero before the first retirement.
-    *   `workingYear(state, inputs, ctx, variant): { nextState, row }` runs years before the first retirement, following the numbered working-year steps in [The year solver](#the-year-solver); `variant` gives the preset for the rebalance.
-    *   `runPath(inputs: NormalizedInputs, cfg, jurisdiction, variant, detail: 'full' | 'summary')` builds one `YearContext` per year, runs the plan at fixed returns and returns rows and a `PlanSummary`. It adds up `lifetimeTaxNom`, `lifetimeTaxToday`, `totalShortfallNom` and `totalShortfallToday` (M5). In stage 2 it stops after the second death year without a final return; `afterTaxLegacyNom` is the total of balances before tax, and `legacyIsPreTax` is `true`.
+    *   `workingYear(state, inputs, ctx, variant): SolvedYear` runs years before the first retirement, following the numbered working-year steps in [The year solver](#the-year-solver); `variant` gives the preset for the rebalance.
+    *   `runPath(inputs: NormalizedInputs, cfg, jurisdiction, variant, detail: 'full' | 'summary')` builds one `YearContext` per year, runs the plan at fixed returns and returns rows and a `PlanSummary`. It adds up `lifetimeTaxNom`, `lifetimeTaxToday` (both including final-return tax and probate), `totalShortfallNom` and `totalShortfallToday`. In the second death year it fills the row's `estate` fields with `secondDeath`, and `afterTaxLegacyNom` comes from them (`legacyIsPreTax` is `false`).
     *   `death.ts` holds:
-        *   the first-death transfer, `firstDeathTransfer(state, inputs, ctx): PlanState` (stage 2, used by solver step 1, following its rules: accounts keep id and type and change owner, the survivor's age drives minimums and conversion, the deceased's carried loss is dropped);
-        *   same-year death handling;
-        *   `finalReturn` (registered balances converted or not, deemed sale, tax);
-        *   `estate` (probate per O23, optional home, after-tax legacy).
+        *   `deaths(inputs): [Death, Death]`, the two deaths in year order (spouse 1 first on the same year);
+        *   `transferAccounts(state, from, to)` and `firstDeathTransfer(state): PlanState`, used by solver step 0a, following its rules: accounts keep id and type and change owner, the survivor's age drives minimums and conversion, the deceased's carried loss is dropped;
+        *   `finalReturn(deceased, endState, yearIncome, yearTax, ctx)`: the deemed income (registered balances converted or not, the deemed sale) and the final-return tax over what the year already paid;
+        *   `estate(endState, finalReturnTaxNom, inputs, ctx)`: the home, probate per O23, and the after-tax legacy;
+        *   `secondDeath(endState, taxed, inputs, ctx): EstateYear`, which handles same-year deaths and returns the row's `estate` fields, following [Death and estate](#death-and-estate-o12-o23).
 
-##### 35. (Removed 2026-11-18: no market generator or stress paths with fixed returns)
+##### 35. (Removed: no market generator or stress paths with fixed returns)
 
 ##### 36. `./src/engine/simulate/variants.ts` and `./simulate.ts` (Create, stage 4)
 
@@ -1607,9 +1600,9 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
 *   **Proposed Changes**: Implement the [Result definitions](#result-definitions):
     *   whether spending is covered and whether the legacy goal is met;
-    *   `compare` returns the differences in lifetime tax and money left between the plan and a baseline, with an opposite-direction flag;
+    *   `compare` returns the differences in lifetime tax and the after-tax legacy between the plan and a baseline, with an opposite-direction flag;
 
-##### 38. `./src/engine/invariants.ts` (Create, stage 2)
+##### 38. `./src/engine/invariants.ts` (Exists, stage 2)
 
 *   **Proposed Changes**: `checkYear(prev: PlanState, next: PlanState, row: YearRow, ctx)` applies the [Verification](#verification-g10) checks within `INVARIANT_TOLERANCE`, including the account and household conservation identities stated there.
 
@@ -1619,7 +1612,8 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   **`definitions.ts`:** one object per warning, holding its check, explanation, basis, years, scope, unit and related input paths.
     *   **`evaluate.ts`:** evaluates the warnings and collapses repeated years.
     *   **`tips.ts`:**
-        *   reruns the plan with each related input nudged up and down by its configured step, and returns the top three inputs by effect with conditional wording.
+        *   reruns the plan with each related input nudged up and down by its configured step, and returns the top three inputs by effect with conditional wording;
+        *   a rerun that fails is dropped and logged, and the other tips are still returned.
 
 ##### 40. `./src/engine/index.ts` (Create, stage 4)
 
@@ -1631,10 +1625,11 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
 #### Worker (stage 4)
 
-##### 41. `./src/worker/engine.worker.ts` and `./src/worker/client.ts` (Create)
+##### 41. `./src/worker/engine.worker.ts` and `./src/worker/client.ts` (Create, stage 4)
 
 *   **Proposed Changes**:
-    *   The Worker receives `{ type: 'run', inputs, revision }` and posts `result` (with `revision`), then `tips` (with `revision`), or `error` (including `EngineIntegrityError` details). It runs one revision at a time; when a newer revision is sent during a run, `client.ts` terminates the Worker and starts a new one (C4).
+    *   `client.ts` creates the Worker from a `blob:` URL of the bundled Worker code, so it runs under the page's security policy.
+    *   The Worker receives `{ type: 'run', inputs, revision }` and posts `result` (with `revision`), then `tips` (with `revision`), or `error` (including `EngineIntegrityError` details). It runs one revision at a time; when a newer revision is sent during a run, `client.ts` terminates the Worker and starts a new one.
     *   The client exposes `run(inputs, revision)` with callbacks for the result and the tips.
 
 #### State and persistence (stages 5, 7)
@@ -1654,7 +1649,8 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   the Zod envelope `{ schemaVersion: 1, inputs, meta }`;
     *   the `rp.plan.v1` key and the debounced autosave;
     *   `navigator.storage.persist()`, with the export prompt on refusal or save failure;
-    *   export file naming and the newer-version refusal message.
+    *   export file naming and the newer-version refusal message;
+    *   the `storage` event: when another tab saves the plan, offer "Reload it, or keep this version".
 
 ##### 44. `./src/state/samplePlan.ts` (Create, stage 7)
 
@@ -1669,7 +1665,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
 #### Screens (stage 5; warnings in stage 6)
 
-##### 45. `./src/ui/App.tsx` and `./src/ui/styles.css` (Create)
+##### 45. `./src/ui/App.tsx` and `./src/ui/styles.css` (Create, stage 5)
 
 *   **Proposed Changes**:
     *   Tab bar for Household, Savings, Spending, Withdrawals, Estate and Results (with its badge); no results panel on the input tabs.
@@ -1677,33 +1673,33 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   Footer shows the disclaimer.
     *   First-run disclaimer dialog.
 
-##### 46. `./src/ui/tabs/HouseholdTab.tsx`, `./SavingsTab.tsx`, `./SpendingTab.tsx`, `./WithdrawalsTab.tsx`, `./EstateTab.tsx`, `./ResultsTab.tsx`, and `./src/ui/settings/SettingsScreen.tsx` (Create)
+##### 46. `./src/ui/tabs/HouseholdTab.tsx`, `./SavingsTab.tsx`, `./SpendingTab.tsx`, `./WithdrawalsTab.tsx`, `./EstateTab.tsx`, `./ResultsTab.tsx`, and `./src/ui/settings/SettingsScreen.tsx` (Create, stage 5)
 
-*   **Proposed Changes**: Laid out as in [Screen design revision (2026-11-19)](#screen-design-revision-2026-11-19).
+*   **Proposed Changes**: Laid out as in [Screens](#screens).
     *   **Household:** spouses only: birth year and month, sex at birth, retirement year, life expectancy target with the 25%-survival note, CPP estimate, residence years, working marginal rate, after-tax pay.
     *   **Savings:** collapsible sections with summaries: accounts, DB pensions, the investment mix (sliders that keep the total at 100%, return overrides, fee level, rebalance), "As you get older" shapes, and placement with its comparison and the face-value note; a note that returns are steady averages, so a shape shows only its effect on average returns, not on protection from a bad market.
     *   **Spending:** "By category" or "One total"; category groups with "Different later?" overrides and group notes; the three phases with "from year" fields and keep-share sliders.
-    *   **Withdrawals:** the three setup sections (closed by default, with summaries); the four strategy cards with "Learn more" dialogs; the options row; the income chart with its year slider and the fixed 11-row breakdown.
+    *   **Withdrawals:** the three setup sections (closed by default, with summaries); the three strategy cards with "Learn more" dialogs; the options row; the income chart with its year slider and the fixed 11-row breakdown.
     *   **Estate:** survivor percentage, legacy goal, home value, probate strip, beneficiary assumption.
     *   **Results:** status line, the two goal cards with the summary line, warnings, and the four charts.
     *   **Settings:** every rule value by section, with default, source, "changed" mark and Reset; deep links from Edit strips on other screens.
 
-##### 47. `./src/ui/results/Goals.tsx`, `./UpdatingState.tsx`, `./ResultsBadge.tsx`, `./ChangeSummary.tsx`, `./WarningsList.tsx`, `./ConfigNotice.tsx`, `./IntegrityError.tsx` (Create)
+##### 47. `./src/ui/results/Goals.tsx`, `./UpdatingState.tsx`, `./ResultsBadge.tsx`, `./ChangeSummary.tsx`, `./WarningsList.tsx`, `./ConfigNotice.tsx`, `./IntegrityError.tsx` (Create, stages 5–6)
 
 *   **Proposed Changes**:
     *   **Goals:** Goal 1, whether spending is covered every year (with its label, the year strip, and the first shortfall year if not); Goal 2, the after-tax legacy against the goal; then one line with lifetime tax, clawback years and the change summary.
-    *   **Updating state:** while a run is in progress, the previous figures stay, faded, under "Updating…"; no Recalculate button (2026-11-19).
+    *   **Updating state:** while a run is in progress, the previous figures stay, faded, under "Updating…"; no Recalculate button.
     *   **Results badge:** on the tab label: warning count, "Updating", "Short from <year>" or "Error".
     *   **Change summary:** what the last change did, naming the edit, on the line under the goals.
     *   **Warnings:** each with tips and links that focus the related input.
     *   **Config notice:** shown when values are unvalidated or out of date.
     *   **Integrity error:** shows the details with a "Copy details" button.
 
-##### 48. `./src/ui/charts/BalancesChart.tsx`, `./IncomeChart.tsx`, `./TaxChart.tsx`, `./EstateWaterfall.tsx`, `./ChartTable.tsx` (Create)
+##### 48. `./src/ui/charts/BalancesChart.tsx`, `./IncomeChart.tsx`, `./TaxChart.tsx`, `./EstateWaterfall.tsx`, `./ChartTable.tsx` (Create, stage 5)
 
-*   **Proposed Changes**: Charts in today's dollars for the user's plan, as described in [Results tab](#results-tab). Every chart has a table view (`ChartTable`), and labels say "today's dollars". There is no separate year-by-year table (2026-11-19). `IncomeChart` is the Withdrawals tab's stacked area chart (sources labelled on their bands, spending target line, tax and TFSA bands, year marker driven by a slider spanning the plot area); it draws any strategy's rows from `StrategyResult` without a rerun.
+*   **Proposed Changes**: Charts in today's dollars for the user's plan, as described in [Results tab](#results-tab). Every chart has a table view (`ChartTable`), and labels say "today's dollars". There is no separate year-by-year table (2026-11-19). `IncomeChart` is the Withdrawals tab's stacked area chart (sources labelled on their bands, spending-need line, tax and TFSA bands, year marker driven by a slider spanning the plot area); it draws any strategy's rows from `StrategyResult` without a rerun.
 
-##### 49. `./src/ui/inputs/Field.tsx`, `./CurrencyInput.tsx`, `./PercentInput.tsx`, `./AgeInput.tsx`, `./SegmentedChoice.tsx` (Create)
+##### 49. `./src/ui/inputs/Field.tsx`, `./CurrencyInput.tsx`, `./PercentInput.tsx`, `./AgeInput.tsx`, `./SegmentedChoice.tsx` (Create, stage 5)
 
 *   **Proposed Changes**:
     *   Labels sit above inputs, with glossary tooltips.
@@ -1711,26 +1707,26 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   Segmented choices are built from real radio inputs, so they work by keyboard.
     *   Inline validation messages don't shift the layout.
 
-##### 50. `./src/ui/content/glossary.ts`, `./explanations.ts`, `./disclaimer.ts` (Create)
+##### 50. `./src/ui/content/glossary.ts`, `./explanations.ts`, `./disclaimer.ts` (Create, stage 5)
 
 *   **Proposed Changes**:
-    *   **`glossary.ts`:** at least the terms in the [Glossary](#glossary).
+    *   **`glossary.ts`:** the terms in the [Glossary](#glossary), which lists only terms users see.
     *   **`explanations.ts`:** fixed templates for each preset, shape, strategy and comparison, all in conditional wording. Each strategy's "Learn more" text has: what it does; effect on income, taxes and savings; pros; cons; when it makes sense; and, for "Fill lower brackets first" and "Early RRSP drawdown", a note on choosing the level or the ages.
     *   **`disclaimer.ts`:** placeholder text: "This tool shows projections under the assumptions you enter. It is not financial, tax or legal advice." It is replaced when O20 is resolved.
 
 #### Tools (stage 0)
 
-##### 51. `./tools/configBundle.ts`, `./tools/configCheck.ts`, `./tools/configCompare.ts`, `./tools/lib.ts` (Exist, stage 0; `configCheck` modified at stage 2)
+##### 51. `./tools/configBundle.ts`, `./tools/configCheck.ts`, `./tools/configCompare.ts`, `./tools/lib.ts` (Exists, stage 0; `configCheck` changed at stage 2)
 
 *   **Proposed Changes**:
     *   **`configBundle`:** generates `src/engine/config/bundle.ts` for `CURRENT_YEAR`.
-    *   **`configCheck`:** validates every config file against the schema, checks that `SOURCES.md` and `keys.ts` list exactly the same keys (both directions), and prints the number of unfetched and unvalidated entries (with `--strict`, it lists them and fails). It exits non-zero on schema or key-list errors. From stage 2 it also prints a warning, without failing, for each class whose yield is above its gross return (FR-M5); the 2026 bond values trigger it.
+    *   **`configCheck`:** validates every config file against the schema, checks that `SOURCES.md` and `keys.ts` list exactly the same keys (both directions), and prints the number of unfetched and unvalidated entries (with `--strict`, it lists them and fails). It exits non-zero on schema or key-list errors. From stage 2 it also prints a warning, without failing, for each class whose yield is above its gross return; the 2026 bond values trigger it.
     *   **`configCompare a b`:** lists every key whose value, unit, year or indexed flag differs.
     *   **`lib.ts`:** shared helpers: reading `CURRENT_YEAR`, reading a year's config files, and reading the key column of `SOURCES.md`.
 
 #### Tests and fixtures
 
-##### 52. `./tests/fixtures/tax-cases.json` (Exists, stage 0; entered by an agent from TaxTips.ca, spot-checked by the author)
+##### 52. `./tests/fixtures/tax-cases.json` (Exists, stage 0)
 
 *   **Proposed Changes**: 21 cases (at least 20 for any later version) in the format `{ id, pairId?, age, income: TaxableIncome, federalTax, ontarioTax, clawback, source: "TaxTips.ca Ontario calculator", checkedOn }`.
     *   `federalTax` excludes the OAS recovery tax, which goes in `clawback`, matching how TaxTips.ca reports it.
@@ -1745,9 +1741,9 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
     Federal tax, Ontario tax and the clawback must each match within $1.
 
-    **How the cases were made (author, 2026-11-19):** an agent entered the 21 cases in `private/tax-cases-checklist.md` into the TaxTips.ca calculator (2026, Ontario, single) and recorded its results; the author re-ran 3 cases by hand (`65-rrif-99k`, `65-high-dividends`, `split-a`), all matching to the dollar, before the file was committed. TaxTips' "Ontario tax" is line 42800, which includes the Health Premium; its federal tax is line 42000, without the clawback.
+    **How the cases were made:** an agent entered the 21 cases in `private/tax-cases-checklist.md` into the TaxTips.ca calculator (2026, Ontario, single) and recorded its results; the author re-ran 3 cases by hand (`65-rrif-99k`, `65-high-dividends`, `split-a`), all matching to the dollar, before the file was committed. TaxTips' "Ontario tax" is line 42800, which includes the Health Premium; its federal tax is line 42000, without the clawback.
 
-##### 53. `./tests/fixtures/reference-plan/inputs.json` and `./expected-rows.csv` (Create, stage 3)
+##### 53. `./tests/fixtures/reference-plan/inputs.json` and `./expected-rows.csv` (Exists, stage 3)
 
 *   **Proposed Changes**: A made-up couple at fixed returns. The expected rows are built by a separate AI session from this design, `docs/units-and-conventions.md` and the config, without seeing engine code. Columns follow `YearRow`. The engine must match within $1 per cell.
 
@@ -1765,29 +1761,29 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
     An agent may draft it; the author completes and commits it.
 
-##### 56. `./tests/unit/` (stages 0-7; files below by stage)
+##### 56. `./tests/unit/` (Exists, stages 0–3; files below by stage)
 
 *   **Proposed Changes**: Test files and their cases. Shared stage 2 helper: `tests/unit/helpers/couplePlan.ts`, a minimal two-spouse `PlanInputs` and a `yearContext(yearIndex)` built from the bundle, with test-only values (never rule values) for entries still unfetched.
 
     | File | Stage | Test cases |
     |---|---|---|
     | `personalTax.test.ts` | 1 | Every `tax-cases.json` case within $1 |
-    | `ontario.test.ts`, `federal.test.ts` (FR-M13) | 1 | Each step of the [Ontario calculation order](#tax-scope-o11), checked separately. Health Premium at each band's start, $1 above it and at the income where it reaches the cap. Surtax at, $1 below and $1 above each threshold, and above both. Tax Reduction: full (tax brought to zero), partial, and zero at high tax; the Health Premium is never reduced. Dividend credit and other credits can't make basic tax negative. Bracket indexing in a later year: rows marked `indexed: false` keep their threshold while the rest grow with `ctx.deflator`. Expected values are worked out in the test from the config entries in use, not typed in as numbers |
+    | `ontario.test.ts`, `federal.test.ts` | 1 | Each step of the [Ontario calculation order](#tax-scope-o11), checked separately. Health Premium at each band's start, $1 above it and at the income where it reaches the cap. Surtax at, $1 below and $1 above each threshold, and above both. Tax Reduction: full (tax brought to zero), partial, and zero at high tax; the Health Premium is never reduced. Dividend credit and other credits can't make basic tax negative. Bracket indexing in a later year: rows marked `indexed: false` keep their threshold while the rest grow with `ctx.deflator`. Expected values are worked out in the test from the config entries in use, not typed in as numbers |
     | `split.test.ts` | 2 | Eligibility (no RRIF splitting under 65; DB at any age); hand-checked pairs; both directions; the tie rule |
     | `cpp.test.ts`, `oas.test.ts`, `db.test.ts`, `survivor.test.ts` | 2 | Start ages 60/65/70; birth-month pro-rating; OAS residence and the 75+ increase; DB bridge stop; DB indexing for `full`, `fixed` (nominal at start, then `indexRate`) and `none` (nominal, flat); survivor cap, both age bands |
-    | `rrspRrif.test.ts`, `liraLif.test.ts`, `tfsa.test.ts`, `nonRegistered.test.ts` | 2 | TFSA room: unrounded indexed limit, withdrawals added back next January 1 (C3); minimums against the config table; the minimum at ages 60 and 70 from the base age, and above 95 (FR-M4, FR-M13); zero minimum in the opening year; LIF maximum from the table and from last year's earnings, and above age 90 (FR-M9); a LIRA is never drawn; unlock; TFSA room and successor; original cost on partial sales; a realized loss offsets same-year gains and carries forward, never against other income (FR-M5); sheltered yield reinvested, net of withholding on foreign dividends (M15) |
-    | `returns.test.ts` | 2 | Override before the fee; the fee subtracted; price = total − yield; one row per class; the optimistic-return limit at +0.5 and +0.51 points (FR-M6, FR-M13) |
-    | `overrides.test.ts` | 2 | Unit ranges; table structure (rising `from`, no age gaps, caps never fall, equal surtax lengths); cross-key rules; a monthly override × 12 through `publishedUnit`; an override of a 5-year life-expectancy table is accepted; an object override (`planning.shapes`) checked by `checkValue`; an unknown or invalid key dropped on import with a message; a stale override marked (SR1-M9, SR1-M10) |
+    | `rrspRrif.test.ts`, `liraLif.test.ts`, `tfsa.test.ts`, `nonRegistered.test.ts` | 2 | TFSA room: unrounded indexed limit, withdrawals added back next January 1; minimums against the config table; the minimum at ages 60 and 70 from the base age, and above 95; zero minimum in the opening year; LIF maximum from the table and from last year's earnings, and above age 90; a LIRA is never drawn; unlock; TFSA room and successor; original cost on partial sales; a realized loss offsets same-year gains and carries forward, never against other income; sheltered yield reinvested, net of withholding on foreign dividends |
+    | `returns.test.ts` | 2 | Override before the fee; the fee subtracted; price = total − yield; one row per class; the optimistic-return limit at +0.5 and +0.51 points |
+    | `overrides.test.ts` | 2 | Unit ranges; table structure (rising `from`, no age gaps, caps never fall, equal surtax lengths); cross-key rules; a monthly override × 12 through `publishedUnit`; an override of a 5-year life-expectancy table is accepted; an object override (`planning.shapes`) checked by `checkValue`; an unknown or invalid key dropped on import with a message; a stale override marked |
     | `glide.test.ts`, `placement.test.ts`, `rebalance.test.ts` | 2 | Shape interpolation and end points applied to the user's mix, measured from the plan start (plan starts before and after retirement give today's mix in year one); clamped at 0% and 100%, with 100%-stock and 0%-stock mixes; fill order for six classes; baseline mix; realized gains; rebalancing off (no shape, drift with returns) |
-    | `registeredLast.test.ts`, `fillBrackets.test.ts`, `earlyRrsp.test.ts`, `surplus.test.ts` | 2 | Draw order; pro rata between spouses; LIF cap overflow (M6); bracket top-up creates surplus; top-up with dividends and realized gains in income (SR1-M6); both levels follow a changed rule value; survivor keeps the level; draw-down years from the start ages, including the last start year, a death before benefits start and zero draw-down years; the fill-up rule with equal incomes and with one spouse exhausted (SR1-M4); surplus to TFSA within room |
-    | `yearSolve.test.ts` | 2 | Converges for the helper couple at spending of $0, $60,000 and $200,000 today; shortfall recorded; a working spouse in a retired-household year (C2); two-pass split |
+    | `registeredLast.test.ts`, `fillBrackets.test.ts`, `earlyRrsp.test.ts`, `surplus.test.ts` | 2 | Draw order; pro rata between spouses; LIF cap overflow; bracket top-up creates surplus; top-up with dividends and realized gains in income; both levels follow a changed rule value; survivor keeps the level; draw-down years from the start ages, including the last start year, a death before benefits start and zero draw-down years; the fill-up rule with equal incomes and with one spouse exhausted; surplus to TFSA within room |
+    | `yearSolve.test.ts` | 2 | Converges for the helper couple at spending of $0, $60,000 and $200,000 today; shortfall recorded; a working spouse in a retired-household year; the split passes |
     | `bisect.test.ts` | 2 | Converges; precision on *x*; reports non-convergence |
     | `workingYear.test.ts` | 2 | Each step of the working-years list: yield taxed at the marginal rate, benefits while working, TFSA overflow to non-registered, contributions at year end |
-    | `runPath.test.ts` | 2 | Logs the time of one 40-year couple run (no assertion; SR1-M3). Row span from the start year to the second death year; `full` and `summary` detail; `PlanSummary` totals, including lifetime tax and shortfall in today's dollars summed year by year (M5); stage 2 legacy without a final return |
+    | `runPath.test.ts` | 2 | Logs the time of one 40-year couple run (no assertion). Row span from the start year to the second death year; `full` and `summary` detail; `PlanSummary` totals, including lifetime tax and shortfall in today's dollars summed year by year, with final-return tax and probate in lifetime tax |
     | `invariants.test.ts` | 2 | Each conservation identity holds on a normal year and fails on a broken account |
     | `read.test.ts` | 2 | `ageTable` above the last row and below the first; `planValue` |
     | `death.test.ts` | 2 (first-death transfer); 3 (the rest) | Stage 2: accounts keep id and type and change owner; the survivor's age drives minimums; the deceased's carried loss is dropped; the TFSA transfer uses no room. Stage 3: rollover at original cost; same-year deaths; final return includes unconverted RRSP/LIRA; probate |
-    | `units.test.ts` | 2 | `normalizeInputs` and `toDisplay` round trip; DB `fixed` and `none` amounts left nominal; `rebaseConfig` with `planStartYear = taxYear + 3` for each value kind (number, bracket rows by their flags, list, phase-in `from` and `cap`; age tables untouched), including a stale override rebased from its own year (SR1-M10) |
+    | `units.test.ts` | 2 | `normalizeInputs` and `toDisplay` round trip; DB `fixed` and `none` amounts left nominal; `rebaseConfig` with `planStartYear = taxYear + 3` for each value kind (number, bracket rows by their flags, list, phase-in `from` and `cap`; age tables untouched), including a stale override rebased from its own year |
     | `compare.test.ts` | 4 | Spending-covered and legacy-goal flags; differences against a baseline; opposite-direction flag |
     | `warnings.test.ts`, `tips.test.ts` | 6 | Each trigger at and around its threshold; collapsed years; tips ranked by effect |
     | `changeSummary.test.ts`, `store.test.ts` | 5 | Diff fields and the named edit; a run scheduled 500 ms after the last edit; an older revision's result dropped; rule overrides set and reset |
@@ -1795,7 +1791,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     | `config.test.ts` (exists from stage 0) | 0 (changed at 2) | Key list has no duplicates and matches `SOURCES.md`; entry shape by value kind; structured planning values; missing, unknown and wrong-year keys; unfetched and out-of-date status; monthly amounts × 12 on load; the committed config passes; `configCompare` differences |
     | `configCheck.test.ts` | 2 | `yieldWarnings` (from `tools/lib.ts`) flags a class whose yield is above its gross return |
 
-##### 57. `./tests/property/` (Create, stages 2-3; files below)
+##### 57. `./tests/property/` (Exists, stages 2–3)
 
 *   **Proposed Changes**: The property tests listed in [Verification](#verification-g10). They use fast-check. The zero-tax config is built in `tests/property/helpers/zeroTax.ts` from the bundle with `applyRuleOverrides`, setting to 0: every rate in `federal.tax.brackets` and `ontario.tax.brackets`, both `ontario.surtax.rates`, every `rate` and `cap` in `ontario.health_premium.schedule`, and `federal.oas.recovery.rate`. Plans used with it have `workingMarginalRate = 0` for both spouses. It is never part of the validated config.
 
@@ -1807,18 +1803,18 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     | `tests/property/zeroTax.test.ts` | With zero tax, the loop matches the closed-form annuity | 2 |
     | `tests/property/legacy.test.ts` | Higher spending never raises the after-tax legacy (needs the final return) | 3 |
 
-##### 58. `./tests/reference/referencePlan.test.ts` (Create, stage 3)
+##### 58. `./tests/reference/referencePlan.test.ts` (Exists, stage 3)
 
 *   **Proposed Changes**: Runs the reference inputs at fixed returns and compares every cell with `expected-rows.csv`, within $1.
 
-##### 59. (Removed 2026-11-18: no benchmark script; the speed check is manual)
+##### 59. (Removed: no benchmark script; the speed check is manual)
 
 ##### 60. `./tests/e2e/*.spec.ts` (Create, stages 5–7)
 
 *   **Proposed Changes**: One spec per CUJ, plus one check.
     *   **CUJ 1 (`first-plan.spec.ts`):** load the sample plan; results appear without a button press. Both goal cards show their result, the lifetime tax is shown, each yearly chart's table view has one row per year, and the plan survives a page reload.
     *   **CUJ 2 (`cross-tab.spec.ts`):** click each strategy card on Withdrawals. The cards, chart and breakdown keep their positions; after selecting one, the Results tab shows "Updating" and then "What your last change did" with lifetime tax and clawback years.
-    *   **CUJ 3 (`placement.spec.ts`):** change the preset. The comparison shows lifetime tax and money left for the preset and the baseline.
+    *   **CUJ 3 (`placement.spec.ts`):** change the preset. The comparison shows lifetime tax and the after-tax legacy for the preset and the baseline.
     *   **CUJ 4 (`first-death.spec.ts`):** with targets 78 and 94, the rows after 78 show one spouse not alive, the survivor benefits started, and the survivor percentage applied.
     *   **CUJ 5 (`resume.spec.ts`):** export, clear storage, import. The inputs are identical. A file with `schemaVersion: 2` is refused with both versions named.
     *   **CUJ 6 (`settings.spec.ts`):** change the OAS clawback threshold in Settings. It is marked changed with the default beside it, the header reads "1 value changed", results update, the change survives export and import, and Reset restores the default. (The config-notice check for an unvalidated key moves here too, if M2 is resolved.)
@@ -1829,14 +1825,12 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 *   **Compilation/Build**: `npm run typecheck` and `npm run build` succeed.
 *   **Unit Tests**: `npm test` passes, including every tax fixture, the reference plan and the property tests.
 *   **Static Analysis & Linting**: `npm run lint`, `npm run format:check` and `npm run config:check` pass.
-*   **Test Coverage Requirement**: from the `stage-2` tag (CI sets `ENFORCE_COVERAGE`): 90% branches for `src/engine/**`; 70% for the rest of `src/` (target pending M3).
+*   **Test Coverage Requirement**: from the `stage-2` tag (CI sets `ENFORCE_COVERAGE`): 90% branches for `src/engine/**`; 70% for the rest of `src/` (target to be set in stage 5; Known gaps M3).
 *   **E2E/Integration**: `npm run test:e2e` passes in Chromium, including the no-network test.
 *   **Fixtures**: before each stage tag, the author reviews `git diff tests/fixtures config`.
 *   **Paid-tool comparison (manual, before stage 8)**: recorded in `tests/fixtures/paid-tool-comparison.md`. Any difference the tools' assumptions don't explain is investigated before stage 8.
 *   **Performance (manual, before stage 8)**: results within 1 second and tips within 2 seconds of the end of the 500 ms pause after the last edit, on the reference machine; no main-thread task over 50 ms while a run is in progress (Chrome DevTools Performance panel).
 *   **Stage 8 (people)**: the author judges each tester against the [Success Criteria](#success-criteria-for-version-1).
-
---------------------------------------------------------------------------------
 
 <!-- Provenance: Indicates initial structural drafting via EGM. -->
 
