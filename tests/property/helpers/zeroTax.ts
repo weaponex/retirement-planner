@@ -29,7 +29,8 @@ export function zeroTaxConfig(planStartYear: number): Config {
     },
     'federal.oas.recovery.rate': { value: 0, defaultTaxYear: year },
   };
-  const applied = applyRuleOverrides(cfg, overrides);
+  // Tables can't be overridden in Settings (review triage T2), so this test config uses 'any'.
+  const applied = applyRuleOverrides(cfg, overrides, 'any');
   // Every override must have been accepted, or the config would still tax.
   for (const key of Object.keys(overrides)) {
     if (applied.entries.get(key)!.value === cfg.entries.get(key)!.value) {

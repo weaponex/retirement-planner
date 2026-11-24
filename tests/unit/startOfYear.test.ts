@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { accountValue } from '../../src/engine/invest/rebalance';
-import { afterTaxStockShare } from '../../src/engine/invest/placement';
 import { nextAccountId, startOfYear } from '../../src/engine/solver/startOfYear';
 import type { PlanState } from '../../src/engine/types';
 import { account, spouseState } from './helpers/accounts';
@@ -73,17 +72,5 @@ describe('startOfYear', () => {
     ];
     expect(nextAccountId(accounts, 'nonreg', 1)).toBe('nonreg-1-4');
     expect(nextAccountId(accounts, 'nonreg', 0)).toBe('nonreg-0-1');
-  });
-});
-
-describe('afterTaxStockShare', () => {
-  it('reduces registered balances by the average withdrawal tax rate', () => {
-    const accounts = [
-      account('rrif-0-1', 'rrif', 0, { cad_equity: 100_000 }),
-      account('tfsa-0-1', 'tfsa', 0, { bonds: 100_000 }),
-    ];
-    expect(afterTaxStockShare(accounts, 0)).toBeCloseTo(0.5, 9);
-    expect(afterTaxStockShare(accounts, 0.3)).toBeCloseTo(70 / 170, 9);
-    expect(afterTaxStockShare([], 0.3)).toBe(0);
   });
 });

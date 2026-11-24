@@ -58,13 +58,6 @@ import {
 } from './incomeAssembly';
 import { deathYear, spouseForYear, startOfYear } from './startOfYear';
 
-export class UnsupportedStrategyError extends Error {
-  constructor(readonly strategyId: string) {
-    super(`Strategy ${strategyId} is not available until stage 4`);
-    this.name = 'UnsupportedStrategyError';
-  }
-}
-
 const OWNERS: Owner[] = [0, 1];
 const other = (o: Owner): Owner => (o === 0 ? 1 : 0);
 const SHELTERED = new Set(['rrsp', 'rrif', 'lira', 'lif', 'tfsa']);
@@ -395,8 +388,7 @@ export function advance(state: PlanState, inputs: NormalizedInputs, split: Split
 
 /**
  * One retired-household year (design: The year solver, steps 0 to 9; the
- * final return is stage 3). Throws UnsupportedStrategyError for `planner_pick`
- * and EngineIntegrityError when the solve does not converge or an invariant fails.
+ * final return is stage 3). Throws EngineIntegrityError when the solve does not converge or an invariant fails.
  */
 export function solveYear(
   state: PlanState,
@@ -405,7 +397,6 @@ export function solveYear(
   variant: Variant,
   options: SolveOptions = {},
 ): SolvedYear {
-  if (variant.strategyId === 'planner_pick') throw new UnsupportedStrategyError('planner_pick');
   const returns = classReturns(ctx.cfg, inputs.investing);
   const p = prepareYear(state, inputs, ctx, variant, returns);
   const s = p.state;

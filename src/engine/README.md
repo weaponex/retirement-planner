@@ -7,7 +7,7 @@ engine-wide settings (`constants.ts`), the data contracts (`types.ts`) from the 
 [Data contracts](../../docs/designs/retirement-planner.md#data-contracts), the dollar conversions
 (`units.ts`) and the runtime invariants (`invariants.ts`). The subfolders load the rule values,
 compute tax, model accounts, benefits and investments, choose withdrawals, solve each year and run
-a whole plan. Stage 4 adds the variants, the planner's search and the `index.ts` entry point.
+a whole plan. Stage 4 adds the variants, the comparisons and the `index.ts` entry point.
 
 ## Interface
 

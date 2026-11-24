@@ -7,7 +7,6 @@ import type { Config } from '../config/load';
 import { planObject } from '../config/read';
 import type { AccountState, EngineAccountType, PresetId } from '../types';
 import { accountValue, type Weights } from './rebalance';
-import { STOCK_CLASSES } from './returns';
 
 type Group = 'registered' | 'tfsa' | 'nonreg';
 type Column = 'bonds' | 'global_equity' | 'cad_equity';
@@ -92,22 +91,4 @@ export function targetHoldings(
     }
   }
   return targets;
-}
-
-/**
- * The stock share after reducing registered balances by an average withdrawal
- * tax rate, so extra hidden risk in a placement is visible (stage 4 readout).
- */
-export function afterTaxStockShare(accounts: AccountState[], avgWithdrawalRate: number): number {
-  let stocks = 0;
-  let all = 0;
-  for (const a of accounts) {
-    const keep = GROUP[a.type] === 'registered' ? 1 - avgWithdrawalRate : 1;
-    for (const c of ASSET_CLASSES) {
-      const v = a.holdings[c].valueNom * keep;
-      all += v;
-      if (STOCK_CLASSES.includes(c)) stocks += v;
-    }
-  }
-  return all > 0 ? stocks / all : 0;
 }

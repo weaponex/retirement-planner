@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { initialState } from '../../src/engine/project/initialState';
-import { solveYear, UnsupportedStrategyError } from '../../src/engine/solver/yearSolve';
+import { solveYear } from '../../src/engine/solver/yearSolve';
 import type { PlanInputs, Variant } from '../../src/engine/types';
 import { couplePlan, normalized, planConfig, yearContext } from './helpers/couplePlan';
 
@@ -78,11 +78,5 @@ describe('solveYear', () => {
     expect(nextState.splitShare.from).toBe(0);
     expect(nextState.splitShare.share).toBeGreaterThan(0);
     expect(row.spouse[0].splitShare).toBe(nextState.splitShare.share);
-  });
-
-  it('rejects planner_pick until stage 4', () => {
-    expect(() => firstYear(couplePlan(), { ...variant, strategyId: 'planner_pick' })).toThrow(
-      UnsupportedStrategyError,
-    );
   });
 });

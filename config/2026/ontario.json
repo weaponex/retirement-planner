@@ -152,7 +152,7 @@
   },
   "ontario.probate.threshold": {
     "value": null,
-    "unit": "CAD_per_year",
+    "unit": "CAD",
     "taxYear": 2026,
     "indexed": false,
     "source": {

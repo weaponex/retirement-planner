@@ -43,9 +43,8 @@ export interface TaxableIncome {
 }
 
 export type Owner = 0 | 1;
-export type StrategyId = 'registered_last' | 'fill_brackets' | 'early_rrsp' | 'planner_pick';
+export type StrategyId = 'registered_last' | 'fill_brackets' | 'early_rrsp';
 export type BracketLevel = 'first_bracket' | 'oas_threshold';
-export type PlannerGoal = 'most_left' | 'least_tax';
 export type MixId = 'conservative' | 'balanced' | 'growth' | 'custom';
 export type ShapeId = 'steady' | 'gradual_shift' | 'safety_first_regrow';
 export type PresetId = 'bonds_sheltered_first' | 'growth_tax_free_first';
@@ -61,6 +60,8 @@ export type RuleOverrides = Record<string, { value: unknown; defaultTaxYear: num
 // ---------------------------------------------------------------- plan inputs
 
 export interface SpouseInput {
+  /** Shown on the Household tab. */
+  name: string;
   birthYear: number;
   birthMonth: number;
   sexAtBirth: 'F' | 'M';
@@ -138,7 +139,6 @@ export interface InvestingInputs {
 export interface WithdrawalInputs {
   strategyId: StrategyId;
   bracketLevel: BracketLevel;
-  plannerGoal: PlannerGoal;
 }
 
 export interface PlanInputs {
@@ -393,10 +393,6 @@ export interface IncomeBySourceNom {
 export interface StrategyResult {
   strategyId: StrategyId;
   summary: PlanSummary;
-  /** planner_pick only. */
-  pickedOption?: string;
-  runnerUp?: string;
-  gapNom?: number;
   rows: {
     year: number;
     incomeBySourceNom: IncomeBySourceNom;

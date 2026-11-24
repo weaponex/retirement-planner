@@ -20,6 +20,7 @@ export function couplePlan(overrides: Partial<PlanInputs> = {}): PlanInputs {
     planStartYear: START_YEAR,
     spouses: [
       {
+        name: 'Alex',
         birthYear: 1961,
         birthMonth: 4,
         sexAtBirth: 'M',
@@ -33,6 +34,7 @@ export function couplePlan(overrides: Partial<PlanInputs> = {}): PlanInputs {
         afterTaxPayToday: 0,
       },
       {
+        name: 'Sam',
         birthYear: 1963,
         birthMonth: 9,
         sexAtBirth: 'F',
@@ -122,7 +124,6 @@ export function couplePlan(overrides: Partial<PlanInputs> = {}): PlanInputs {
     withdrawal: {
       strategyId: 'registered_last',
       bracketLevel: 'first_bracket',
-      plannerGoal: 'most_left',
     },
     ...overrides,
   };

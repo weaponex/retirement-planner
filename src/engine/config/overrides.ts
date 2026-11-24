@@ -11,9 +11,29 @@ import { SPEC_BY_KEY, checkValue } from './schema';
 const GAP_FREE_TABLES = new Set(['federal.rrif.min_factor', 'ontario.lif.max_factor']);
 const LIFE_EXPECTANCY_PREFIX = 'planning.life_expectancy.';
 
-/** Every key in the key tree, except `warnings.*` and the per-class returns (changed on the Savings tab). */
-export function isOverridable(key: string): boolean {
-  return SPEC_BY_KEY.has(key) && !key.startsWith('warnings.') && !key.endsWith('.geometric_return');
+/**
+ * Which keys an override may change:
+ * - `'settings'` (version 1, review triage T2): single values (`number` keys) with a
+ *   Settings row; tables, structured values and the CPP and OAS age-limit keys are
+ *   read-only;
+ * - `'any'`: every key except `warnings.*` and the per-class returns (changed on the
+ *   Savings tab). Kept for a later release and for test configs, such as the
+ *   zero-tax config in the property tests.
+ */
+export type OverrideScope = 'settings' | 'any';
+
+/** Number keys whose input ranges are fixed in the Data contracts, so Settings shows them read-only. */
+const AGE_LIMIT_KEYS = new Set([
+  'federal.cpp.start.earliest',
+  'federal.cpp.start.latest',
+  'federal.oas.deferral.max_months',
+]);
+
+export function isOverridable(key: string, scope: OverrideScope = 'settings'): boolean {
+  const spec = SPEC_BY_KEY.get(key);
+  if (!spec || key.startsWith('warnings.') || key.endsWith('.geometric_return')) return false;
+  if (scope === 'any') return true;
+  return spec.kind === 'number' && !AGE_LIMIT_KEYS.has(key);
 }
 
 interface Range {
@@ -33,6 +53,7 @@ function rangeFor(key: string, entry: LoadedEntry): Range | undefined {
       return OVERRIDE_RANGES.years;
     case 'count':
       return OVERRIDE_RANGES.count;
+    case 'CAD':
     case 'CAD_per_year':
     case 'CAD_per_month':
       return { min: 0, max: Infinity };
@@ -162,11 +183,12 @@ export function validateOverride(
   value: unknown,
   overrides: RuleOverrides,
   cfg: Config,
+  scope: OverrideScope = 'settings',
 ): string[] {
   const spec = SPEC_BY_KEY.get(key);
   const entry = cfg.entries.get(key);
   if (!spec || !entry) return [`${key}: not a known rule value`];
-  if (!isOverridable(key)) return [`${key}: cannot be changed in Settings`];
+  if (!isOverridable(key, scope)) return [`${key}: cannot be changed in Settings`];
   const kind = checkValue(spec, value);
   if (kind.length > 0) return kind;
   const shape = [...rangeProblems(spec, value, entry), ...structureProblems(spec, value)];
@@ -180,8 +202,12 @@ export function validateOverride(
  * key is multiplied by `MONTHS_PER_YEAR`, like its default; the entry takes the
  * override's `defaultTaxYear`, so `rebaseConfig` indexes it from there.
  */
-export function applyRuleOverrides(cfg: Config, overrides: RuleOverrides): Config {
-  const { kept } = dropInvalidOverrides(overrides, cfg);
+export function applyRuleOverrides(
+  cfg: Config,
+  overrides: RuleOverrides,
+  scope: OverrideScope = 'settings',
+): Config {
+  const { kept } = dropInvalidOverrides(overrides, cfg, scope);
   const entries = new Map(cfg.entries);
   for (const [key, { value, defaultTaxYear }] of Object.entries(kept)) {
     const entry = cfg.entries.get(key)!;
@@ -204,11 +230,12 @@ export interface DroppedOverride {
 export function dropInvalidOverrides(
   overrides: RuleOverrides,
   cfg: Config,
+  scope: OverrideScope = 'settings',
 ): { kept: RuleOverrides; dropped: DroppedOverride[] } {
   const kept: RuleOverrides = {};
   const dropped: DroppedOverride[] = [];
   for (const [key, override] of Object.entries(overrides)) {
-    const reasons = validateOverride(key, override.value, overrides, cfg);
+    const reasons = validateOverride(key, override.value, overrides, cfg, scope);
     if (reasons.length === 0) kept[key] = override;
     else dropped.push({ key, value: override.value, reasons });
   }

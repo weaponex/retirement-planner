@@ -124,7 +124,6 @@ export const KEY_SPECS: readonly KeySpec[] = [
     'planning.mixes',
     'planning.fee_levels',
     'planning.spending_phases',
-    'planning.planner_search',
   ]),
   ...author('planning', 'number', ['planning.survivor_spending', 'planning.override_margin']),
 

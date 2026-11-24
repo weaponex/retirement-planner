@@ -3,6 +3,8 @@ import { CONFIG_YEAR_MAX, CONFIG_YEAR_MIN, MAX_FEE } from '../constants';
 import { KEY_SPECS, type KeySpec, type ValueKind } from './keys';
 
 export const UNITS = [
+  // A one-time amount, such as the probate threshold.
+  'CAD',
   'CAD_per_year',
   'CAD_per_month',
   'rate',

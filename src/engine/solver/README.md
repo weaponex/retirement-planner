@@ -17,8 +17,7 @@ here is in future dollars; the `TodayDollars` type may not be imported (lint).
   realizedGains)`; `splitEligible(...)`; `noFixedIncome`, `noCashYield`.
 - `yearSolve.ts`
   - `solveYear(state, inputs, ctx, variant, options?)`: `{ nextState, row }`. Throws
-    `UnsupportedStrategyError` for `planner_pick` (stage 4) and `EngineIntegrityError` if the solve
-    does not converge or an invariant fails. `options.fixedSplit` solves once at that split (tests).
+    `EngineIntegrityError` if the solve does not converge or an invariant fails. `options.fixedSplit` solves once at that split (tests).
   - Shared with working years: `prepareYear`, `fixedIncome`, `fixedTotal`, `ownerCashYields`,
     `creditYields`, `applyPriceReturns`, `advance`.
 

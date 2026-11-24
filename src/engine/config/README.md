@@ -20,15 +20,15 @@ one plan year.
   - `KeySpec`: `{ key, file, kind, authorDecision }`.
   - `KEY_SPECS`: the complete list of config keys; `ALL_KEYS`: their names.
 - `schema.ts`
-  - `UNITS`: `CAD_per_year`, `CAD_per_month`, `rate`, `age`, `years`, `count`,
-    `none`.
+  - `UNITS`: `CAD` (a one-time amount, such as the probate threshold), `CAD_per_year`,
+    `CAD_per_month`, `rate`, `age`, `years`, `count`, `none`.
   - `ConfigEntry`: `{ value, unit, taxYear, indexed, source: { url, locator },
 fetchedOn, validation }`.
   - `objectSchemas`: value schemas for `object` keys (`planning.shapes`,
     `planning.presets`, `planning.fee_levels` (each level a rate from 0 to `MAX_FEE`),
-    `warnings.triggers`, `warnings.nudge_steps`). The other three `object` keys
-    (`planning.mixes`, `planning.spending_phases`, `planning.planner_search`) have no schema
-    yet: they wait on open questions O24, O27 and O31. While they are `unfetched` they pass;
+    `warnings.triggers`, `warnings.nudge_steps`). The other two `object` keys
+    (`planning.mixes`, `planning.spending_phases`) have no schema yet: they wait on open
+    questions O24 and O27. While they are `unfetched` they pass;
     once one has a value, `checkEntry` reports "no schema for object value" until its schema
     is added.
   - `checkValue(spec, value): string[]`: a value against its kind's schema (or its
@@ -53,13 +53,16 @@ fetchedOn, validation }`.
     overridden and stale-override keys, and whether the tax year is out of date.
     `configDefaults()` arrives in stage 4.
 - `overrides.ts` (SR1-M9)
-  - `isOverridable(key)`: every key except `warnings.*` and `market.<class>.geometric_return`.
-  - `validateOverride(key, value, overrides, cfg): string[]`: the kind's schema, the range for
+  - `OverrideScope`: `'settings'` (the default, review triage T2): single values (`number` keys)
+    only, except the CPP and OAS age-limit keys; `'any'`: every key except `warnings.*` and
+    `market.<class>.geometric_return`, for a later release and test configs.
+  - `isOverridable(key, scope?)`.
+  - `validateOverride(key, value, overrides, cfg, scope?): string[]`: the kind's schema, the range for
     the key's unit (`OVERRIDE_RANGES`), the table structure, then the cross-key rules on the
     whole override set.
-  - `applyRuleOverrides(cfg, overrides)`: a new `Config` with the valid overrides, monthly ones
+  - `applyRuleOverrides(cfg, overrides, scope?)`: a new `Config` with the valid overrides, monthly ones
     × 12, each taking its `defaultTaxYear`.
-  - `dropInvalidOverrides(overrides, cfg): { kept, dropped }`, for import.
+  - `dropInvalidOverrides(overrides, cfg, scope?): { kept, dropped }`, for import.
 - `read.ts`
   - With a `YearContext`: `plain` (never indexed); `amount`, `list` (indexed when the entry is);
     `brackets`, `phaseIn`; `ageTable(ctx, key, age)` (the row at or below the age, the last

@@ -15,15 +15,52 @@ const cfg = loadConfig();
 const year = cfg.taxYear;
 const check = (key: string, value: unknown, others: RuleOverrides = {}) =>
   validateOverride(key, value, others, cfg);
+/** Tables can't be changed in Settings (review triage T2); their checks stay for later. */
+const checkAny = (key: string, value: unknown, others: RuleOverrides = {}) =>
+  validateOverride(key, value, others, cfg, 'any');
 
 describe('which keys can be overridden', () => {
-  it('excludes warnings and per-class returns, allows yields and fee levels', () => {
-    expect(isOverridable('warnings.triggers')).toBe(false);
-    expect(isOverridable('market.cad_equity.geometric_return')).toBe(false);
-    expect(isOverridable('market.cad_equity.yield')).toBe(true);
-    expect(isOverridable('planning.fee_levels')).toBe(true);
+  it('excludes warnings and per-class returns in every scope', () => {
+    for (const scope of ['settings', 'any'] as const) {
+      expect(isOverridable('warnings.triggers', scope)).toBe(false);
+      expect(isOverridable('market.cad_equity.geometric_return', scope)).toBe(false);
+    }
     expect(check('market.bonds.geometric_return', 0.04)).not.toEqual([]);
     expect(check('no.such.key', 1)).not.toEqual([]);
+  });
+
+  it('Settings changes single values only (review triage T2)', () => {
+    expect(isOverridable('market.cad_equity.yield')).toBe(true);
+    expect(isOverridable('federal.oas.recovery.threshold')).toBe(true);
+    expect(isOverridable('market.inflation')).toBe(true);
+    for (const key of [
+      'federal.tax.brackets',
+      'federal.rrif.min_factor',
+      'ontario.surtax.rates',
+      'ontario.health_premium.schedule',
+      'planning.fee_levels',
+      'planning.shapes',
+      'planning.life_expectancy.female',
+      'federal.cpp.start.earliest',
+      'federal.cpp.start.latest',
+      'federal.oas.deferral.max_months',
+    ]) {
+      expect(isOverridable(key), key).toBe(false);
+      expect(isOverridable(key, 'any'), key).toBe(true);
+    }
+    const brackets = valueOf(cfg, 'federal.tax.brackets');
+    expect(check('federal.tax.brackets', brackets)[0]).toContain('cannot be changed in Settings');
+    expect(checkAny('federal.tax.brackets', brackets)).toEqual([]);
+  });
+
+  it('applyRuleOverrides skips a table in Settings scope', () => {
+    const brackets = valueOf<{ from: number; rate: number }[]>(cfg, 'federal.tax.brackets');
+    const zeroed = brackets.map((r) => ({ ...r, rate: 0 }));
+    const o = { 'federal.tax.brackets': { value: zeroed, defaultTaxYear: year } };
+    expect(applyRuleOverrides(cfg, o).entries.get('federal.tax.brackets')!.value).toEqual(brackets);
+    expect(applyRuleOverrides(cfg, o, 'any').entries.get('federal.tax.brackets')!.value).toEqual(
+      zeroed,
+    );
   });
 });
 
@@ -51,8 +88,8 @@ describe('unit ranges', () => {
 
   it('accepts a 5-year life-expectancy table within 60 to 110, and rejects one below', () => {
     const table = valueOf<Record<string, number>>(cfg, 'planning.life_expectancy.female');
-    expect(check('planning.life_expectancy.female', table)).toEqual([]);
-    expect(check('planning.life_expectancy.female', { ...table, '20': 59 })).not.toEqual([]);
+    expect(checkAny('planning.life_expectancy.female', table)).toEqual([]);
+    expect(checkAny('planning.life_expectancy.female', { ...table, '20': 59 })).not.toEqual([]);
   });
 
   it('rejects a value of the wrong kind', () => {
@@ -64,11 +101,11 @@ describe('table structure', () => {
   const brackets = valueOf<{ from: number; rate: number }[]>(cfg, 'federal.tax.brackets');
 
   it('bracket starts must rise and the first must be 0', () => {
-    expect(check('federal.tax.brackets', brackets)).toEqual([]);
+    expect(checkAny('federal.tax.brackets', brackets)).toEqual([]);
     const swapped = [brackets[0]!, brackets[2]!, brackets[1]!, ...brackets.slice(3)];
-    expect(check('federal.tax.brackets', swapped)).not.toEqual([]);
+    expect(checkAny('federal.tax.brackets', swapped)).not.toEqual([]);
     const shifted = [{ ...brackets[0]!, from: 1 }, ...brackets.slice(1)];
-    expect(check('federal.tax.brackets', shifted)).not.toEqual([]);
+    expect(checkAny('federal.tax.brackets', shifted)).not.toEqual([]);
   });
 
   it('phase-in caps must never fall', () => {
@@ -76,27 +113,27 @@ describe('table structure', () => {
       cfg,
       'ontario.health_premium.schedule',
     );
-    expect(check('ontario.health_premium.schedule', rows)).toEqual([]);
+    expect(checkAny('ontario.health_premium.schedule', rows)).toEqual([]);
     const falling = rows.map((r, i) => (i === 1 ? { ...r, cap: 0 } : r));
-    expect(check('ontario.health_premium.schedule', falling)).not.toEqual([]);
+    expect(checkAny('ontario.health_premium.schedule', falling)).not.toEqual([]);
   });
 
   it('the RRIF and LIF tables have no age gaps', () => {
     const table = valueOf<Record<string, number>>(cfg, 'federal.rrif.min_factor');
     const gap = { ...table };
     delete gap['80'];
-    expect(check('federal.rrif.min_factor', table)).toEqual([]);
-    expect(check('federal.rrif.min_factor', gap)).not.toEqual([]);
+    expect(checkAny('federal.rrif.min_factor', table)).toEqual([]);
+    expect(checkAny('federal.rrif.min_factor', gap)).not.toEqual([]);
   });
 
   it('surtax thresholds and rates have the same length', () => {
-    expect(check('ontario.surtax.rates', [0.2])).not.toEqual([]);
+    expect(checkAny('ontario.surtax.rates', [0.2])).not.toEqual([]);
   });
 });
 
 describe('cross-key rules', () => {
   it('CPP earliest must be below latest', () => {
-    expect(check('federal.cpp.start.earliest', 70)).not.toEqual([]);
+    expect(checkAny('federal.cpp.start.earliest', 70)).not.toEqual([]);
   });
 
   it('OAS minimum years must not be above full years', () => {
@@ -119,8 +156,8 @@ describe('structured values', () => {
     const spec = SPEC_BY_KEY.get('planning.shapes')!;
     const shapes = valueOf(cfg, 'planning.shapes');
     expect(checkValue(spec, shapes)).toEqual([]);
-    expect(check('planning.shapes', shapes)).toEqual([]);
-    expect(check('planning.shapes', { steady: { points: [] } })).not.toEqual([]);
+    expect(checkAny('planning.shapes', shapes)).toEqual([]);
+    expect(checkAny('planning.shapes', { steady: { points: [] } })).not.toEqual([]);
   });
 });
 

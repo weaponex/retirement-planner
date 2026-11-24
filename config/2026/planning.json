@@ -219,20 +219,6 @@
       "status": "unfetched"
     }
   },
-  "planning.planner_search": {
-    "value": null,
-    "unit": "none",
-    "taxYear": 2026,
-    "indexed": false,
-    "source": {
-      "url": "author decision, open (O31)",
-      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
-    },
-    "fetchedOn": null,
-    "validation": {
-      "status": "unfetched"
-    }
-  },
   "planning.survivor_spending": {
     "value": 0.7,
     "unit": "rate",
