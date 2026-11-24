@@ -510,6 +510,13 @@ Years before the first retirement run in `project/workingYear.ts` instead, in th
 *   **Probate defaults:** RRSP/RRIF/LIF and TFSA accounts are assumed to name a beneficiary (the spouse, then the children), so they skip probate. Non-registered accounts pass through the estate and pay probate.
 *   **The home:** an optional home value. If entered, it counts toward the legacy and probate, is exempt from capital gains tax, and grows at the fixed inflation rate.
 *   The author confirmed these defaults on 2026-11-17 (O23). Jointly held accounts are not modelled; every account has one owner.
+*   **The final return and the estate (stage 3; T10, M1).** In the second death year, after step 7, so on end-of-year balances. The spouse who dies last is "the deceased"; if both die in the same year, the first-death rollover moves the other spouse's accounts to them first (spouse 1 counts as dying first on a tie), so the final return covers every account.
+    1.  **Deemed income:** every RRSP, RRIF, LIRA and LIF balance, converted or not, as `otherOrdinary` (it gets no pension credit); and the deemed sale of every non-registered position: value − original cost, summed over positions. Deemed gains are reduced by the deceased's carried-forward loss (after this year's update); a net deemed loss is not used. TFSA balances and the home are not income.
+    2.  **One return:** the deceased's income for the year, after that year's pension split, plus the deemed income, taxed once with `personalTax` (the clawback recomputed on the full return). **Final-return tax** = that tax − the tax step 5 already settled for the deceased that year. A deceased spouse whose income was taxed at `workingMarginalRate` that year is taxed with `personalTax` on the full return instead.
+    3.  **The home:** `estate.homeValueToday` × the year's deflator, if entered.
+    4.  **Probate:** the estate pays the final-return tax first. Probate base = non-registered balances + the home − the final-return tax, not below 0. Probate = 0 if the base is at or below `ontario.probate.threshold`, else `ontario.probate.rate` × (base − threshold). The rounding up to each $1,000 in the Act is not modelled. Registered accounts and TFSAs skip probate (beneficiaries named).
+    5.  **After-tax legacy** = all account balances + the home − final-return tax − probate.
+    Final-return tax and probate are part of lifetime tax. They are paid from the estate, not from the year's cash, so the year's spending, deposits and the household identity are unchanged.
 *   **Estate tab (2026-11-19, author):** the inputs about death and legacy sit on their own tab, not on Spending.
     *   "When one of you dies": the survivor spending percentage (default 70%, with the reason in one line), the first death assumed at the earlier plan-to age, and a list of what changes at the first death (accounts roll over, OAS stops, CPP survivor benefit and DB survivor share start, single-person tax).
     *   "What you leave behind": the after-tax legacy goal, the home value, the probate rate as a strip with an Edit link to Settings, the beneficiary assumption above, and a note on the final return.
@@ -668,12 +675,15 @@ YearRow {
     reinvestedYieldNom, withholdingNom, priceReturnNom, drawsNom, endNom } },
   balancesEndNom: { [accountId]: Nom },      // equals accounts[id].endNom
   cashYieldNom,                              // non-registered yield paid out as cash
-  spendNeedNom, afterTaxCashNom, surplusNom, shortfallNom
+  spendNeedNom, afterTaxCashNom, surplusNom, shortfallNom,
+  estate: { deemedRegisteredNom, deemedGainsNom, finalReturnTaxNom, homeNom,
+    probateNom, afterTaxLegacyNom }          // all 0 except in the second death year
 }
 PlanSummary { spendingCovered, firstShortfallYear?, totalShortfallNom, totalShortfallToday,
   lifetimeTaxNom, lifetimeTaxToday, afterTaxLegacyNom, legacyIsPreTax, clawbackYears,
   savedToTfsaNom, warningFacts }             // warningFacts is {} until stage 6;
-                                             // legacyIsPreTax is true in stage 2 (no final return)
+                                             // legacyIsPreTax is false from stage 3;
+                                             // lifetime tax includes final-return tax and probate
 StrategyResult {                             // one per strategy, every run
   strategyId, summary: PlanSummary,
   rows: [{ year, incomeBySourceNom: { work, db, cpp, oas, registered,
@@ -714,7 +724,12 @@ Death { spouse: 0 | 1, year }
 *   **Input paths:** dotted text such as `spouses.0.cppStartAge` or `accounts.<id>.balanceToday`, used by `setInput` and by warning definitions.
 *   **Spending need:** the active-years yearly need is 12 × the monthly total (the sum of categories, or the one total). For the slower and later phases, each category's amount is its override if set, otherwise its active amount × `keepPct`; in "one total" mode, the total × `keepPct`.
 *   **Empty plan:** the defaults in `src/state/defaults.ts`, with life expectancy and survivor percentage from the config.
-*   **Reference file:** the column header of `expected-rows.csv` is the `YearRow` field list, flattened in this order.
+*   **Reference file (M1):** `expected-rows.csv` has one row per `YearRow`, and its header is the `YearRow` fields flattened in the order above, with dotted names:
+    *   `year`; then `spouse.0.<field>` for every `SpouseYear` field, then `spouse.1.<field>`;
+    *   a record keyed by account id becomes one column per account id, sorted by id: `spouse.0.withdrawals.<id>`, `accounts.<id>.<field>` (each `AccountYear` field in order, all fields of one account before the next account) and `balancesEndNom.<id>`;
+    *   the account ids are every id that appears in any row; a cell for an account with no entry that year is 0;
+    *   then `cashYieldNom`, `spendNeedNom`, `afterTaxCashNom`, `surplusNom`, `shortfallNom` and `estate.<field>`;
+    *   booleans are `true` or `false`; numbers are plain decimals with at least 2 places, no thousands separators. A test matches each money cell within $1, and every other cell exactly.
 
 ### Persistence
 
@@ -1103,7 +1118,7 @@ Decisions marked "author" were made by the document's author and are recorded in
 | FR-M13 | Tests for the new rules. Tax rows done in stage 1. Override limit (`returns.test.ts`) and LIF minimum under 71 (`liraLif.test.ts`) added 2026-11-19; the global blend is moot. Still open: the life-expectancy lookup, with FR-M7 | Stage 5 |
 | FR-M17 | "Spending covered: Yes" at steady returns can reassure falsely; "Money runs out" repeats the headline | Stage 4 |
 | FR-M18 | Return terminology ("compound" vs "average"); the on-screen label | Stage 5 |
-| M1 | `NormalizedInputs`, the engine state and the `YearRow` forced-draw, contribution and account fields are defined in Data contracts (2026-11-19). Still open: the `Result` contract, `warningFacts` content, the `YearRow` estate fields and CSV column naming | Stage 3 (estate fields, CSV); Stage 4 (`Result`) |
+| M1 | `NormalizedInputs`, the engine state and the `YearRow` forced-draw, contribution and account fields are defined in Data contracts (2026-11-19). The `YearRow` estate fields and the reference CSV columns are defined (2026-11-24). Still open: the `Result` contract and `warningFacts` content | Stage 4 (`Result`); Stage 6 (`warningFacts`) |
 | M2 | CUJ 6 test-config build: how `VITE_CONFIG_SET=test` reaches a statically imported bundle (CUJ 6 is now user changes in Settings; this may be moot) | Stage 5 |
 | M3 | 70% coverage target for non-engine code is unreachable without UI tests; gate start date disagrees (lines in Vitest config vs Verification Plan) | Stage 5 |
 | M4 | Store and persistence tests need a browser-like test environment (jsdom or happy-dom) | Stage 5 |

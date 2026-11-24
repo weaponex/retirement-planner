@@ -151,31 +151,31 @@
     }
   },
   "ontario.probate.threshold": {
-    "value": null,
+    "value": 50000,
     "unit": "CAD",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.ontario.ca/laws/statute/98e34",
+      "locator": "Estate Administration Tax Act, 1998, s. 2 (2)(b): an estate is exempt if its value does not exceed $50,000 (application on or after January 1, 2020); s. 2 (6.1): tax on the value above $50,000"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-24",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.probate.rate": {
-    "value": null,
+    "value": 0.015,
     "unit": "rate",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "see config/SOURCES.md",
-      "locator": "to be fetched"
+      "url": "https://www.ontario.ca/laws/statute/98e34",
+      "locator": "Estate Administration Tax Act, 1998, s. 2 (6.1): $15 for each $1,000 or part thereof by which the value of the estate exceeds $50,000 (rounding up to the next $1,000 is not modelled)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-24",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "ontario.lif.unlock_share": {
