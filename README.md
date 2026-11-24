@@ -7,7 +7,8 @@ asset class, both deaths, and threshold warnings.
 > **This tool shows projections under the assumptions you enter. It is not financial, tax or
 > legal advice.**
 
-**Status:** stage 1 (tax for one person) is done. The app is not usable yet. See the
+**Status:** stage 2 (the couple engine at fixed returns) is done. The engine can run a whole
+plan, but there are no screens yet, so the app is not usable. See the
 [design](docs/designs/retirement-planner.md).
 
 ## System Overview
@@ -24,24 +25,38 @@ that bundle and check the config files against the key list. Agent rules are in
 - `src`: [./src/README.md](./src/README.md). The app's browser entry point (a placeholder until
   stage 5) and the engine.
   - `src/engine`: [./src/engine/README.md](./src/engine/README.md). Engine settings
-    (`constants.ts`) and data contracts (`types.ts`, including `YearContext` and
-    `TaxableIncome`).
+    (`constants.ts`), data contracts and engine state (`types.ts`), today's and future dollars
+    (`units.ts`), and the yearly checks (`invariants.ts`).
   - `src/engine/config`: [./src/engine/config/README.md](./src/engine/config/README.md). The
-    key list (`KEY_SPECS`, `ALL_KEYS`), the zod schema (`checkEntry`), the loader
-    (`loadConfig`, `configStatus`), and typed, indexed reads (`plain`, `amount`, `list`,
-    `brackets`, `phaseIn`). `bundle.ts` is generated.
+    key list (`KEY_SPECS`, `ALL_KEYS`), the zod schema (`checkEntry`, `checkValue`), the loader
+    (`loadConfig`, `rebaseConfig`, `configStatus`), rule overrides from Settings
+    (`overrides.ts`), and typed, indexed reads (`plain`, `amount`, `list`, `brackets`,
+    `phaseIn`, `ageTable`, `planValue`). `bundle.ts` is generated.
   - `src/engine/jurisdiction`:
     [./src/engine/jurisdiction/README.md](./src/engine/jurisdiction/README.md). Federal tax
     (`incomeTotals`, `federalTax`), the `Jurisdiction` interface, and Ontario (`ontario`,
-    `ontarioTaxParts`), following Form ON428.
+    `ontarioTaxParts`, the LIF maximum and unlock share), following Form ON428.
   - `src/engine/tax`: [./src/engine/tax/README.md](./src/engine/tax/README.md).
-    `personalTax` (federal + provincial + clawback) and the table arithmetic (`bracketTax`,
-    `phaseInAmount`, `lowestRate`).
+    `personalTax` (federal + provincial + clawback), the table arithmetic (`bracketTax`,
+    `phaseInAmount`, `lowestRate`) and pension income splitting (`bestSplit`).
+  - `src/engine/benefits`: [./src/engine/benefits/README.md](./src/engine/benefits/README.md).
+    CPP, OAS, DB pensions and survivor benefits.
+  - `src/engine/accounts`: [./src/engine/accounts/README.md](./src/engine/accounts/README.md).
+    RRSP/RRIF, LIRA/LIF, TFSA and non-registered account rules.
+  - `src/engine/invest`: [./src/engine/invest/README.md](./src/engine/invest/README.md).
+    Returns by asset class, the growth-to-safety shape, placement presets and rebalancing.
+  - `src/engine/withdraw`: [./src/engine/withdraw/README.md](./src/engine/withdraw/README.md).
+    The withdrawal strategies and where a surplus goes.
+  - `src/engine/solver`: [./src/engine/solver/README.md](./src/engine/solver/README.md). One
+    retired-household year (`solveYear`), with the withdrawal solve and the pension split.
+  - `src/engine/project`: [./src/engine/project/README.md](./src/engine/project/README.md). A
+    whole plan (`runPath`): the first year, working years, spending need and the first death.
 - `tools`: [./tools/README.md](./tools/README.md). Command-line config scripts: `config:bundle`
   writes `src/engine/config/bundle.ts`, `config:check` validates the current year, and
   `config:compare` diffs two fetch candidates.
 - Not code, so no contract file: `config/` (rule values and `SOURCES.md`), `docs/` (the design,
-  conventions, reviews and history), and `tests/` (unit tests and `tests/fixtures/`).
+  conventions, reviews and history), and `tests/` (unit tests, property tests and
+  `tests/fixtures/`).
 
 ## Global Invariants
 
@@ -50,7 +65,7 @@ that bundle and check the config files against the key list. Agent rules are in
 - `[src/engine/config/keys.ts header, tools/configCheck.ts]` The key list in `keys.ts` must
   match `config/SOURCES.md` and the design's Config contract. `npm run config:check` fails
   otherwise.
-- `[src/engine/config/read.ts:entryOf]` A missing or unfetched rule value throws
+- `[src/engine/config/read.ts:entryIn]` A missing or unfetched rule value throws
   `MissingRuleValueError`. There are no silent defaults.
 - `[src/engine/types.ts header]` `…Today` fields are today's dollars and `…Nom` fields are future
   dollars. The engine works in future dollars only.

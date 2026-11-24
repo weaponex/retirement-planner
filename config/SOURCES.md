@@ -138,7 +138,7 @@ described. Author decisions, including the market yields (O30), are not fetched.
 | `planning.shapes` | none | author decision | Design values (version 1) |
 | `planning.presets` | none | author decision | Design values (version 1) |
 | `planning.mixes` | none | author decision, open (O24) | Design values (version 1) |
-| `planning.fee_levels` | none | author decision, open (O25) | Design values (version 1) |
+| `planning.fee_levels` | none | author decision (O25, 2026-11-19) | Design values (version 1), Fee levels |
 | `planning.spending_phases` | none | author decision, open (O27) | Design values (version 1) |
 | `planning.planner_search` | none | author decision, open (O31) | Design values (version 1) |
 | `planning.survivor_spending` | rate | author decision | Design values (version 1) |
