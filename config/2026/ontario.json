@@ -161,7 +161,9 @@
     },
     "fetchedOn": "2026-11-24",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-24"
     }
   },
   "ontario.probate.rate": {
@@ -175,7 +177,9 @@
     },
     "fetchedOn": "2026-11-24",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-24"
     }
   },
   "ontario.lif.unlock_share": {

@@ -22,7 +22,7 @@ described. Author decisions, including the market yields (O30), are not fetched.
 - **Revised 2026-11-18:** 16 rows that pointed at pages without the value were moved to pages that
   show it (checked on 2026-11-18, values not recorded). OAS and CPP amounts now come from the
   ESDC quarterly table for January to March 2026, since the OAS payments page only shows the
-  current quarter. Ontario probate must be read by the admin; e-Laws refuses automated fetches.
+  current quarter. Ontario probate was later read from e-Laws in a browser (2026-11-24) and validated by the author.
 - **Revised 2026-11-19 (SR-2):** six asset classes matching FP Canada's published classes
   (`cad_equity`, `us_equity`, `intl_equity`, `em_equity`, `bonds`, `cash`) replace the
   three-class list and the 60/30/10 global blend. Removed: `market.global_equity.components.*`,
@@ -103,8 +103,8 @@ described. Author decisions, including the market yields (O30), are not fetched.
 | `ontario.credits.pension.amount` | CAD_per_year | https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/td1on/td1on-26e.pdf | Form TD1ON 2026, line 3 "Pension income amount": maximum |
 | `ontario.dividend.eligible.credit_rate` | rate | https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5006-d/5006-d-25e.pdf | Worksheet ON428 (2025), "Line 61520 – Ontario dividend tax credit", rate applied to amount C (line 12000 minus line 12010). Check the 2026 edition when published |
 | `ontario.tax_reduction.basic` | CAD_per_year | https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan/t4127-jan-payroll-deductions-formulas-computer-programs.html | Table 8.2 "Other rates and amounts for 2026", row ON, column "S2" |
-| `ontario.probate.threshold` | CAD | https://www.ontario.ca/laws/statute/98e34 | Estate Administration Tax Act, 1998, s. 2: value below which no tax is payable. **Read by the admin:** the page is rendered by JavaScript and refuses automated fetches |
-| `ontario.probate.rate` | rate | https://www.ontario.ca/laws/statute/98e34 | Estate Administration Tax Act, 1998, s. 2: tax per $1,000 (or part) above $50,000, stored as a rate. **Read by the admin** (see above) |
+| `ontario.probate.threshold` | CAD | https://www.ontario.ca/laws/statute/98e34 | Estate Administration Tax Act, 1998, s. 2: value below which no tax is payable. Read in a browser on 2026-11-24 (the page needs JavaScript); validated by weaponex |
+| `ontario.probate.rate` | rate | https://www.ontario.ca/laws/statute/98e34 | Estate Administration Tax Act, 1998, s. 2: tax per $1,000 (or part) above $50,000, stored as a rate. Read in a browser on 2026-11-24; validated by weaponex |
 | `ontario.lif.unlock_share` | rate | https://www.fsrao.ca/media/8326/download | FSRA policy L200-303 "Schedule 1.1 Life Income Funds (New LIFs)", page 5, "The 50% Unlocking Withdrawal or Transfer" (Schedule 1.1 s. 8(2.1)). Fetch with curl (see the status notes) |
 | `ontario.surtax.thresholds` | CAD_per_year | https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan/t4127-jan-payroll-deductions-formulas-computer-programs.html | Table 8.2 "Other rates and amounts for 2026", row ON, column "T4 to V1" |
 | `ontario.surtax.rates` | rate | https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4127-payroll-deductions-formulas/t4127-jan/t4127-jan-payroll-deductions-formulas-computer-programs.html | Table 8.2 "Other rates and amounts for 2026", row ON, column "V1 rate" |
