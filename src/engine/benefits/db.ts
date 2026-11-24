@@ -50,3 +50,13 @@ export function dbPayment(
   const bridge = (db.bridgeAnnualNom ?? 0) * f * bridgeShare(db, age, birthMonth);
   return { lifetime, bridge, total: lifetime + bridge };
 }
+
+/**
+ * The lifetime amount for a full year, the base of the survivor share. It
+ * applies from the year after the member's death even if they died before the
+ * pension's start age (stage 2 decision 13b), indexed as the pension would have
+ * been in the year the member would have been `age`. The bridge is not included.
+ */
+export function dbSurvivorBase(db: NormalizedDbPension, age: number, ctx: YearContext): number {
+  return db.lifetimeAnnualNom * indexFactor(db, age, ctx);
+}

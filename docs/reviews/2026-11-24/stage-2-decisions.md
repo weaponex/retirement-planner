@@ -7,24 +7,24 @@ has a recommendation, and none of the choices changes a rule value.
 Once you've decided, the choices go into the design (a "Stage 2 implementation decisions" note)
 and, where you pick a change, into the code.
 
-**Quick answer sheet.** Write keep, or the letter of the option you want:
+**Decided by the author on 2026-11-24** and recorded in the design (Stage 2 implementation decisions). Three changed the code: 8 (start from no split), 13b (the survivor share from the year after the death) and 15 (up to 3 passes, which matched the full search exactly over 1,054 plans; 2 passes missed by up to $157).
 
-| # | Topic | Recommendation |
-|---|---|---|
-| 4 | When sheltered yields are added | Keep |
-| 5 | Inherited RRSP conversion timing | Keep |
-| 6 | Where "age 65" lives | Keep |
-| 7 | TFSA room in the first year | Keep |
-| 8 | Starting pension split | Keep |
-| 9a | Tax on rebalancing gains before retirement | Keep |
-| 9b | Contributions to a converted account | Keep |
-| 10 | Surplus with no forced withdrawals | Keep |
-| 11 | LIRA unlock with no RRSP | Keep |
-| 12 | Empty savings account per spouse | Keep |
-| 13a | Last year of a DB bridge | Keep |
-| 13b | DB survivor pension before the pension starts | B |
-| 14 | "First account by id" after a death | Keep |
-| 15 | Two-pass split accuracy (the 1% rule) | B |
+| # | Topic | Recommendation | Decided |
+|---|---|---|---|
+| 4 | When sheltered yields are added | Keep | Keep |
+| 5 | Inherited RRSP conversion timing | Keep | Keep |
+| 6 | Where "age 65" lives | Keep | Keep |
+| 7 | TFSA room in the first year | Keep | Keep |
+| 8 | Starting pension split | Keep | B (no split) |
+| 9a | Tax on rebalancing gains before retirement | Keep | Keep |
+| 9b | Contributions to a converted account | Keep | Keep |
+| 10 | Surplus with no forced withdrawals | Keep | Keep |
+| 11 | LIRA unlock with no RRSP | Keep | Keep |
+| 12 | Empty savings account per spouse | Keep | Keep |
+| 13a | Last year of a DB bridge | Keep | Keep |
+| 13b | DB survivor pension before the pension starts | B | B |
+| 14 | "First account by id" after a death | Keep | Keep |
+| 15 | Two-pass split accuracy (the 1% rule) | B | B (3 passes) |
 
 ---
 

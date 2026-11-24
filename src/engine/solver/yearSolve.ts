@@ -8,7 +8,7 @@ import { cashYield, netGains, reinvestYield, type CashYield } from '../accounts/
 import { rrifMinimum } from '../accounts/rrspRrif';
 import { recordWithdrawal, useRoom } from '../accounts/tfsa';
 import { cppAt, cppFullYear } from '../benefits/cpp';
-import { dbPayment } from '../benefits/db';
+import { dbPayment, dbSurvivorBase } from '../benefits/db';
 import { oasAt } from '../benefits/oas';
 import { survivorBenefits } from '../benefits/survivor';
 import { ASSET_CLASSES, type AssetClass } from '../config/keys';
@@ -47,6 +47,7 @@ import { drawDownYears, earlyRrsp } from '../withdraw/earlyRrsp';
 import { bracketTopUp } from '../withdraw/fillBrackets';
 import { available, registeredDraw, registeredLast, withDraws } from '../withdraw/registeredLast';
 import { placeSurplus, surplusShares, type Deposit } from '../withdraw/surplus';
+import { MAX_SPLIT_PASSES } from '../constants';
 import { bisect } from './bisect';
 import {
   assembleIncome,
@@ -173,7 +174,7 @@ export function fixedIncome(
           deceasedDb: inputs.dbPensions
             .filter((db) => db.owner === d)
             .map((db) => ({
-              lifetimeFullYear: dbPayment(db, deadAge, dead.birthMonth, ctx, true).lifetime,
+              lifetimeFullYear: dbSurvivorBase(db, deadAge, ctx),
               survivorPct: db.survivorPct,
             })),
         },
@@ -468,12 +469,14 @@ export function solveYear(
     return r.x;
   };
 
-  // Two-pass split: solve at last year's split, search once, re-solve if it changed.
+  // The split passes: solve at last year's split, search at that answer, and
+  // re-solve while the best split changes, up to MAX_SPLIT_PASSES solves.
   let split = options.fixedSplit ?? state.splitShare;
   let W = solve(split);
   let result = evalAt(W, split);
-  const best = bestSplit(result.spouses[0], result.spouses[1], ctx);
-  if (!options.fixedSplit && !sameSplit(best, split)) {
+  for (let pass = 1; !options.fixedSplit && pass < MAX_SPLIT_PASSES; pass++) {
+    const best = bestSplit(result.spouses[0], result.spouses[1], ctx);
+    if (sameSplit(best, split)) break;
     split = { from: best.from, share: best.share };
     W = solve(split);
     result = evalAt(W, split);

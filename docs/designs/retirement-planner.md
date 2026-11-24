@@ -375,7 +375,7 @@ Every account has an owner (spouse 1 or spouse 2). Types:
     *   The age-71 deadline is the federal RRSP rule, because a LIRA is an RRSP; it uses `federal.rrif.latest_conversion_age`. The one-time 50% unlock is an optional choice at conversion; if chosen, half moves to the owner's RRSP/RRIF (O9).
 *   **TFSA**, with contribution room tracked from a user-entered starting room plus the yearly limit from the config (`federal.tfsa.annual_limit`, indexed; the rounding of the published limit is not modelled, an accepted approximation). A withdrawal is added back to room on January 1 of the next year (C3, author, 2026-11-19).
 *   **Non-registered**, holding pooled positions per asset class with their original cost (adjusted cost base, the amount paid). Each year's interest, dividends and realized gains are taxed by type. Sales are spread across positions in proportion, at average cost.
-*   **DB pension** (income stream, not a balance): lifetime amount and start age, optional bridge amount (a temporary top-up paid until an end age, usually when CPP or OAS starts), indexing (full, fixed percentage or none), survivor percentage. **Amounts and indexing:** with `full`, the lifetime and bridge amounts are today's dollars and grow with the deflator. With `fixed` or `none`, they are the nominal amounts on the pension statement at the start age; `fixed` then grows by `indexRate` each year after the start, and `none` stays flat. `normalizeInputs` converts only the `full` amounts.
+*   **DB pension** (income stream, not a balance): lifetime amount and start age, optional bridge amount (a temporary top-up paid until an end age, usually when CPP or OAS starts), indexing (full, fixed percentage or none), survivor percentage. **Amounts and indexing:** with `full`, the lifetime and bridge amounts are today's dollars and grow with the deflator. With `fixed` or `none`, they are the nominal amounts on the pension statement at the start age; `fixed` then grows by `indexRate` each year after the start, and `none` stays flat. `normalizeInputs` converts only the `full` amounts. If the member dies before the start age, the survivor percentage of the lifetime amount is paid from the year after the death (stage 2 decision 13b).
 
 CPP and OAS: the user enters each spouse's CPP estimate at 65 and start age, and years of Canadian residence for OAS. A help note explains that an estimate from My Service Canada assumes contributions continue to 65, and links to Service Canada's explanation of adjusting for years without contributions (O10). All coefficients below come from the config:
 
@@ -434,7 +434,7 @@ CPP and OAS: the user enters each spouse's CPP estimate at 65 and start age, and
 *   **Explanations:** each strategy has a "Learn more" dialog with fixed text: what it does, its effect on income, taxes and savings, pros, cons, when it makes sense, and an "In your plan" line with this plan's figures against "Registered last" (or, for "Registered last", against "Fill lower brackets first"). The dialog has "Use this strategy" and "Close".
 *   **Between spouses:** non-registered and TFSA draws come from each spouse in proportion to their balances.
 *   **Surplus:** money forced out by minimums or the bracket level beyond what spending needs is split between the spouses in proportion to their share of the forced draws that caused it (C3); each share goes into that spouse's TFSA up to available room, then into their non-registered account.
-*   **Pension income splitting:** eligible pension income is DB payments at any age, and RRIF and LIF payments if the transferring spouse is at least `federal.split.min_age_rrif`. The split search tries 0 up to `federal.split.max_share` of the transferring spouse's eligible pension income, in `SPLIT_STEP` steps, **in both directions** (M13): spouse 1 transferring to spouse 2, and spouse 2 to spouse 1. With the 2026 values (50% in 5% steps) that is 21 points (0% counted once). It keeps the split with the lowest household tax; on a tie, the smaller transfer, then spouse 1 transferring. This approximates the split tax software finds at filing time; it is not presented as a recommendation. To keep it fast, the year is first solved with the previous year's split (50/50 in the first year), then the search runs once at that answer, and the year is solved again only if the best split changed (at most 2 passes).
+*   **Pension income splitting:** eligible pension income is DB payments at any age, and RRIF and LIF payments if the transferring spouse is at least `federal.split.min_age_rrif`. The split search tries 0 up to `federal.split.max_share` of the transferring spouse's eligible pension income, in `SPLIT_STEP` steps, **in both directions** (M13): spouse 1 transferring to spouse 2, and spouse 2 to spouse 1. With the 2026 values (50% in 5% steps) that is 21 points (0% counted once). It keeps the split with the lowest household tax; on a tie, the smaller transfer, then spouse 1 transferring. This approximates the split tax software finds at filing time; it is not presented as a recommendation. To keep it fast, the year is first solved with the previous year's split (no split in the first year), then the search runs at that answer, and the year is solved again while the best split changes (at most 3 passes; stage 2 decisions 8 and 15).
 
 ### The year solver
 
@@ -763,7 +763,7 @@ Death { spouse: 0 | 1, year }
     *   tax fixtures from an outside calculator, matched within $1 per return;
     *   rule-value tests against the config;
     *   a full reference plan built by a separate AI session from the written design without seeing the engine code, matched within $1 per cell;
-    *   property tests: the same inputs give the same result; higher spending never raises the after-tax legacy; swapping the spouses gives the same household totals (plans where the two spouses' inputs are identical are skipped, because the tie rules favour spouse 1); with zero tax the loop matches the closed-form annuity; moving money between two accounts of the same type and owner changes nothing; the chosen split never gives more tax than a 0% split; after-tax cash rises when the withdrawal rises; the two-pass split's household tax is never below the full nested search's, and stays within 1% of it (a test setting, not a rule value);
+    *   property tests: the same inputs give the same result; higher spending never raises the after-tax legacy; swapping the spouses gives the same household totals (plans where the two spouses' inputs are identical are skipped, because the tie rules favour spouse 1); with zero tax the loop matches the closed-form annuity; moving money between two accounts of the same type and owner changes nothing; the chosen split never gives more tax than a 0% split; after-tax cash rises when the withdrawal rises; the split passes' household tax is never below the full nested search's, and stays within 1% of it (a test setting, not a rule value); swapping the spouses is compared within 0.1%, because surplus deposits after a death go to the first account by id (stage 2 decision 14);
     *   the manual paid-tool comparison before stage 8;
     *   the manual speed check.
 
@@ -1174,6 +1174,29 @@ Every gate also includes the [Known gaps](#known-gaps-from-review) rows whose "C
 
 ### Target Files to Create/Modify
 
+#### Stage 2 implementation decisions (author, 2026-11-24)
+
+Points the stage 2 code had to settle, decided by the author from `docs/reviews/2026-11-24/stage-2-decisions.md`, which gives the options and examples for each.
+
+| # | Decision |
+|---|---|
+| 4 | Sheltered yields are worked out on the January 1 balance and added to the account after the year's withdrawals, so they never enlarge the balance the RRIF and LIF limits use. |
+| 5 | In the year after the first death, the accounts move to the survivor before the January 1 conversions, so the survivor's age decides when an inherited RRSP or LIRA converts. |
+| 6 | The age the CPP estimate and OAS base refer to (65) is `BENEFIT_REFERENCE_AGE` in `constants.ts`, not a config key. |
+| 7 | No TFSA limit is added in the plan's first year: the entered room is today's available room, as CRA's My Account shows it. |
+| 8 | The first year's pension split starts from no split. |
+| 9a | Before the first retirement, gains realized by the rebalance are taxed at the owner's working rate and paid from the yield; any excess is sold from the same account, and that sale's own gain is not taxed. |
+| 9b | A contribution set for an RRSP or LIRA that has already converted goes to the owner's non-registered account. |
+| 10 | A surplus with no forced withdrawals is shared by each living spouse's CPP, OAS, DB and pay, or equally if those are zero. |
+| 11 | A LIRA unlock for an owner with no RRSP or RRIF opens a new RRIF that year (id `rrsp-<owner>-<n>`), with no minimum in its first year. |
+| 12 | A spouse with no non-registered account gets an empty one at the plan start. |
+| 13a | A DB bridge's last year pays up to the birthday month of its end age (birth month ÷ 12 of a year). |
+| 13b | A DB survivor share is paid from the year after the member's death, even if the member died before the pension's start age. |
+| 14 | After the first death, deposits keep going to the survivor's first TFSA, then first non-registered account, by id. |
+| 15 | The pension split is re-solved while the best split changes, up to 3 passes (`MAX_SPLIT_PASSES`). Measured over 1,054 plans: 3 passes matched the full search exactly; 2 missed by up to $157 a year. A 40-year run costs about 12% more. |
+
+Also from stage 2: RRIF and LIF minimums are taken in years before the first retirement, taxed at the owner's working rate and saved like CPP and OAS.
+
 #### Stage 2 file boundary
 
 The files stage 2 may create or change. Anything not listed here is out of bounds for stage 2.
@@ -1444,7 +1467,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   `SOLVER_PRECISION = 0.01`
     *   `SOLVER_MAX_STEPS = 40` (stage 2: enough to narrow $10 billion to $0.01)
     *   `SPLIT_STEP = 0.05`
-    *   `MAX_SPLIT_PASSES = 2`
+    *   `MAX_SPLIT_PASSES = 3` (stage 2 decision 15)
     *   `INVARIANT_TOLERANCE = 0.05`
     *   `WEIGHT_SUM_TOLERANCE = 1e-9` (planning weights must sum to 1)
     *   `CONFIG_YEAR_MIN = 2000`, `CONFIG_YEAR_MAX = 2100` (sanity range for a config entry's tax year)
@@ -1766,7 +1789,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     | File | Properties | Stage |
     |---|---|---|
     | `tests/property/determinism.test.ts` | The same inputs give the same result | 2 |
-    | `tests/property/solver.test.ts` | After-tax cash rises when the withdrawal rises; the chosen split never gives more tax than a 0% split; the two-pass split is never below the full search and within 1% of it | 2 |
+    | `tests/property/solver.test.ts` | After-tax cash rises when the withdrawal rises; the chosen split never gives more tax than a 0% split; the split passes are never below the full search and within 1% of it | 2 |
     | `tests/property/symmetry.test.ts` | Swapping the spouses gives the same totals (identical spouses skipped); moving money between two accounts of the same type and owner changes nothing | 2 |
     | `tests/property/zeroTax.test.ts` | With zero tax, the loop matches the closed-form annuity | 2 |
     | `tests/property/legacy.test.ts` | Higher spending never raises the after-tax legacy (needs the final return) | 3 |

@@ -4,7 +4,6 @@
 // whose owner is already past its conversion age starts converted, opened the
 // year before, so its minimum applies from the first year.
 import { ASSET_CLASSES } from '../config/keys';
-import { plain } from '../config/read';
 import { conversionAgeFor } from '../accounts/rrspRrif';
 import { mixForYear } from '../invest/glide';
 import { targetHoldings } from '../invest/placement';
@@ -122,12 +121,12 @@ export function initialState(
     return { ...a, holdings };
   });
 
-  const maxShare = plain(ctx, 'federal.split.max_share');
   return {
     year,
     yearIndex: 0,
     spouses,
     accounts,
-    splitShare: { from: 0, share: maxShare },
+    // The first year starts from no split; the search then finds the best one.
+    splitShare: { from: 0, share: 0 },
   };
 }

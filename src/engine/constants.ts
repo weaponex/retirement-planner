@@ -11,7 +11,11 @@ export const SOLVER_MAX_STEPS = 40;
 
 /** Pension-split search: 0% to 50% in 5% steps. */
 export const SPLIT_STEP = 0.05;
-export const MAX_SPLIT_PASSES = 2;
+/**
+ * Solves per year while the best split keeps changing (stage 2 decision 15). Three
+ * passes matched the full search exactly over 1,054 plans; two missed by up to 57.
+ */
+export const MAX_SPLIT_PASSES = 3;
 
 /** Accounting checks compare within five cents. */
 export const INVARIANT_TOLERANCE = 0.05;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dbPayment } from '../../src/engine/benefits/db';
+import { dbPayment, dbSurvivorBase } from '../../src/engine/benefits/db';
 import type { NormalizedDbPension } from '../../src/engine/types';
 import { planConfig, yearContext } from './helpers/couplePlan';
 
@@ -48,5 +48,17 @@ describe('DB pension', () => {
     const full = { ...base, indexing: 'full' as const };
     const ctx = yearContext(7, cfg);
     expect(dbPayment(full, 70, 6, ctx, true).lifetime).toBeCloseTo(30_000 * ctx.deflator(7), 6);
+  });
+});
+
+describe('DB survivor base (stage 2 decision 13b)', () => {
+  it('is the full-year lifetime amount, even before the start age, without the bridge', () => {
+    const ctx = yearContext(2, cfg);
+    expect(dbSurvivorBase(base, 55, ctx)).toBe(30_000);
+    const full = { ...base, indexing: 'full' as const };
+    expect(dbSurvivorBase(full, 55, ctx)).toBeCloseTo(30_000 * ctx.deflator(2), 6);
+    const fixed = { ...base, indexing: 'fixed' as const, indexRate: 0.02 };
+    expect(dbSurvivorBase(fixed, 55, ctx)).toBe(30_000);
+    expect(dbSurvivorBase(fixed, 62, ctx)).toBeCloseTo(30_000 * 1.02 ** 2, 6);
   });
 });

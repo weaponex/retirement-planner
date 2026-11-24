@@ -32,8 +32,8 @@ here is in future dollars; the `TodayDollars` type may not be imported (lint).
 - W is found by bisection between 0 and everything available, to `SOLVER_PRECISION` in at most
   `SOLVER_MAX_STEPS` steps. If everything is not enough, everything is drawn and the shortfall
   recorded.
-- The split is solved at last year's choice, searched once, and re-solved only if it changed
-  (at most `MAX_SPLIT_PASSES`).
+- The split is solved at last year's choice (no split in the first year), then searched and
+  re-solved while the best split changes, up to `MAX_SPLIT_PASSES` (3) solves.
 - A spouse still working is taxed at their `workingMarginalRate` and left out of splitting (C2).
 
 ## Side Effects
