@@ -23,6 +23,13 @@ export const WEIGHT_SUM_TOLERANCE = 1e-9;
 export const CONFIG_YEAR_MIN = 2000;
 export const CONFIG_YEAR_MAX = 2100;
 
+/**
+ * The age the CPP estimate (`cppAt65Today`) and the OAS base (`federal.oas.base_at_65`)
+ * refer to. Fixed by the design's input and key definitions, not a rule value
+ * of its own: start-age adjustments count months from here.
+ */
+export const BENEFIT_REFERENCE_AGE = 65;
+
 /** Upper bound for a fee level in `planning.fee_levels` (5% a year). */
 export const MAX_FEE = 0.05;
 
