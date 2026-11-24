@@ -726,6 +726,52 @@ StrategyResult {                             // one per strategy, every run
 }
 ```
 
+**Results for the screens.** `runPlan` returns a `Result`, the Worker's first message; `runTips` returns `Tips`, its second. Fields ending in `Today` are already divided by each year's deflator (`src/engine/results/`, outside the year-by-year code).
+
+```text
+Result {
+  revision, appVersion,
+  configStatus: ConfigStatus,                // as returned by configStatus(...)
+  plan: { variantId, summary: PlanSummary, rows: YearRow[] },   // the user's plan, full detail
+  goals: {
+    spending: { met: boolean,
+      yearsCovered, yearsTotal,              // counted from the first retirement year
+                                             // to the second death year, both included
+      shortYears: number[],                  // calendar years with a shortfall
+      firstShortfallYear?, totalShortfallToday },
+    legacy: { status: 'met' | 'missed' | 'no_goal',   // 'no_goal' when legacyGoalToday is 0
+      afterTaxLegacyToday, goalToday,
+      differenceToday }                      // legacy − goal; 0 with no goal
+  },
+  strategies: [StrategyResult & { vsRegisteredLast: Comparison }] x3,
+                                             // in the order registered_last, fill_brackets,
+                                             // early_rrsp; the chosen one reuses `plan`
+  placement: { baseline: PlanSummary,
+    vsBaseline: Comparison },                // each side's lifetime tax leaves out its own
+                                             // year-one sale tax
+  yearOneSale: { gainsNom, taxNom, taxToday },   // the user's plan; its own line on Savings
+  estate: { year,                            // the second death year
+    balancesToday, homeToday,                // at the end of that year
+    deemedRegisteredToday, deemedGainsToday, // notes on the tax bar
+    finalReturnTaxToday, probateToday, afterTaxLegacyToday },
+  warnings: Warning[]                        // [] until stage 6 (Known gaps M1, warningFacts)
+}
+Comparison {                                 // this variant − the other
+  lifetimeTaxDiffToday, legacyDiffToday,
+  oppositeDirections: boolean }              // tax and legacy both better or both worse
+Tips { revision,
+  byWarning: { [warningCode]: Tip[] } }      // at most 3 per warning; filled in stage 6
+Tip { inputPath, change: string,             // for example "+2 years"
+  effect: number, text: string }             // conditional wording ([Advice wording](#advice-wording))
+EngineError { revision, appVersion,
+  kind: 'integrity' | 'unexpected',
+  year?, variantId?, check?,                 // from EngineIntegrityError
+  message }                                  // shown with "Copy details"
+```
+
+*   **The year-one sale tax:** the first year of the plan is solved a second time with the gains realized by its rebalance set to zero; `taxNom` is the difference in household tax (income tax and clawback) between the two solves. This is done for the user's plan and for the placement baseline. The placement comparison subtracts each one's sale tax from its lifetime tax; the after-tax legacy is left as computed.
+*   **Goal 1** counts only the years from the first retirement to the second death; working years have no spending need.
+
 **Engine state.** The year solver reads and returns one `PlanState` per year:
 
 ```text
@@ -895,7 +941,7 @@ Three sections, in this order; there is no year-by-year table.
 
     Below the cards, one line: lifetime tax, OAS clawback years, and what the last change did (for example "switched to 'Fill lower brackets first' · tax 6,000 lower · legacy 1,000 higher").
 *   **Warnings,** each with its computed tips and links to the related input.
-*   **Charts,** one at a time, chosen with buttons: **Balances** (stacked areas by account type: RRSP/RRIF/LIF, non-registered, TFSA), **Income by source** (the Withdrawals chart for the chosen strategy, with the spending need), **Tax by spouse** (a stacked bar per year for each spouse, income tax including any clawback, after splitting), and **Estate** (a waterfall from balances and the home at the second death, less final-return tax, tax on gains and probate, to the after-tax legacy, with the legacy goal marked). The yearly charts mark the first death. Each chart has a "View as table" option with the same data, for screen readers.
+*   **Charts,** one at a time, chosen with buttons: **Balances** (stacked areas by account type: RRSP/RRIF/LIF, non-registered, TFSA), **Income by source** (the Withdrawals chart for the chosen strategy, with the spending need), **Tax by spouse** (a stacked bar per year for each spouse, income tax including any clawback, after splitting), and **Estate** (a waterfall from balances and the home at the second death, less final-return tax as one bar, with the deemed registered income and deemed gains as notes on it, less probate, to the after-tax legacy, with the legacy goal marked). The yearly charts mark the first death. Each chart has a "View as table" option with the same data, for screen readers.
 
 A status line reads "Up to date · updates as you edit" or "Updating…". The badge on the tab label shows the warning count, "Updating", "Short from <year>" or "Error".
 
@@ -1182,13 +1228,12 @@ The second full review (2026-11-19) was triaged with the author on 2026-11-24; i
 | FR-M7 | When the age-based life-expectancy default is filled, and what happens above the table's last row | Stage 5 |
 | FR-M13 | Tests for the new rules: only the life-expectancy lookup is still open, with FR-M7 | Stage 5 |
 | FR-M18 | Return terminology ("compound" vs "average"); the on-screen label | Stage 5 |
-| M1 | `NormalizedInputs`, the engine state, the `YearRow` fields and the reference CSV columns are defined in [Data contracts](#data-contracts). Still open: the `Result` contract and `warningFacts` content | Stage 4 (`Result`); Stage 6 (`warningFacts`) |
+| M1 | `NormalizedInputs`, the engine state, the `YearRow` fields, the reference CSV columns and the `Result` contract are defined in [Data contracts](#data-contracts). Still open: the `warningFacts` content and the `Warning` type | Stage 6 |
 | M2 | CUJ 6 test-config build: how `VITE_CONFIG_SET=test` reaches a statically imported bundle. CUJ 6 is now tested through user changes in Settings, so this closes unless the config-notice end-to-end check needs an unvalidated key | Stage 5 |
 | M3 | The 70% coverage target for non-engine code cannot be met by unit tests alone, and the UI code has no tests until stage 5; set the target and its start for stage 5 | Stage 5 |
 | M4 | Store and persistence tests need a browser-like test environment (jsdom or happy-dom) | Stage 5 |
 | SR1-M2 | Live recalculation. The Worker is terminated and restarted for a newer revision, and tips run after the main results ([Components and data flow](#components-and-data-flow)). Still open: the incomplete-plan state: a `readyToRun` gate built from the plan schema plus the mix-sum check, with an "Incomplete" badge | Stage 5 (store) |
 | SR1-M8 | Spending categories stay in the engine. Still open: list the persisted category ids (on the [Spending tab](#spending-tab)), and the spending nudge | Stage 5 |
-| SR1-M11 | The `Result`, `Tips` and `EngineError` contracts for the Results tab and strategy cards, including Goal 1 over the years from the first retirement to the second death, the legacy-goal flag (also with no goal set), the estate waterfall inputs, and the year-one sale shown apart from the placement figure ([Comparisons](#comparisons)) | Stage 4 |
 | SR1-M12 | Results could be read as advice. Still open: state that the default strategy (`defaults.ts`, the sample plan) is "Registered last"; colour only the after-tax legacy difference on the cards, and show tax differences (and opposite-direction results) in neutral text | Stage 5 |
 | SR1-M13 | Undecided items with no question or gate. Still open: the incomplete-plan state (SR1-M2), the spending category ids (SR1-M8) and the default strategy (SR1-M12) | Stage 5 |
 | SR-4 | Open questions O20, O24, O27 and O28 (O31 withdrawn) | As listed in [Open Questions](#open-questions) |
@@ -1606,9 +1651,11 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
 ##### 37. `./src/engine/results/compare.ts` (Create, stage 4)
 
-*   **Proposed Changes**: Implement the [Result definitions](#result-definitions):
-    *   whether spending is covered and whether the legacy goal is met;
-    *   `compare` returns the differences in lifetime tax and the after-tax legacy between the plan and a baseline, with an opposite-direction flag;
+*   **Proposed Changes**: Implement the [Result definitions](#result-definitions) and build the `Result` fields in [Data contracts](#data-contracts):
+    *   `goals(rows, summary, inputs, deflator)`: whether spending is covered over the years from the first retirement to the second death, and the legacy status, including `no_goal`;
+    *   `compare(a, b): Comparison`: the differences in lifetime tax and the after-tax legacy, with the opposite-direction flag;
+    *   `yearOneSaleTax(...)`: the second solve of year one with the rebalance gains set to zero;
+    *   `estateSummary(rows, deflator)`: the Estate chart's figures from the second death year's row.
 
 ##### 38. `./src/engine/invariants.ts` (Exists, stage 2)
 
@@ -1629,7 +1676,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   `runPlan(inputs): Result` (main results and strategies) and `runTips(inputs, result): Tips`
     *   `loadConfig`, `applyRuleOverrides`, `configStatus`, `configDefaults`
     *   `normalizeInputs`, `toDisplay`
-    *   the types `PlanInputs`, `Result`, `YearRow`, `PlanSummary`
+    *   the types `PlanInputs`, `Result`, `Tips`, `EngineError`, `YearRow`, `PlanSummary`
 
 #### Worker (stage 4)
 
