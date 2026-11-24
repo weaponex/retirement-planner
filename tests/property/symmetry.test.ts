@@ -29,7 +29,16 @@ function swapped(plan: PlanInputs): PlanInputs {
   };
 }
 
-const close = (a: number, b: number) => Math.abs(a - b) <= Math.max(1, Math.abs(a) * 1e-6);
+const close = (a: number, b: number, rel = 1e-6) =>
+  Math.abs(a - b) <= Math.max(1, Math.abs(a) * rel);
+
+/**
+ * After the first death the survivor owns both spouses' accounts, and deposits go to
+ * the first TFSA or non-registered account by id (design: Surplus). Swapping the
+ * spouses swaps the ids, so the deposit can land in an account with a different
+ * mix: a tie rule like the spouse-1 ties, worth a few hundredths of a percent.
+ */
+const SWAP_TOLERANCE = 0.001;
 
 describe('symmetry', () => {
   it('swapping the spouses gives the same totals', () => {
@@ -49,8 +58,8 @@ describe('symmetry', () => {
           fc.pre(JSON.stringify(plan.spouses[0]) !== JSON.stringify(plan.spouses[1]));
           const a = run(plan, strategyId);
           const b = run(swapped(plan), strategyId);
-          expect(close(a.lifetimeTaxNom, b.lifetimeTaxNom)).toBe(true);
-          expect(close(a.afterTaxLegacyNom, b.afterTaxLegacyNom)).toBe(true);
+          expect(close(a.lifetimeTaxNom, b.lifetimeTaxNom, SWAP_TOLERANCE)).toBe(true);
+          expect(close(a.afterTaxLegacyNom, b.afterTaxLegacyNom, SWAP_TOLERANCE)).toBe(true);
           expect(a.spendingCovered).toBe(b.spendingCovered);
         },
       ),
