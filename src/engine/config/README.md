@@ -25,31 +25,47 @@ one plan year.
   - `ConfigEntry`: `{ value, unit, taxYear, indexed, source: { url, locator },
 fetchedOn, validation }`.
   - `objectSchemas`: value schemas for `object` keys (`planning.shapes`,
-    `planning.presets`, `warnings.triggers`, `warnings.nudge_steps`). The other four
-    `object` keys (`planning.mixes`, `planning.fee_levels`, `planning.spending_phases`,
-    `planning.planner_search`) have no schema yet: they wait on open questions O24, O25,
-    O27 and O31. While they are `unfetched` they pass; once one has a value, `checkEntry`
-    reports "no schema for object value" until its schema is added.
+    `planning.presets`, `planning.fee_levels` (each level a rate from 0 to `MAX_FEE`),
+    `warnings.triggers`, `warnings.nudge_steps`). The other three `object` keys
+    (`planning.mixes`, `planning.spending_phases`, `planning.planner_search`) have no schema
+    yet: they wait on open questions O24, O27 and O31. While they are `unfetched` they pass;
+    once one has a value, `checkEntry` reports "no schema for object value" until its schema
+    is added.
+  - `checkValue(spec, value): string[]`: a value against its kind's schema (or its
+    `objectSchemas` entry); used by `checkEntry` and by rule overrides.
   - `planning.presets` columns are `bonds`, `global_equity` and `cad_equity`
     (`presetColumn`). `global_equity` is a preset column, not an asset class: U.S.,
     international and emerging-market stocks follow it, and cash follows `bonds`.
   - `checkEntry(spec, raw): string[]`: problems with one entry.
   - `SPEC_BY_KEY`: `KeySpec` lookup by key.
 - `load.ts`
-  - `RawBundle`: `{ taxYear, files }`; `Config`: `{ taxYear, entries }`.
+  - `RawBundle`: `{ taxYear, files }`; `Config`: `{ taxYear, entries }` of `LoadedEntry`
+    (a `ConfigEntry` plus `publishedUnit`).
   - `ConfigError`: thrown with `problems: string[]`.
   - `checkBundle(bundle): string[]`: missing, unknown or malformed keys.
-  - `toAnnual(entry)`: converts a `CAD_per_month` entry to `CAD_per_year`.
+  - `toAnnual(entry)`: converts a `CAD_per_month` entry to `CAD_per_year` and records
+    `publishedUnit`, so an override of a monthly key is converted the same way.
   - `buildConfig(bundle): Config`; `loadConfig(): Config` (validates `BUNDLE`).
-  - `ConfigStatus`, `configStatus(config, today)`: unfetched and unvalidated
-    keys, and whether the tax year is out of date. The design's form,
-    `configStatus(config, overrides, today)` with an overridden-keys list, arrives
-    with rule overrides in stage 2; `configDefaults()` arrives in stage 4.
-- `read.ts` (all take a `YearContext` from `../types` and a key)
-  - `plain`: a rate, age or count, never indexed.
-  - `amount`, `list`: a number or number list, indexed when the entry is.
-  - `brackets`: `BracketRow[]` (`{ from, rate }`); `phaseIn`: `PhaseInRow[]`
-    (`{ from, rate, cap }`).
+  - `rebaseConfig(cfg, planStartYear)`: moves every indexed value from its entry's tax year to
+    the plan start, once per run, by value kind (C1), and sets the entry's `taxYear` to the
+    plan start. Age tables and structured values are never rebased.
+  - `ConfigStatus`, `configStatus(config, overrides, today)`: unfetched, unvalidated,
+    overridden and stale-override keys, and whether the tax year is out of date.
+    `configDefaults()` arrives in stage 4.
+- `overrides.ts` (SR1-M9)
+  - `isOverridable(key)`: every key except `warnings.*` and `market.<class>.geometric_return`.
+  - `validateOverride(key, value, overrides, cfg): string[]`: the kind's schema, the range for
+    the key's unit (`OVERRIDE_RANGES`), the table structure, then the cross-key rules on the
+    whole override set.
+  - `applyRuleOverrides(cfg, overrides)`: a new `Config` with the valid overrides, monthly ones
+    × 12, each taking its `defaultTaxYear`.
+  - `dropInvalidOverrides(overrides, cfg): { kept, dropped }`, for import.
+- `read.ts`
+  - With a `YearContext`: `plain` (never indexed); `amount`, `list` (indexed when the entry is);
+    `brackets`, `phaseIn`; `ageTable(ctx, key, age)` (the row at or below the age, the last
+    row above the table, `undefined` below it).
+  - With a `Config`: `planValue(cfg, key)` (unindexed values read once per plan) and
+    `planObject(cfg, key)` (structured planning values).
   - `MissingRuleValueError`: thrown with `key` when an entry is absent or has no
     value.
 - `bundle.ts`: `BUNDLE`, a `RawBundle` that statically imports
@@ -73,7 +89,11 @@ fetchedOn, validation }`.
 - `Config` entries are yearly: `CAD_per_month` values are multiplied by
   `MONTHS_PER_YEAR` and relabelled `CAD_per_year`.
 - Indexed reads multiply by `ctx.deflator(ctx.yearIndex)`; a bracket row's own
-  `indexed` flag overrides the entry's. Rates are never indexed.
+  `indexed` flag overrides the entry's. Rates are never indexed. Because
+  `rebaseConfig` has already moved indexed values to the plan start, the deflator
+  counts from there.
+- An override is entered in the key's published unit and in its default's tax-year
+  dollars; it is rebased from that year like the default (SR1-M10).
 - `read.ts` functions throw `MissingRuleValueError` rather than returning a
   default for a missing or `null` value.
 
@@ -86,4 +106,5 @@ fetchedOn, validation }`.
 ## Verification
 
 - Run: `npm run typecheck && npm run lint && npm test`
+- Tests: `tests/unit/{config,overrides,read,units}.test.ts`.
 - Config files: `npm run config:check`

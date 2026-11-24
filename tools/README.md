@@ -21,6 +21,9 @@ year's config, and one compares two candidate config files from separate fetch s
     `src/engine/config/load.ts`.
   - `sourcesKeys(): string[]`: the backticked keys in the first column of the tables in
     `config/SOURCES.md` (pattern `` ^\|\s*`([a-z0-9_.]+)`\s*\| ``).
+  - `yieldWarnings(bundle): string[]`: one warning per asset class whose
+    `market.<class>.yield` is above its `market.<class>.geometric_return`, because its price
+    would then fall every year (FR-M5). The 2026 bond values trigger it.
 - `configBundle.ts` (`npm run config:bundle`): writes `src/engine/config/bundle.ts`, which
   statically imports every `config/<CURRENT_YEAR>/*.json` file and exports
   `BUNDLE: RawBundle`. Run it after changing `config/CURRENT_YEAR` or adding a config file.
@@ -57,13 +60,15 @@ year's config, and one compares two candidate config files from separate fetch s
 - Exit codes: `configCheck` exits 1 on schema or key-list problems, and in `--strict` mode on
   unfetched or unvalidated keys. `configCompare` exits 1 if anything differs and 2 on missing
   arguments.
-- `configCheck` passes `new Date()` to `configStatus`. When the current year is later than the
-  config year, it prints an extra line, "out of date: the current year is later than <year>"
-  (it does not fail).
+- `configCheck` passes `{}` (no rule overrides) and `new Date()` to `configStatus`. When the
+  current year is later than the config year, it prints an extra line, "out of date: the
+  current year is later than <year>" (it does not fail). It then prints each `yieldWarnings`
+  line as a warning, without failing.
 
 ## Verification
 
 - Run: `npm run typecheck && npm run lint && npm test`. `tests/unit/config.test.ts` covers
-  `compareFiles`, `readBundle`, `currentYear` and `sourcesKeys`.
+  `compareFiles`, `readBundle`, `currentYear` and `sourcesKeys`; `tests/unit/configCheck.test.ts`
+  covers `yieldWarnings`.
 - Run the tools: `npm run config:check`, `npm run config:bundle` (then review the
   `src/engine/config/bundle.ts` diff), and `npm run config:compare -- <a.json> <b.json>`.

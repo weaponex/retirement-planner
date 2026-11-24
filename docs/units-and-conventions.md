@@ -75,3 +75,32 @@ same year.
 Each config entry says whether it rises with inflation (`indexed`). Indexed values grow at the
 fixed rate. Non-indexed values (for example Ontario's $150,000 and $220,000 bracket thresholds, and
 the $50,000 probate threshold) stay fixed in future dollars.
+
+Indexing counts from the defaults' tax year, not from the plan start (SR1-M10). Once per run,
+`rebaseConfig(cfg, planStartYear)` multiplies every indexed value by
+(1 + inflation)^(planStartYear − the entry's `taxYear`) and sets the entry's `taxYear` to the plan
+start. After that, every indexed read uses the deflator, which counts from the plan start. By value
+kind:
+
+- a `number` marked `indexed`;
+- each `brackets` row whose own flag (or the entry's) is indexed, on its `from` only;
+- every number in an indexed `list`;
+- the `from` and `cap` of every row of an indexed `phaseIn`;
+- `ageTable` and `object` values are never rebased.
+
+**Worked example** (illustrative numbers only). Inflation is 2.1%, the defaults are for 2026 and
+the plan starts in 2029 (three years later). An indexed threshold of $50,000 and a bracket table
+whose second row starts at $60,000 (indexed) and whose third row starts at $150,000 (marked
+`indexed: false`):
+
+    rebase factor        = (1.021)^3              = 1.064332
+    threshold in 2029    = 50,000 × 1.064332      = 53,216.61   (taxYear becomes 2029)
+    second row in 2029   = 60,000 × 1.064332      = 63,859.94
+    third row            = 150,000                (not indexed: unchanged)
+    threshold in 2031    = 53,216.61 × (1.021)^2  = 55,475.18   (deflator for year index 2)
+
+A rule override is rebased the same way, from the tax year of the default it replaced: a $90,000
+override set against 2025 defaults becomes 90,000 × (1.021)^4 in a 2029 plan.
+
+The run order is `applyRuleOverrides`, then `rebaseConfig`, then `normalizeInputs`, so an override
+of `market.inflation` changes both the rebase and the deflator.

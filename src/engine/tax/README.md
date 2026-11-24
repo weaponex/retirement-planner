@@ -6,9 +6,9 @@ Tax arithmetic for one person and one year. `personalTax.ts` combines the
 federal tax, the provincial tax from a `Jurisdiction`, and the OAS recovery tax
 (clawback) into one result. `tables.ts` holds the shared table arithmetic
 (bracket tax, phase-in amounts, the lowest bracket rate) that the federal and
-Ontario rules in `src/engine/jurisdiction/` use. No rule values live here: the
-tables arrive as `BracketRow[]` / `PhaseInRow[]` read from config by
-`src/engine/config/read.ts`.
+Ontario rules in `src/engine/jurisdiction/` use. `split.ts` (stage 2) holds pension
+income splitting for a couple. No rule values live here: the tables arrive as
+`BracketRow[]` / `PhaseInRow[]` read from config by `src/engine/config/read.ts`.
 
 ## Interface
 
@@ -29,6 +29,15 @@ tables arrive as `BracketRow[]` / `PhaseInRow[]` read from config by
     band.
   - `lowestRate(rows: BracketRow[]): number`: the first row's rate, used to
     value non-refundable credits.
+- `split.ts` (M13, C2)
+  - `SplitSpouse { income, age, eligible, excluded, flatRate? }`: `eligible` is the pension
+    income this spouse could transfer; `excluded` leaves a working or dead spouse out;
+    `flatRate` taxes a working spouse at their marginal rate instead of `personalTax`.
+  - `transfer`, `applySplit`, `flatTaxable`, `spouseTax`, `householdTax(a, b, choice, ctx)`.
+  - `splitChoices(ctx)`: 0, then each `SPLIT_STEP` up to `federal.split.max_share` for
+    spouse 1 then spouse 2: 2 × (max ÷ step) + 1 points.
+  - `bestSplit(a, b, ctx): { from, share, householdTax }`: the lowest household tax; ties go to
+    the smaller transfer, then spouse 1 transferring.
 - Consumers: `src/engine/jurisdiction/federal.ts` (`bracketTax`, `lowestRate`)
   and `src/engine/jurisdiction/ontario.ts` (`bracketTax`, `lowestRate`,
   `phaseInAmount`).
@@ -58,4 +67,5 @@ tables arrive as `BracketRow[]` / `PhaseInRow[]` read from config by
 - Run: `npm run typecheck && npm run lint && npm test`
 - Unit tests: `tests/unit/personalTax.test.ts` (the table functions are also
   exercised through `tests/unit/federal.test.ts` and
-  `tests/unit/ontario.test.ts`).
+  `tests/unit/ontario.test.ts`); `tests/unit/split.test.ts` and
+  `tests/property/solver.test.ts` for splitting.

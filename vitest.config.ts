@@ -1,8 +1,9 @@
 import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-// Coverage thresholds start at the stage-2 tag (see the design's Verification
-// Plan). Until then coverage is reported but not enforced.
+// Coverage thresholds apply from the stage-2 tag, when CI sets ENFORCE_COVERAGE
+// (see the design's Verification Plan). The two globs do not overlap: the
+// engine's target is 90% of branches, the rest of src/ 70% (pending M3).
 const ENFORCE_COVERAGE = process.env.ENFORCE_COVERAGE === 'true';
 
 export default defineConfig({
@@ -18,7 +19,7 @@ export default defineConfig({
       thresholds: ENFORCE_COVERAGE
         ? {
             'src/engine/**': { branches: 90 },
-            'src/**': { branches: 70 },
+            'src/{state,ui,worker}/**': { branches: 70 },
           }
         : {},
     },

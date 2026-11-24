@@ -13,10 +13,15 @@ province it has.
 ## Interface
 
 - `types.ts`
-  - `Jurisdiction`: `{ id: string; provincialTax(income: TaxableIncome, age: number, ctx: YearContext): number }`.
-    Provincial tax for one return, including surtax, credits and premiums.
-    Probate, `lifLimits` and `unlockShare` are planned for later stages and are
-    not defined yet.
+  - `Jurisdiction`:
+    - `id: string`;
+    - `provincialTax(income, age, ctx): number`: provincial tax for one return, including
+      surtax, credits and premiums;
+    - `lifMaxFactor(ageAtStartOfYear, ctx): number`: the LIF maximum factor (stage 2);
+    - `unlockShare(ctx): number`: the one-time LIRA unlock share (stage 2).
+    `probate` arrives in stage 3. The LIF rules themselves (minimum, the earnings floor, the
+    opening year) are in `src/engine/accounts/liraLif.ts`; the jurisdiction supplies only its
+    values.
 - `federal.ts`
   - `IncomeTotals`: `grossedUpDividends`, `includedGains`, `totalIncome` (line
     15000), `clawback`, `netIncome` (line 23600), `taxableIncome` (line 26000).
@@ -49,8 +54,12 @@ province it has.
     `dividendCredit`, `afterDividendCredit`, `taxReduction`, `afterReduction`,
     `healthPremium`, `total`.
   - `ontarioTaxParts(income, age, ctx): OntarioParts`: the ON428 steps in order.
+  - `ontarioLifMaxFactor(ageAtStartOfYear, ctx)`: the `ontario.lif.max_factor` row at or
+    below the age, the last row (90, 100%) above the table; throws below its first row
+    (FR-M9).
   - `ontario: Jurisdiction`: `id: 'ON'`; `provincialTax` returns
-    `ontarioTaxParts(...).total`.
+    `ontarioTaxParts(...).total`; `lifMaxFactor` is `ontarioLifMaxFactor`; `unlockShare`
+    reads `ontario.lif.unlock_share`.
 
 ## Invariants
 
