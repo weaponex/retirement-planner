@@ -554,7 +554,7 @@ A working year's row shows `afterTaxCashNom` and `surplusNom` of 0: what is save
 
 #### Result definitions
 
-*   **Spending covered:** whether after-tax cash meets the spending need in every year of the plan. If not, the result shows the first shortfall year and the total shortfall. It is labelled "assuming deaths at the target ages and steady average returns". Whether the legacy goal is met is reported separately.
+*   **Spending covered:** whether after-tax cash meets the spending need in every year of the plan. If not, the result shows the first shortfall year and the total shortfall. It is labelled "assuming deaths at the target ages and steady average returns", followed by one sentence: "Real markets go up and down, and many sequences of returns would leave you with less than this." Whether the legacy goal is met is reported separately. A plan whose spending is covered only narrowly is flagged by the "Money runs out" near-miss warning ([Design values](#design-values-version-1)).
 *   **Lifetime tax:** federal and Ontario income tax, the OAS clawback, final-return tax and probate, summed in today's dollars: each year's amount is divided by that year's display deflator before it is added. `runPath` adds up both sums, `lifetimeTaxNom` and `lifetimeTaxToday`, as plain numbers; this is the one place inside `project/` that uses the deflator, and it does not import the `TodayDollars` type. `totalShortfall` follows the same rule.
 *   **After-tax legacy:** what the estate passes on after the second death, after final-return tax and probate (see [Death and estate](#death-and-estate-o12-o23)), in today's dollars. The strategy cards label it "Money left"; this document always calls it the after-tax legacy.
 *   **Clawback years:** household years in which either spouse pays any clawback.
@@ -611,7 +611,7 @@ The author's planning choices, stored in `planning.json` and `warnings.json`, ea
 
 | Warning | Fires when | Measured on |
 |---|---|---|
-| Money runs out | First shortfall before the second death, or within the last 5 years | Plan |
+| Money runs out (near miss) | Spending is covered every year, but at the end of some year before the second death year the household's account balances (not the home) are less than 3 years of that year's spending need. It does not fire when spending is short, because Goal 1 already shows that | Plan |
 | OAS clawback | A spouse's net income within $5,000 of the threshold, or above it | Plan |
 | RRIF minimum forces extra income | Forced income more than $5,000 above need | Plan |
 | Large registered balance at second death | More than $250,000 | Plan |
@@ -625,6 +625,7 @@ The author's planning choices, stored in `planning.json` and `warnings.json`, ea
 | Input | Step |
 |---|---|
 | Spending phases | ±5% |
+| Expected returns (for "Money runs out" only) | every class's return lowered by `planning.override_margin` (0.5 point); down only, since a higher return would be the optimistic case |
 | CPP/OAS start age | ±1 year |
 | Bracket level (when "Fill lower brackets first" is chosen) | the other level |
 | Retirement year | ±1 |
@@ -889,7 +890,7 @@ The profile of each spouse only: name, birth year and month, sex at birth, retir
 Three sections, in this order; there is no year-by-year table.
 
 *   **Your goals.** Two cards side by side, each with a "Met" or "Missed" badge:
-    *   **Goal 1, spending covered every year:** the number of years covered out of the plan's years, a strip with one block per year (red for a short year), the first shortfall year and total shortfall if any, the "assuming deaths at the target ages and steady average returns" label, and a link to Spending.
+    *   **Goal 1, spending covered every year:** the number of years covered out of the plan's years, a strip with one block per year (red for a short year), the first shortfall year and total shortfall if any, the "assuming deaths at the target ages and steady average returns" label with its sentence on real markets, and a link to Spending.
     *   **Goal 2, the legacy goal:** the projected after-tax legacy (including the home, after final-return tax and probate) against the goal set on Estate, the amount above or below it, a bar with the goal marked, and a link to Estate.
 
     Below the cards, one line: lifetime tax, OAS clawback years, and what the last change did (for example "switched to 'Fill lower brackets first' · tax 6,000 lower · legacy 1,000 higher").
@@ -1180,7 +1181,6 @@ The second full review (2026-11-19) was triaged with the author on 2026-11-24; i
 |---|---|---|
 | FR-M7 | When the age-based life-expectancy default is filled, and what happens above the table's last row | Stage 5 |
 | FR-M13 | Tests for the new rules: only the life-expectancy lookup is still open, with FR-M7 | Stage 5 |
-| FR-M17 | "Spending covered: Yes" at steady returns can reassure falsely; "Money runs out" repeats the headline | Stage 4 |
 | FR-M18 | Return terminology ("compound" vs "average"); the on-screen label | Stage 5 |
 | M1 | `NormalizedInputs`, the engine state, the `YearRow` fields and the reference CSV columns are defined in [Data contracts](#data-contracts). Still open: the `Result` contract and `warningFacts` content | Stage 4 (`Result`); Stage 6 (`warningFacts`) |
 | M2 | CUJ 6 test-config build: how `VITE_CONFIG_SET=test` reaches a statically imported bundle. CUJ 6 is now tested through user changes in Settings, so this closes unless the config-notice end-to-end check needs an unvalidated key | Stage 5 |
@@ -1467,7 +1467,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   `planning.override_margin`;
     *   `planning.survivor_spending`;
     *   `warnings.triggers` and `warnings.nudge_steps`;
-    *   `planning.life_expectancy.female` and `.male`, which are sourced from FP Canada and fetched (see the [Config contract](#config-contract)).
+    *   `warnings.triggers` and `warnings.nudge_steps`. At stage 6, `warnings.triggers.money_runs_out` changes from `final_years: 5` to the near-miss trigger (3 years of spending) and `warnings.nudge_steps` gains the returns step ([Design values](#design-values-version-1)). `warnings.triggers` is validated, so the author makes that change;
 
     Each author value is sourced as "author decision" with the date of the decision.
 
@@ -1720,7 +1720,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 *   **Proposed Changes**:
     *   **`glossary.ts`:** the terms in the [Glossary](#glossary), which lists only terms users see.
     *   **`explanations.ts`:** fixed templates for each preset, shape, strategy and comparison, all in conditional wording. Each strategy's "Learn more" text has: what it does; effect on income, taxes and savings; pros; cons; when it makes sense; and, for "Fill lower brackets first" and "Early RRSP drawdown", a note on choosing the level or the ages.
-    *   **`disclaimer.ts`:** placeholder text: "This tool shows projections under the assumptions you enter. It is not financial, tax or legal advice." It is replaced when O20 is resolved.
+    *   **`disclaimer.ts`:** placeholder text: "This tool shows projections under the assumptions you enter. It uses steady average returns; real markets go up and down, and many sequences of returns would leave you with less. It is not financial, tax or legal advice." It is replaced when O20 is resolved.
 
 #### Tools (stage 0)
 
