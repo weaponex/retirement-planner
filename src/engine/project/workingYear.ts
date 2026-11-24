@@ -1,9 +1,9 @@
 // Years before the first retirement (design: The year solver, working years):
 // rebalance and apply the shape; tax the non-registered cash yield at each
 // owner's working marginal rate and reinvest the rest; tax CPP, OAS and DB
-// collected while working at that rate and save the rest (TFSA within room,
-// then non-registered); apply price returns; contributions land at the end of
-// the year; then the invariants.
+// collected while working, and any RRIF or LIF minimum, at that rate and save
+// the rest (TFSA within room, then non-registered); apply price returns;
+// contributions land at the end of the year; then the invariants.
 import { netGains } from '../accounts/nonRegistered';
 import { firstTfsa, fitsInRoom, useRoom } from '../accounts/tfsa';
 import { checkYear, type YearChecks } from '../invariants';
@@ -60,6 +60,7 @@ export function workingYear(
   const taxBy: [number, number] = [0, 0];
   const taxableBy: [number, number] = [0, 0];
   const gainsBy: [number, number] = [p.rebalanceGains[0], p.rebalanceGains[1]];
+  const minimumsBy: [number, number] = [0, 0];
 
   for (const o of OWNERS) {
     if (!spouses[o].alive) continue;
@@ -71,7 +72,24 @@ export function workingYear(
       yields[o],
       p.rebalanceGains[o],
     );
-    const benefitIncome = assembleIncome({ carriedLossNom: 0 }, fixed[o], [], noCashYield(), 0);
+    // RRIF and LIF minimums apply in working years too; they are taxed and
+    // saved like the benefits.
+    let minimums = 0;
+    for (const a of accounts) {
+      const min = a.owner === o ? (p.limits[a.id]?.min ?? 0) : 0;
+      if (min > 0) {
+        add(draws, a.id, min);
+        minimums += min;
+      }
+    }
+    minimumsBy[o] = minimums;
+    const benefitIncome = assembleIncome(
+      { carriedLossNom: 0 },
+      { ...fixed[o], db: fixed[o].db + minimums },
+      [],
+      noCashYield(),
+      0,
+    );
     const yieldTaxable = flatTaxable(yieldIncome, ctx);
     const benefitTaxable = flatTaxable(benefitIncome, ctx);
     const yieldTax = yieldTaxable * rate;
@@ -87,7 +105,7 @@ export function workingYear(
     else add(draws, nonreg.id, -netYield);
 
     // Benefits, less tax, are saved: TFSA within room, then non-registered.
-    let save = fixedTotal(fixed[o]) - benefitTax;
+    let save = fixedTotal(fixed[o]) + minimums - benefitTax;
     const tfsa = firstTfsa(accounts, o);
     if (tfsa && save > 0) {
       const put = fitsInRoom(spouses[o], save);
@@ -107,7 +125,8 @@ export function workingYear(
     if (out > 0) {
       const sale = sellProRataHoldings(holdings, out);
       holdings = sale.holdings;
-      gainsBy[a.owner] += sale.realizedGain;
+      // Only non-registered sales realize gains.
+      if (a.type === 'nonreg') gainsBy[a.owner] += sale.realizedGain;
     }
     const into = deposits[a.id] ?? 0;
     if (into > 0) holdings = buy(holdings, into, currentWeights(holdings, p.mix));
@@ -171,8 +190,10 @@ export function workingYear(
     oasNom: fixed[o].oas,
     dbNom: fixed[o].db + fixed[o].survivorDb,
     payNom: 0,
-    withdrawals: {},
-    forcedDrawsNom: 0,
+    withdrawals: Object.fromEntries(
+      accounts.filter((a) => a.owner === o && draws[a.id]).map((a) => [a.id, draws[a.id]!]),
+    ),
+    forcedDrawsNom: minimumsBy[o],
     realizedGainsNom: gainsBy[o],
     taxableIncomeNom: taxableBy[o],
     taxNom: taxBy[o],
@@ -207,7 +228,7 @@ export function workingYear(
   const checks: YearChecks = {
     variantId: variant.id,
     kind: 'working',
-    limits: {},
+    limits: p.limits,
     tfsaRoomStart: tfsaRoomForChecks,
     tfsaIn,
     workingDraws: totalDraws,

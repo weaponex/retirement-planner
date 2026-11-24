@@ -23,7 +23,8 @@ by the deflator as plain numbers (M5).
   non-registered account, so a surplus always has a home. An account already past its conversion
   age starts converted, opened the year before.
 - `[workingYear.ts]` The yield, gains and benefits are taxed at each owner's marginal rate.
-  Contributions land after the price return. RRIF and LIF minimums are not taken in working years.
+  Contributions land after the price return. RRIF and LIF minimums are taken in working years
+  too, taxed at the marginal rate and saved like the benefits.
 - `[runPath.ts]` Rows run from the plan start to the second death. In stage 2 there is no final
   return: `afterTaxLegacyNom` is the balances before tax and `legacyIsPreTax` is `true`.
 - `[death.ts]` Accounts keep their id and type and change owner; the deceased's carried loss is
