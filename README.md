@@ -126,7 +126,8 @@ importing an exported plan file locally.
 ## Reference machine
 
 The speed targets (results within 1 second and tips within 2 seconds of the last edit) are
-checked on the author's laptop (CPU, cores and RAM recorded here at stage 4).
+checked on the author's desktop with current Chrome: AMD Ryzen 7 3700X (8 cores, 16 threads),
+32 GB RAM. The stage 4 check of 2026-11-24 is recorded in the design's Performance section.
 
 ## Licence
 

@@ -788,12 +788,20 @@ Death { spouse: 0 | 1, year }
 
 ### Performance
 
-*   **Targets:** on the reference machine (the author's laptop with current Chrome, whose CPU, cores and RAM are recorded in `README.md` at stage 4), measured from the end of the 500 ms pause after the last edit:
+*   **Targets:** on the reference machine (the author's desktop with current Chrome; its CPU, cores and RAM are recorded in `README.md`), measured from the end of the 500 ms pause after the last edit:
     *   **under 1 second** for the first message: the user's plan, the placement baseline, and the two other strategies (4 runs of 30–45 years);
     *   **under 2 seconds** for the second message: the warning tips (about 100 more runs).
 *   **Typing stays smooth:** a new edit cancels any run still in progress (the client terminates the Worker and starts a new one), so results never lag behind a burst of edits. Measured as: no main-thread task over 50 ms while a run is in progress, checked in the Chrome DevTools Performance panel.
 *   **Early warning:** `runPath.test.ts` logs the time of one 40-year couple run in CI. Above 45 ms (the budget per run for about 22 runs in 1 second), the log says so; it does not fail the build.
 *   **How it's checked:** timed by hand on the reference machine at the start of stage 4 and again before stage 8. If a target is missed, reduce work inside the year solver first, then run the other strategies with summary detail only. No streamed partial results or per-variant cache are built unless the speed check fails.
+*   **Stage 4 check (2026-11-24),** the stage 3 engine timed in Node on the reference machine, middle value of repeated runs:
+
+    | Plan | One run | First message (4 runs) | 100 tip runs |
+    |---|---|---|---|
+    | Reference plan, 34 years | 22 ms | 110 ms | 1.86 s |
+    | Same plan, 45 years | 26 ms | 133 ms | 2.55 s |
+
+    The first message meets its target easily. The tips miss theirs on the longest plans if there are 100 reruns; the author accepted this for now, because the real number of reruns depends on the warnings built in stage 6. The check is repeated before stage 8 with the real count, and the year solver is made faster then if the target is still missed.
 
 ### Verification (G10)
 
@@ -1195,7 +1203,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 | 1 | Tax for one person (`jurisdiction/*`, `tax/personalTax.ts`) | `federal.json` and `ontario.json` validated |
 | 2 | Couple engine with fixed returns: `units`, `accounts/*`, `benefits/*`, `withdraw/*` (the three strategies), `tax/split.ts`, `solver/*`, `project/workingYear.ts`, `project/runPath.ts`, the first-death transfer in `project/death.ts`, `invest/*`, rule overrides, invariants. See the [stage 2 file boundary](#stage-2-file-boundary) | O25, O26, O29 (all resolved); the author enters and validates `market.us_equity.yield`, `market.intl_equity.yield`, `market.em_equity.yield`, `market.cash.yield` (author decisions, O30) and `market.cash.geometric_return` (FP Canada) |
 | 3 | Deaths and estate (`project/death.ts`); reference plan test | — |
-| 4 | Variants, the strategy runs, comparisons, results, Worker | Speed check of the stage 3 engine on the reference machine ([Performance](#performance)) |
+| 4 | Variants, the strategy runs, comparisons, results, Worker | Speed check of the stage 3 engine on the reference machine (done 2026-11-24; [Performance](#performance)) |
 | 5 | Store, screens (six tabs and Settings), live recalculation, change summary | O24, O27, O28 |
 | 6 | Warnings and computed tips | — |
 | 7 | Saving, export/import, sample plan | — |
@@ -1382,7 +1390,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   what the app is, and the disclaimer;
     *   how to run it locally;
     *   how tests work;
-    *   the reference machine's CPU, cores and RAM (added at stage 4);
+    *   the reference machine's CPU, cores and RAM;
     *   how the config is updated each year (link to the admin guide);
     *   the rule that no personal data is committed.
 
