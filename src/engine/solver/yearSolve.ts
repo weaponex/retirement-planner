@@ -288,6 +288,11 @@ const sameSplit = (a: SplitChoice, b: SplitChoice) =>
 
 // ------------------------------------------------------------- the year
 
+export interface SolveOptions {
+  /** Solve once at this split, with no search (used to compare against the full search in tests). */
+  fixedSplit?: SplitChoice;
+}
+
 export interface SolvedYear {
   nextState: PlanState;
   row: YearRow;
@@ -397,6 +402,7 @@ export function solveYear(
   inputs: NormalizedInputs,
   ctx: YearContext,
   variant: Variant,
+  options: SolveOptions = {},
 ): SolvedYear {
   if (variant.strategyId === 'planner_pick') throw new UnsupportedStrategyError('planner_pick');
   const returns = classReturns(ctx.cfg, inputs.investing);
@@ -463,11 +469,11 @@ export function solveYear(
   };
 
   // Two-pass split: solve at last year's split, search once, re-solve if it changed.
-  let split = state.splitShare;
+  let split = options.fixedSplit ?? state.splitShare;
   let W = solve(split);
   let result = evalAt(W, split);
   const best = bestSplit(result.spouses[0], result.spouses[1], ctx);
-  if (!sameSplit(best, split)) {
+  if (!options.fixedSplit && !sameSplit(best, split)) {
     split = { from: best.from, share: best.share };
     W = solve(split);
     result = evalAt(W, split);
