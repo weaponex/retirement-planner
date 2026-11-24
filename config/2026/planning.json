@@ -200,7 +200,9 @@
     },
     "fetchedOn": "2026-11-19",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-24"
     }
   },
   "planning.spending_phases": {
