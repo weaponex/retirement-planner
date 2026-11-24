@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { CONFIG_YEAR_MAX, CONFIG_YEAR_MIN, MAX_FEE } from '../constants';
-import { KEY_SPECS, type KeySpec, type ValueKind } from './keys';
+import { ASSET_CLASSES, KEY_SPECS, type AssetClass, type KeySpec, type ValueKind } from './keys';
 
 export const UNITS = [
   // A one-time amount, such as the probate threshold.
@@ -65,6 +65,30 @@ export const objectSchemas: Record<string, z.ZodTypeAny> = {
   ),
   // One yearly fee per named level (O25): a rate subtracted from each class's gross return.
   'planning.fee_levels': z.object({ index_etf: feeRate, robo: feeRate, advisor: feeRate }).strict(),
+  // Starting mixes (O24): whole percentages of each class, summing to 100.
+  'planning.mixes': z.record(
+    z.enum(['conservative', 'balanced', 'growth']),
+    z
+      .object(
+        Object.fromEntries(ASSET_CLASSES.map((c) => [c, finite.int().min(0).max(100)])) as Record<
+          AssetClass,
+          z.ZodNumber
+        >,
+      )
+      .strict()
+      .refine((m) => Object.values(m).reduce((x, y) => x + y, 0) === 100, {
+        message: 'a starting mix must sum to 100',
+      }),
+  ),
+  // Spending phases (O27): the slower and later phases, in that order. fromYear
+  // counts from the first retirement year (year 0); keepPct is a share of
+  // active-years spending, in whole percent.
+  'planning.spending_phases': z
+    .array(z.object({ fromYear: finite.int().min(1), keepPct: finite.min(0).max(100) }).strict())
+    .length(2)
+    .refine((p) => p.length !== 2 || p[0]!.fromYear < p[1]!.fromYear, {
+      message: 'the later phase must start after the slower one',
+    }),
   'warnings.triggers': z.record(z.string(), z.record(z.string(), finite)),
   'warnings.nudge_steps': z.record(z.string(), finite),
 };

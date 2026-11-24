@@ -39,7 +39,9 @@ describe('planValue', () => {
   });
 
   it('throws for a key with no value yet', () => {
-    expect(() => planValue(cfg, 'planning.mixes')).toThrow(MissingRuleValueError);
+    const entries = new Map(cfg.entries);
+    entries.set('planning.mixes', { ...entries.get('planning.mixes')!, value: null });
+    expect(() => planValue({ ...cfg, entries }, 'planning.mixes')).toThrow(MissingRuleValueError);
   });
 });
 

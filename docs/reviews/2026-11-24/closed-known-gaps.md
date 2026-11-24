@@ -45,3 +45,13 @@ Moved out of the design's [Known gaps from review](../../designs/retirement-plan
 | ~~FR-M17~~ | Fixed 2026-11-24 (author): "Money runs out" becomes a near-miss warning (balances below 3 years of spending before the second death, while spending is covered); a "returns 0.5 point lower" nudge for its tips; one sentence on real markets added to the Goal 1 label and the disclaimer placeholder | — |
 | ~~SR1-M11~~ | Fixed 2026-11-24 (author): the `Result`, `Tips` and `EngineError` contracts in Data contracts; Goal 1 from the first retirement to the second death; legacy status with `no_goal`; the Estate chart with one final-return tax bar; the year-one sale tax measured by re-solving year one and left out of the placement comparison | — |
 | ~~M1 (Result part)~~ | Fixed 2026-11-24: the `Result` contract is defined; `warningFacts` stays open for stage 6 | — |
+| ~~FR-M7~~ | Fixed 2026-11-24 (author), stage 5 preparation: the life expectancy default is filled once, from planStartYear − birth year, never over a typed value; the last row above 100 (Design values) | — |
+| ~~FR-M13~~ | Fixed 2026-11-24 (author), stage 5 preparation: the life-expectancy lookup test is planned in defaults.test.ts (file 56) | — |
+| ~~FR-M18~~ | Fixed 2026-11-24 (author), stage 5 preparation: "fixed compound return" in the design; "the same return every year (FP Canada's long-run estimate)" on screen; "Compound return" in the Glossary | — |
+| ~~M2~~ | Fixed 2026-11-24 (author), stage 5 preparation: closed without a test config build; the e2e config-notice check uses the bundled config | — |
+| ~~M3~~ | Fixed 2026-11-24 (author), stage 5 preparation: coverage targets: 80% branches for src/state and src/worker, 70% for src/ui with React Testing Library | — |
+| ~~M4~~ | Fixed 2026-11-24 (author), stage 5 preparation: happy-dom for the store, save and screen tests | — |
+| ~~SR1-M2~~ | Fixed 2026-11-24 (author), stage 5 preparation: readyToRun in the store, the "Incomplete" badge and missing list, every action raises the revision, older tips dropped, "Finding tips…", edits named or counted, no summary after a load | — |
+| ~~SR1-M8~~ | Fixed 2026-11-24 (author), stage 5 preparation: category ids listed on the Spending tab; mode switching keeps both sets; year 0 is the first retirement; the spending.active ±5% nudge | — |
+| ~~SR1-M12~~ | Fixed 2026-11-24 (author), stage 5 preparation: "Registered last" is the default; only the legacy difference is coloured, neutral when the two move in opposite directions | — |
+| ~~SR1-M13~~ | Fixed 2026-11-24 (author), stage 5 preparation: its remaining items (SR1-M2, SR1-M8, SR1-M12) are closed | — |

@@ -137,9 +137,9 @@ described. Author decisions, including the market yields (O30), are not fetched.
 | `planning.life_expectancy.male` | age | https://www.fpcanada.ca/docs/professionalsitelibraries/standards/projection-assumption-guidelines.pdf | Probability-of-survival table, 25% column, male, one entry per current age row (20, 25, … 100) |
 | `planning.shapes` | none | author decision | Design values (version 1) |
 | `planning.presets` | none | author decision | Design values (version 1) |
-| `planning.mixes` | none | author decision, open (O24) | Design values (version 1) |
+| `planning.mixes` | none | author decision, 2026-11-24 (O24) | Design values (version 1) |
 | `planning.fee_levels` | none | author decision (O25, 2026-11-19) | Design values (version 1), Fee levels |
-| `planning.spending_phases` | none | author decision, open (O27) | Design values (version 1) |
+| `planning.spending_phases` | none | author decision, 2026-11-24 (O27) | Design values (version 1) |
 | `planning.survivor_spending` | rate | author decision | Design values (version 1) |
 | `planning.override_margin` | rate | author decision | Design values (version 1) |
 

@@ -6,7 +6,7 @@ import {
   configStatus,
   type RawBundle,
 } from '../../src/engine/config/load';
-import { checkEntry, SPEC_BY_KEY } from '../../src/engine/config/schema';
+import { checkEntry, checkValue, SPEC_BY_KEY } from '../../src/engine/config/schema';
 import { compareFiles } from '../../tools/configCompare';
 import { readBundle, currentYear, sourcesKeys } from '../../tools/lib';
 
@@ -155,5 +155,25 @@ describe('compareFiles', () => {
         'only_b: only in second file',
       ]),
     );
+  });
+});
+
+describe('starting mixes and spending phases (O24, O27)', () => {
+  const check = (key: string, value: unknown) =>
+    checkValue(SPEC_BY_KEY.get(key)!, value).length === 0;
+  const mix = { cad_equity: 20, us_equity: 25, intl_equity: 10, em_equity: 5, bonds: 35, cash: 5 };
+
+  it('accepts whole-percent mixes that sum to 100', () => {
+    expect(check('planning.mixes', { balanced: mix })).toBe(true);
+    expect(check('planning.mixes', { balanced: { ...mix, cash: 6 } })).toBe(false);
+    expect(check('planning.mixes', { balanced: { ...mix, cash: 4.5, bonds: 35.5 } })).toBe(false);
+    expect(check('planning.mixes', { risky: mix })).toBe(false);
+  });
+
+  it('needs the later phase to start after the slower one', () => {
+    const slower = { fromYear: 15, keepPct: 70 };
+    expect(check('planning.spending_phases', [slower, { fromYear: 25, keepPct: 60 }])).toBe(true);
+    expect(check('planning.spending_phases', [slower, { fromYear: 15, keepPct: 60 }])).toBe(false);
+    expect(check('planning.spending_phases', [slower])).toBe(false);
   });
 });

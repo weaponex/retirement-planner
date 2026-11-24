@@ -15,7 +15,7 @@ A free retirement planner that runs entirely in a desktop web browser. It helps 
 2.  **Savings and investing with taxes in mind:** the couple's accounts and workplace pensions, their overall investment mix, which kinds of investments to hold in which accounts (RRSP/RRIF, TFSA, non-registered, workplace pension accounts), and whether to shift toward safer investments as retirement goes on.
 3.  **Withdrawals:** which accounts to draw from and in what order, when each spouse starts CPP and OAS, RRIF minimum withdrawals, pension income splitting, the OAS clawback, and the tax due at each death.
 
-The app has five input tabs (Household, Savings, Spending, Withdrawals, Estate) and a Results tab, all over one shared plan, plus a Settings screen where every tax and benefit rule value can be changed from its default. The user can change anything on any tab, and the whole plan recalculates as they edit. Each asset class earns a steady average return every year (FP Canada's figures by default, editable), so every result can be traced and repeated. The app warns when something is at or near a known threshold and says which inputs affect it. For two choices, account placement and the withdrawal strategy, it shows what the choice is worth: lifetime tax paired with the after-tax legacy, against a same-mix-everywhere baseline for placement, and for all three strategies side by side.
+The app has five input tabs (Household, Savings, Spending, Withdrawals, Estate) and a Results tab, all over one shared plan, plus a Settings screen where every tax and benefit rule value can be changed from its default. The user can change anything on any tab, and the whole plan recalculates as they edit. Each asset class earns the same compound return every year (FP Canada's long-run estimates by default, editable), so every result can be traced and repeated. The app warns when something is at or near a known threshold and says which inputs affect it. For two choices, account placement and the withdrawal strategy, it shows what the choice is worth: lifetime tax paired with the after-tax legacy, against a same-mix-everywhere baseline for placement, and for all three strategies side by side.
 
 The tool shows the effect of choices the user makes and explains why they differ. It does not give personal advice and never moves money. The app's security policy blocks it from sending network requests, so what the user enters stays in their browser; [Hosting](#hosting-and-repository-author) states the limits of that protection.
 
@@ -129,11 +129,11 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | O21 | Splitting the context document | Resolved: `docs/history/` ([file 18](#18-docshistorydecision-logmd-and-docshistoryprototype-postmortemmd-exists-stage-0)) |
 | O22 | Volatility and correlation source | Withdrawn on 2026-11-18: version 1 uses fixed returns, so no volatility or correlation is needed ([Asset classes and returns](#asset-classes-and-returns-o3)) |
 | O23 | Probate defaults | Resolved: confirmed by the author on 2026-11-17 ([Death and estate](#death-and-estate-o12-o23)) |
-| **O24** | **Starting mixes** | **Open.** The shares behind "Conservative", "Balanced" and "Growth" on the Savings tab. The mockup used 20/25/10/5/35/5 (Canadian, U.S., international, emerging, bonds, cash) for Balanced, as a placeholder. Needed before stage 5. |
+| O24 | Starting mixes | Resolved 2026-11-24 (author): 40%, 60% and 80% stocks ([Design values](#design-values-version-1)) |
 | O25 | Fee levels | Resolved 2026-11-19 (author): 0.20%, 0.60% and 2.00% ([Design values](#design-values-version-1)) |
 | O26 | Shapes relative to the user's mix | Resolved 2026-11-19 (author): the values in [Design values](#design-values-version-1), measured from the plan start |
-| **O27** | **Spending phase defaults** | **Open.** The mockup used: slower years from year 10 at 90% of active spending, later years from year 20 at 80%. Needed before stage 5. |
-| **O28** | **Later spending above slower spending** | **Open.** Whether to allow it silently, allow it with a note (design's suggestion), or prevent it. Needed before stage 5. |
+| O27 | Spending phase defaults | Resolved 2026-11-24 (author): slower years from year 15 at 70%, later years from year 25 at 60% ([Design values](#design-values-version-1)) |
+| O28 | Later spending above slower spending | Resolved 2026-11-24 (author): allowed, with a note ([Spending tab](#spending-tab)) |
 | O29 | Rebalancing switched off | Resolved 2026-11-19 (author): holdings drift, no shape, placement at the plan start only ([Placement](#placement-and-the-growth-to-safety-shift-o4-o5)) |
 | O30 | Yields for the asset classes | Resolved 2026-11-19 (author): yields are author decisions, not fetched rule values ([Asset classes and returns](#asset-classes-and-returns-o3)) |
 | O31 | What "Let the planner pick" tries | Withdrawn 2026-11-24: the planner is cut from version 1 ([Future Improvements](#future-improvements)) |
@@ -144,7 +144,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 
 *   **Given**: A couple opens the app for the first time. No plan is saved in the browser.
 *   **When**: They enter, tab by tab: on Household, birth years and months, retirement years and life expectancy targets; on Savings, accounts, balances, DB pension (if any) and their investment mix; on Spending, monthly spending by category or as one total; on Withdrawals, CPP and OAS start ages and a strategy; on Estate, the survivor spending percentage and legacy goal. Any value they don't enter keeps its default.
-*   **Then**: Results appear as soon as the plan is complete enough to run (the readiness rule is open; [Known gaps](#known-gaps-from-review)), and update as they go. The Results tab shows, in today's dollars, their two goals first (whether spending is covered every year, and the first year it isn't; whether the after-tax legacy meets their goal), then any warnings, then charts of balances, income by source, tax by spouse and the estate. The plan is saved in the browser automatically.
+*   **Then**: Results appear as soon as the plan passes the readiness check (every required field set and the mix at 100%; until then the Results tab lists what is missing), and update as they go. The Results tab shows, in today's dollars, their two goals first (whether spending is covered every year, and the first year it isn't; whether the after-tax legacy meets their goal), then any warnings, then charts of balances, income by source, tax by spouse and the estate. The plan is saved in the browser automatically.
 
 ### CUJ 2: Change one tab, see the others
 
@@ -396,7 +396,8 @@ CPP and OAS: the user enters each spouse's CPP estimate at 65 and start age, and
     *   expected compound (geometric) return, from FP Canada (cash uses FP Canada's short-term rate);
     *   a fixed yearly cash yield (`market.<class>.yield`), an author decision (below).
 *   **The user's mix:** the Savings tab sets today's share of each class across all accounts. The user starts from a named mix (Conservative, Balanced, Growth; O24) or enters their own ("Custom"). Each class has a slider and a number box. Moving one class's share moves the others in proportion to their current shares, so the total stays at 100%; a class at 0% stays at 0% until the user sets it. The tab shows the mix as a coloured bar, the stock/bond/cash totals, and the expected return before and after fees.
-*   **Fixed returns:** every year, each class earns its expected compound return (or the user's override), less fees. There are no random markets and no stress paths, so results show the plan under steady average markets. They do not show sequence risk, the damage a bad market early in retirement can do, and a safer growth-to-safety shape shows only its lower return ([Alternative C](#alternative-c-random-returns-and-stress-paths)). The screens say returns are steady averages.
+*   **Fixed returns:** every year, each class earns its fixed compound return (or the user's override), less fees. There are no random markets and no stress paths, so results show the plan with the same return every year. They do not show sequence risk, the damage a bad market early in retirement can do, and a safer growth-to-safety shape shows only its lower return ([Alternative C](#alternative-c-random-returns-and-stress-paths)).
+*   **Wording:** this document says "fixed compound return". The screens say "the same return every year (FP Canada's long-run estimate)" and never "average", which lay readers take to mean the arithmetic mean.
 *   **Cash yields (O30):** each class pays one income type. A yield is an assumption like a return, not a tax rule, so the author sets each one rather than fetching it every year. It is shown with the returns under investing assumptions in Settings, where the user can change it. Starting values may be taken once from the factsheets below; after that they are not refreshed.
     *   Canadian stocks: eligible dividends; reference, the "Distribution Yield" on the factsheet of the iShares Core S&P/TSX Capped Composite Index ETF (XIC).
     *   U.S., international developed and emerging-market stocks: foreign dividends; reference, the "Div Yld (%)" on MSCI's USA, EAFE and Emerging Markets index factsheets.
@@ -554,7 +555,7 @@ A working year's row shows `afterTaxCashNom` and `surplusNom` of 0: what is save
 
 #### Result definitions
 
-*   **Spending covered:** whether after-tax cash meets the spending need in every year of the plan. If not, the result shows the first shortfall year and the total shortfall. It is labelled "assuming deaths at the target ages and steady average returns", followed by one sentence: "Real markets go up and down, and many sequences of returns would leave you with less than this." Whether the legacy goal is met is reported separately. A plan whose spending is covered only narrowly is flagged by the "Money runs out" near-miss warning ([Design values](#design-values-version-1)).
+*   **Spending covered:** whether after-tax cash meets the spending need in every year of the plan. If not, the result shows the first shortfall year and the total shortfall. It is labelled "assuming deaths at the target ages and the same return every year", followed by one sentence: "Real markets go up and down, and many sequences of returns would leave you with less than this." Whether the legacy goal is met is reported separately. A plan whose spending is covered only narrowly is flagged by the "Money runs out" near-miss warning ([Design values](#design-values-version-1)).
 *   **Lifetime tax:** federal and Ontario income tax, the OAS clawback, final-return tax and probate, summed in today's dollars: each year's amount is divided by that year's display deflator before it is added. `runPath` adds up both sums, `lifetimeTaxNom` and `lifetimeTaxToday`, as plain numbers; this is the one place inside `project/` that uses the deflator, and it does not import the `TodayDollars` type. `totalShortfall` follows the same rule.
 *   **After-tax legacy:** what the estate passes on after the second death, after final-return tax and probate (see [Death and estate](#death-and-estate-o12-o23)), in today's dollars. The strategy cards label it "Money left"; this document always calls it the after-tax legacy.
 *   **Clawback years:** household years in which either spouse pays any clawback.
@@ -592,11 +593,17 @@ The author's planning choices, stored in `planning.json` and `warnings.json`, ea
 | Get safer gradually (`gradual_shift`) | +10 at −10 years, −10 at retirement, −20 at +15 years |
 | Safer around retirement (`safety_first_regrow`) | 0 at −5 years, −20 at retirement, 0 at +15 years |
 
-**Starting mixes (O24, placeholder).** Share of each class for "Conservative", "Balanced" and "Growth", in the order Canadian, U.S., international, emerging, bonds, cash. Balanced: 20/25/10/5/35/5 (the mockup's placeholder). Conservative and Growth: to choose.
+**Starting mixes (O24).** Whole-percent share of each class, in the order Canadian, U.S., international, emerging, bonds, cash; the split within stocks is the same in all three:
+
+| Mix | Shares | Stocks |
+|---|---|---|
+| Conservative (`conservative`) | 13/17/7/3/50/10 | 40% |
+| Balanced (`balanced`) | 20/25/10/5/35/5 | 60% |
+| Growth (`growth`) | 27/33/13/7/17/3 | 80% |
 
 **Fee levels (O25).** Yearly fee, as a rate subtracted from each class's gross return: "Index ETFs" 0.20%, "Robo-advisor" 0.60%, "Mutual funds with an advisor" 2.00%. These are rough starting points the author accepted, not sourced figures; the user can pick "Custom" or change a level in Settings.
 
-**Spending phases (O27, placeholder).** Slower years from year 10 after the first retirement at 90% of active spending; later years from year 20 at 80%.
+**Spending phases (O27).** Slower years from year 15 after the first retirement at 70% of active spending; later years from year 25 at 60%.
 
 **Placement presets.** Fill order for each asset class (registered means RRSP/RRIF/LIRA/LIF). Cash follows the bonds column; U.S., international and emerging-market stocks follow the global stocks column:
 
@@ -624,7 +631,7 @@ The author's planning choices, stored in `planning.json` and `warnings.json`, ea
 
 | Input | Step |
 |---|---|
-| Spending phases | ±5% |
+| Active-years spending (every category's monthly amount, or the one total; input path `spending.active`) | ±5% (at stage 6 the `spending_phase_pct` nudge step becomes `spending_active_pct`) |
 | Expected returns (for "Money runs out" only) | every class's return lowered by `planning.override_margin` (0.5 point); down only, since a higher return would be the optimistic case |
 | CPP/OAS start age | ±1 year |
 | Bracket level (when "Fill lower brackets first" is chosen) | the other level |
@@ -634,6 +641,7 @@ The author's planning choices, stored in `planning.json` and `warnings.json`, ea
 **Other defaults:**
 
 *   **Life expectancy target:** the age a person of that sex has a 25% chance of reaching, from FP Canada's Projection Assumption Guidelines. The guidelines give this by current age (rows every 5 years from 20 to 100), so `planning.life_expectancy.female` and `.male` are age tables. The default for each spouse uses the row at or below their current age (for example, age 63 uses the 60 row). A note next to the input says a lower target raises the risk of outliving the plan.
+    *   **Filling the default:** `defaultLifeExpectancy(sex, age, cfg)` in `src/state/defaults.ts`, with age = `planStartYear` − birth year. The store fills a spouse's target once, when both birth year and sex are set and the target is still empty; it never replaces a value the user typed, and a later change of birth year or sex does not change it. Above the table's last row (100) the last row applies; the default is never below the current age + 1.
 *   **Survivor spending:** 70%. A single person needs about 1/√2 ≈ 71% of a couple's spending to keep the same standard of living, according to the square-root household equivalence scale. The Estate tab gives this reason in one line.
 
 ### Data contracts
@@ -898,31 +906,34 @@ The profile of each spouse only: name, birth year and month, sex at birth, retir
     *   **Your investment mix** (open by default): starting-mix choice, the mix bar, one row per class with slider, number box and editable expected return; tiles for total, expected return before and after fees, and inflation; the fee level; "Rebalance once a year". Summary: a small mix bar, stock/bond/cash totals, expected return, fee.
     *   **As you get older:** the three shapes, each with a small line drawing. With rebalancing off, the choice is disabled with the reason beside it. Summary: the chosen shape.
     *   **Which account holds what:** the two presets and the placement comparison, with the one-sentence face-value note. Summary: the chosen preset and its effect on the after-tax legacy.
-*   A note says returns are steady averages, so a shape shows only its effect on average returns, not on protection from a bad market; there is no shape comparison.
+*   A note says each class earns the same return every year (FP Canada's long-run estimate), so a shape shows only its effect on returns, not on protection from a bad market; there is no shape comparison.
 
 #### Spending tab
 
 *   **Monthly and after tax:** the user enters what they would spend in a typical month early in retirement, after tax, in today's dollars, because that is how the author expects people to think about spending. Yearly totals are shown beside each phase.
-*   **Two ways to enter it:** "By category" (default) or "One total" (a single monthly amount).
-*   **Categories (O17), in six groups that open and close:**
-    *   Home and utilities: Mortgage and rent, Property tax, Hydro, Gas and fuel, Internet, Mobile phone;
-    *   Getting around: Auto payment, Auto gas, Public transportation;
-    *   Insurance and banking: Home and auto insurance, Life insurance, Disability insurance, Bank fees;
-    *   Food and drink: Groceries, Restaurants, Fast food, Alcohol and bars;
-    *   Travel: Transportation, Accommodations, Food and drink, Activities, Travel insurance, Gear, Shopping. Their ids carry a `travel_` prefix, so travel shopping and everyday shopping stay separate;
-    *   Everyday and other: Shopping, Pharmacy, Gifts and donations, Cash, Other.
+*   **Two ways to enter it:** "By category" (default) or "One total" (a single monthly amount). Switching keeps both sets of values, so switching back restores them. The first time the user switches to "One total", it starts from the sum of the categories.
+*   **Categories (O17), in six groups that open and close.** The ids are persisted and must not change once plans are saved:
 
-    Category ids are persisted and must not change once plans are saved.
-*   **Three phases:** active years from the first retirement; slower years and later years each start at a year the user sets (counted from the first retirement) and keep a share of active-years spending set by a slider from 0% to 100% in 5% steps. The slider is full at 100% ("Same as active years") and the user slides left to spend less; the label shows one number, for example "90% of active years". Defaults: O27.
+    | Group | Categories (id) |
+    |---|---|
+    | Home and utilities | Mortgage and rent (`mortgage_rent`), Property tax (`property_tax`), Hydro (`hydro`), Gas and fuel (`gas_fuel`), Internet (`internet`), Mobile phone (`mobile_phone`) |
+    | Getting around | Auto payment (`auto_payment`), Auto gas (`auto_gas`), Public transportation (`public_transit`) |
+    | Insurance and banking | Home and auto insurance (`home_auto_insurance`), Life insurance (`life_insurance`), Disability insurance (`disability_insurance`), Bank fees (`bank_fees`) |
+    | Food and drink | Groceries (`groceries`), Restaurants (`restaurants`), Fast food (`fast_food`), Alcohol and bars (`alcohol_bars`) |
+    | Travel | Transportation (`travel_transport`), Accommodations (`travel_accommodation`), Food and drink (`travel_food_drink`), Activities (`travel_activities`), Travel insurance (`travel_insurance`), Gear (`travel_gear`), Shopping (`travel_shopping`) |
+    | Everyday and other | Shopping (`shopping`), Pharmacy (`pharmacy`), Gifts and donations (`gifts_donations`), Cash (`cash`), Other (`other`) |
+
+    Travel ids carry a `travel_` prefix, so travel shopping and everyday shopping stay separate. Every category is indexed to inflation, including fixed payments such as a mortgage; that is an accepted simplification, and "Different later?" covers a payment that ends.
+*   **Three phases:** active years from the first retirement, which is year 0; slower years and later years each start at a year the user sets (counted from the first retirement, so "from year 15" means the first retirement year + 15; 0 < slower start < later start) and keep a share of active-years spending set by a slider from 0% to 100% in 5% steps. The slider is full at 100% ("Same as active years") and the user slides left to spend less; the label shows one number, for example "90% of active years". Defaults: O27.
 *   **A different amount later for one category:** each category shows what it becomes in the slower and later years. "Different later?" opens two fields to enter those amounts instead (for example, an auto payment that ends, or pharmacy costs that rise); "Use the usual change" removes them. A group's header notes when any category in it has a different later amount ("Auto payment differs later", or "2 differ later").
-*   **Later spending above slower spending:** O28.
+*   **Later spending above slower spending (O28):** allowed (for example, for care costs). When the later share, or a category's later amount, is above the slower one, the Spending tab shows a one-line note saying so, so it is not mistaken for a typo.
 *   Survivor spending and the legacy goal are on the Estate tab.
 
 #### Withdrawals tab
 
 *   **Setup sections, closed by default, with summaries:** "When to start CPP and OAS" (each spouse's ages, with the adjustment rates as strips), "Converting RRSP and LIRA" (conversion ages and the 50% unlock), "Pension income splitting" (automatic; up to 50%, RRIF and LIF from 65). They come first because they are set once.
 *   **"Which accounts pay for your spending"**, laid out to fit one laptop screen:
-    *   three strategy cards in one row; the selected card has a dark border (no radio mark). Each card has the title and a "Learn more" button on its first line, a short description, and at the bottom, in bold, lifetime tax and the after-tax legacy (labelled "Money left"), then the difference from "Registered last" (green or red) and the amount moved to the TFSA and clawback years;
+    *   three strategy cards in one row; the selected card has a dark border (no radio mark). Each card has the title and a "Learn more" button on its first line, a short description, and at the bottom, in bold, lifetime tax and the after-tax legacy (labelled "Money left"), then the difference from "Registered last" and the amount moved to the TFSA and clawback years. Only the after-tax legacy difference is coloured (green for more, red for less); the tax difference is neutral text. When the two move in opposite directions (lower tax but a smaller legacy, or the reverse), both are neutral text with a short note saying so;
     *   one options row of fixed height under the cards: the bracket level for "Fill lower brackets first", the draw-down years for "Early RRSP drawdown", or "No settings" for "Registered last";
     *   below, two columns: on the left, a stacked area chart of each year's money by source (before tax, today's dollars), with the spending need as a dashed line (labelled "Spending target"), tax as a red hatched band above it, and money not needed (moved to the TFSA) as a green hatched band on top; source names are written on their bands; an "i" button explains how to read it. A year slider under the chart spans exactly the chart's years, so its handle sits under the chart's year marker. On the right, that year's breakdown: always the same 11 rows in the same order (each of the seven sources, tax, OAS clawback, moved to the TFSA, spending need), with a dash for zero, so nothing moves when the strategy or year changes.
 *   **Fixed layout:** switching strategy changes only numbers and chart shapes; nothing below the cards moves, so the user can click between strategies and compare.
@@ -937,14 +948,14 @@ The profile of each spouse only: name, birth year and month, sex at birth, retir
 Three sections, in this order; there is no year-by-year table.
 
 *   **Your goals.** Two cards side by side, each with a "Met" or "Missed" badge:
-    *   **Goal 1, spending covered every year:** the number of years covered out of the plan's years, a strip with one block per year (red for a short year), the first shortfall year and total shortfall if any, the "assuming deaths at the target ages and steady average returns" label with its sentence on real markets, and a link to Spending.
+    *   **Goal 1, spending covered every year:** the number of years covered out of the plan's years, a strip with one block per year (red for a short year), the first shortfall year and total shortfall if any, the "assuming deaths at the target ages and the same return every year" label with its sentence on real markets, and a link to Spending.
     *   **Goal 2, the legacy goal:** the projected after-tax legacy (including the home, after final-return tax and probate) against the goal set on Estate, the amount above or below it, a bar with the goal marked, and a link to Estate.
 
     Below the cards, one line: lifetime tax, OAS clawback years, and what the last change did (for example "switched to 'Fill lower brackets first' · tax 6,000 lower · legacy 1,000 higher").
 *   **Warnings,** each with its computed tips and links to the related input.
 *   **Charts,** one at a time, chosen with buttons: **Balances** (stacked areas by account type: RRSP/RRIF/LIF, non-registered, TFSA), **Income by source** (the Withdrawals chart for the chosen strategy, with the spending need), **Tax by spouse** (a stacked bar per year for each spouse, income tax including any clawback, after splitting), and **Estate** (a waterfall from balances and the home at the second death, less final-return tax as one bar, with the deemed registered income and deemed gains as notes on it, less probate, to the after-tax legacy, with the legacy goal marked). The yearly charts mark the first death. Each chart has a "View as table" option with the same data, for screen readers.
 
-A status line reads "Up to date · updates as you edit" or "Updating…". The badge on the tab label shows the warning count, "Updating", "Short from <year>" or "Error".
+A status line reads "Up to date · updates as you edit", "Updating…", or, for a plan that is not ready to run, "Enter the missing details to see results" above the list of what is missing. The badge on the tab label shows the warning count, "Incomplete", "Updating", "Short from <year>" or "Error".
 
 #### Settings
 
@@ -974,7 +985,7 @@ Each entry is an option that was rejected. "By author" means the document's auth
 
 *   **Pros**: Shows sequence risk, a chance of success, and what the growth-to-safety shift protects against, which steady returns can't.
 *   **Cons**: Needs volatility and correlation figures to source and validate, generated paths, named stress paths and percentiles; results are harder to trace, test and explain.
-*   **Decision**: Rejected by author for version 1 in favour of one fixed return per class. The cost is stated on screen: results show steady average markets, and a safer shape shows only its lower return (see [Risks](#risks--mitigations)). Variable returns are a [future improvement](#future-improvements).
+*   **Decision**: Rejected by author for version 1 in favour of one fixed return per class. The cost is stated on screen: results use the same return every year, and a safer shape shows only its lower return (see [Risks](#risks--mitigations)). Variable returns are a [future improvement](#future-improvements).
 
 #### Alternative D: Explain tax-efficient investing in text only
 
@@ -1149,7 +1160,7 @@ Each entry is an option that was rejected. "By author" means the document's auth
 | AI reference plan shares the engine's misreading of a rule | Wrong numbers pass tests | Outside tax fixtures, property tests, paid-tool comparison; admin-validated config |
 | Fixed inflation | Results ignore inflation risk, notably for unindexed DB pensions | Accepted ([Alternative L](#alternative-l-random-inflation-on-each-path-or-fixed-inflation-plus-a-high-inflation-stress-test)) |
 | Fixed death ages | Results ignore longevity risk | Accepted; 25%-survival default and "assuming deaths at the target ages" label |
-| Fixed returns | Sequence risk is not shown: a bad market early in retirement can do lasting damage the plan doesn't reveal, and a safer shape shows only its lower return | Accepted for version 1 ([Alternative C](#alternative-c-random-returns-and-stress-paths)); screens say returns are steady averages; variable returns are a future improvement |
+| Fixed returns | Sequence risk is not shown: a bad market early in retirement can do lasting damage the plan doesn't reveal, and a safer shape shows only its lower return | Accepted for version 1 ([Alternative C](#alternative-c-random-returns-and-stress-paths)); screens say each class earns the same return every year; variable returns are a future improvement |
 | Full rebalance every year | Realizes gains real investors might avoid | Accepted; applied equally to the user's plan and baselines |
 | Foreign withholding simplified | Single rate assumes Canadian-listed funds | Accepted; stated in the placement explanation |
 | Face-value mix counting | Placement benefit may include hidden extra risk | One sentence in the placement text says so |
@@ -1158,7 +1169,7 @@ Each entry is an option that was rejected. "By author" means the document's auth
 | User-changed rule values | A mistyped value in Settings gives wrong results that look official | Range checks on each override; "changed" marks, the default beside each change, and the "N values changed" header chip; Reset per value |
 | Defaults not refreshed each year | Values in use drift from current rules, and can be several years old; users are in effect asked to source changed values themselves | The header shows the defaults' tax year and the notice names it; indexed values grow from that year, not the plan start; changed values say which year's default they replaced; Settings shows each value's source as a link; refreshing stays possible with the admin procedure |
 | Schema change after a rollback | Saved plans unreadable | New schema saves under a new key; old save kept |
-| Open questions O20, O24, O27, O28 | Scope or numbers may change | O24, O27 and O28 closed before stage 5; O20 before the URL is shared beyond testers ([Open Questions](#open-questions)) |
+| Open question O20 | The disclaimer and the FSRA check may change wording or scope | Closed before the URL is shared beyond testers ([Open Questions](#open-questions)) |
 
 ## Glossary
 
@@ -1169,6 +1180,7 @@ The terms users see in the app; `src/ui/content/glossary.ts` uses them for toolt
 | After-tax legacy ("money left") | What the estate passes on after the second death, after the final return's tax and probate, in today's dollars |
 | Bridge (DB pension) | A temporary top-up some DB pensions pay until an end age, usually when CPP or OAS starts |
 | Clawback (OAS recovery tax) | OAS repaid at the recovery rate (15% in 2026) on income above a yearly threshold, measured before the clawback itself is deducted |
+| Compound return | The yearly return that, earned every year, gives the same growth as the long-run estimate; the app uses the same return every year |
 | CPP / OAS | Canada Pension Plan / Old Age Security, the two federal retirement benefits |
 | DB pension | Defined-benefit workplace pension, paying a set amount for life |
 | DC pension | Defined-contribution workplace pension; its money is entered as a LIRA |
@@ -1226,18 +1238,8 @@ The second full review (2026-11-19) was triaged with the author on 2026-11-24; i
 
 | Finding | Gap | Close before |
 |---|---|---|
-| FR-M7 | When the age-based life-expectancy default is filled, and what happens above the table's last row | Stage 5 |
-| FR-M13 | Tests for the new rules: only the life-expectancy lookup is still open, with FR-M7 | Stage 5 |
-| FR-M18 | Return terminology ("compound" vs "average"); the on-screen label | Stage 5 |
 | M1 | `NormalizedInputs`, the engine state, the `YearRow` fields, the reference CSV columns and the `Result` contract are defined in [Data contracts](#data-contracts). Still open: the `warningFacts` content and the `Warning` type | Stage 6 |
-| M2 | CUJ 6 test-config build: how `VITE_CONFIG_SET=test` reaches a statically imported bundle. CUJ 6 is now tested through user changes in Settings, so this closes unless the config-notice end-to-end check needs an unvalidated key | Stage 5 |
-| M3 | The 70% coverage target for non-engine code cannot be met by unit tests alone, and the UI code has no tests until stage 5; set the target and its start for stage 5 | Stage 5 |
-| M4 | Store and persistence tests need a browser-like test environment (jsdom or happy-dom) | Stage 5 |
-| SR1-M2 | Live recalculation. The Worker is terminated and restarted for a newer revision, and tips run after the main results ([Components and data flow](#components-and-data-flow)). Still open: the incomplete-plan state: a `readyToRun` gate built from the plan schema plus the mix-sum check, with an "Incomplete" badge | Stage 5 (store) |
-| SR1-M8 | Spending categories stay in the engine. Still open: list the persisted category ids (on the [Spending tab](#spending-tab)), and the spending nudge | Stage 5 |
-| SR1-M12 | Results could be read as advice. Still open: state that the default strategy (`defaults.ts`, the sample plan) is "Registered last"; colour only the after-tax legacy difference on the cards, and show tax differences (and opposite-direction results) in neutral text | Stage 5 |
-| SR1-M13 | Undecided items with no question or gate. Still open: the incomplete-plan state (SR1-M2), the spending category ids (SR1-M8) and the default strategy (SR1-M12) | Stage 5 |
-| SR-4 | Open questions O20, O24, O27 and O28 (O31 withdrawn) | As listed in [Open Questions](#open-questions) |
+| SR-4 | Open question O20 (O24, O27 and O28 resolved 2026-11-24; O31 withdrawn) | Before the URL is shared beyond testers |
 
 The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`); stages 0 to 3 are done. The working rules for agents (whole-function rewrites, protected files, units) are in [file 13](#13-agentsmd-and-claudemd-exists-stage-0), `AGENTS.md`.
 
@@ -1250,7 +1252,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 | 2 | Couple engine with fixed returns: `units`, `accounts/*`, `benefits/*`, `withdraw/*` (the three strategies), `tax/split.ts`, `solver/*`, `project/workingYear.ts`, `project/runPath.ts`, the first-death transfer in `project/death.ts`, `invest/*`, rule overrides, invariants. See the [stage 2 file boundary](#stage-2-file-boundary) | O25, O26, O29 (all resolved); the author enters and validates `market.us_equity.yield`, `market.intl_equity.yield`, `market.em_equity.yield`, `market.cash.yield` (author decisions, O30) and `market.cash.geometric_return` (FP Canada) |
 | 3 | Deaths and estate (`project/death.ts`); reference plan test | — |
 | 4 | Variants, the strategy runs, comparisons, results, Worker | Speed check of the stage 3 engine on the reference machine (done 2026-11-24; [Performance](#performance)) |
-| 5 | Store, screens (six tabs and Settings), live recalculation, change summary | O24, O27, O28 |
+| 5 | Store, screens (six tabs and Settings), live recalculation, change summary; the plan schema from file 43, which the readiness check uses | O24, O27, O28 (resolved 2026-11-24) |
 | 6 | Warnings and computed tips | — |
 | 7 | Saving, export/import, sample plan | — |
 | 8 | Testing with the author and two friends | Paid-tool comparison done; speed check passed |
@@ -1313,6 +1315,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     | typescript | 5 | dev |
     | vite, @vitejs/plugin-react, vite-tsconfig-paths | 6, 4, 5 | dev |
     | vitest, @vitest/coverage-v8 | 3 | dev |
+    | happy-dom, @testing-library/react, @testing-library/user-event | current majors at stage 5 | dev (added at stage 5) |
     | fast-check | 3 | dev |
     | @playwright/test | 1 | dev |
     | eslint, typescript-eslint, eslint-plugin-react-hooks | 9, 8, 5 | dev |
@@ -1368,7 +1371,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 *   **Type / Scope**: Test configuration.
 *   **Proposed Changes**:
     *   Include `tests/{unit,property,reference}/**/*.test.ts`; exclude `tests/e2e/**`.
-    *   Coverage with v8, enforced when `ENFORCE_COVERAGE=true` (set in `ci.yml` by the last commit of stage 2): 90% branches for `src/engine/**`; 70% for `src/{state,ui,worker}/**` (target to be set in stage 5; Known gaps M3). The last commit of stage 2 changes the thresholds key `'src/**'` to `'src/{state,ui,worker}/**'`, so the two globs do not overlap.
+    *   Coverage with v8, enforced when `ENFORCE_COVERAGE=true` (set in `ci.yml` by the last commit of stage 2): 90% branches for `src/engine/**`; 70% for `src/{state,ui,worker}/**` From the stage 5 preparation (2026-11-24): 90% for `src/engine/**`, 80% for `src/{state,worker}/**` and 70% for `src/ui/**`; the globs do not overlap. Tests include `*.test.tsx`, for the screen tests.
 
 ##### 8. `./playwright.config.ts` (Exists, stage 0)
 
@@ -1693,13 +1696,17 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 ##### 42. `./src/state/store.ts`, `./src/state/defaults.ts`, `./src/state/changeSummary.ts` (Create, stage 5)
 
 *   **Proposed Changes**:
-    *   **Store (Zustand):** holds `inputs` (including `ruleOverrides`), `inputsRevision`, `result`, `tips`, `previousResult`, `lastEdit` (path and time) and `status` (up to date / updating / error).
-        *   Actions: `setInput(path, value)`, `setRule(key, value)`, `resetRule(key)`, `loadPlan(inputs)`.
-        *   Every edit schedules a run 500 ms later; a result whose revision is not the latest is dropped. `isUpdating = result?.revision !== inputsRevision`.
-    *   **`defaults.ts`:** the empty-plan values, including the default starting mix, fee level, spending phases and category list.
-    *   **`changeSummary(previous, current, lastEdit)`:** lists changes in whether spending is covered, after-tax legacy, lifetime tax, clawback years and first shortfall year, plus warnings added or cleared, and names the edit.
+    *   **Store (Zustand):** holds `inputs` (including `ruleOverrides`), `inputsRevision`, `result`, `tips`, `previousResult`, `edits` (the input paths edited since the last result, with the time of the last) and `status` (incomplete / up to date / updating / error).
+        *   Actions: `setInput(path, value)`, `setRule(key, value)`, `resetRule(key)`, `loadPlan(inputs)`. Every one of them raises `inputsRevision`.
+        *   **Readiness:** `readyToRun(inputs): { ready: true } | { ready: false, missing: { path, message }[] }` checks the inputs against the plan schema (file 43) and that the mix sums to 100. While it fails, the store sends nothing to the Worker, `status` is `incomplete`, the Results tab's badge reads "Incomplete", and the Results tab lists what is missing, each with a link that focuses the input.
+        *   Every edit of a ready plan schedules a run 500 ms later; a result or tips whose revision is not the latest is dropped. `isUpdating = result?.revision !== inputsRevision`. Between a new result and its tips, each warning shows "Finding tips…".
+        *   **Life expectancy:** after `setInput` on a spouse's birth year or sex, the store fills that spouse's empty target with `defaultLifeExpectancy` ([Design values](#design-values-version-1)); a typed target is never replaced.
+    *   **`defaults.ts`:** the empty-plan values: the Balanced mix, the Index ETFs fee level, the spending phases from `planning.spending_phases`, the category list, the strategy "Registered last" and the bracket level "Top of the first bracket"; and `defaultLifeExpectancy(sex, age, cfg)`.
+    *   **`changeSummary(previous, current, edits)`:** lists changes in whether spending is covered, after-tax legacy, lifetime tax, clawback years and first shortfall year, plus warnings added or cleared. It names the edit when there is one ("Retirement year, Alex"), or counts them ("3 changes: …"). A plan load or import shows no change summary.
 
-##### 43. `./src/state/persistence/planSchema.ts`, `./storage.ts`, `./exportImport.ts` (Create, stage 7)
+##### 43. `./src/state/persistence/planSchema.ts`, `./storage.ts`, `./exportImport.ts` (Create, stages 5 and 7)
+
+*   `planSchema.ts` is built in stage 5, for the readiness check; the other two in stage 7.
 
 *   **Proposed Changes**: Implement [Persistence](#persistence):
     *   the Zod envelope `{ schemaVersion: 1, inputs, meta }`;
@@ -1733,7 +1740,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
 *   **Proposed Changes**: Laid out as in [Screens](#screens).
     *   **Household:** spouses only: birth year and month, sex at birth, retirement year, life expectancy target with the 25%-survival note, CPP estimate, residence years, working marginal rate, after-tax pay.
-    *   **Savings:** collapsible sections with summaries: accounts, DB pensions, the investment mix (sliders that keep the total at 100%, return overrides, fee level, rebalance), "As you get older" shapes, and placement with its comparison and the face-value note; a note that returns are steady averages, so a shape shows only its effect on average returns, not on protection from a bad market.
+    *   **Savings:** collapsible sections with summaries: accounts, DB pensions, the investment mix (sliders that keep the total at 100%, return overrides, fee level, rebalance), "As you get older" shapes, and placement with its comparison and the face-value note; a note that returns are the same every year, so a shape shows only its effect on returns, not on protection from a bad market.
     *   **Spending:** "By category" or "One total"; category groups with "Different later?" overrides and group notes; the three phases with "from year" fields and keep-share sliders.
     *   **Withdrawals:** the three setup sections (closed by default, with summaries); the three strategy cards with "Learn more" dialogs; the options row; the income chart with its year slider and the fixed 11-row breakdown.
     *   **Estate:** survivor percentage, legacy goal, home value, probate strip, beneficiary assumption.
@@ -1745,7 +1752,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 *   **Proposed Changes**:
     *   **Goals:** Goal 1, whether spending is covered every year (with its label, the year strip, and the first shortfall year if not); Goal 2, the after-tax legacy against the goal; then one line with lifetime tax, clawback years and the change summary.
     *   **Updating state:** while a run is in progress, the previous figures stay, faded, under "Updating…"; no Recalculate button.
-    *   **Results badge:** on the tab label: warning count, "Updating", "Short from <year>" or "Error".
+    *   **Results badge:** on the tab label: warning count, "Incomplete", "Updating", "Short from <year>" or "Error".
     *   **Change summary:** what the last change did, naming the edit, on the line under the goals.
     *   **Warnings:** each with tips and links that focus the related input.
     *   **Config notice:** shown when values are unvalidated or out of date.
@@ -1768,7 +1775,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 *   **Proposed Changes**:
     *   **`glossary.ts`:** the terms in the [Glossary](#glossary), which lists only terms users see.
     *   **`explanations.ts`:** fixed templates for each preset, shape, strategy and comparison, all in conditional wording. Each strategy's "Learn more" text has: what it does; effect on income, taxes and savings; pros; cons; when it makes sense; and, for "Fill lower brackets first" and "Early RRSP drawdown", a note on choosing the level or the ages.
-    *   **`disclaimer.ts`:** placeholder text: "This tool shows projections under the assumptions you enter. It uses steady average returns; real markets go up and down, and many sequences of returns would leave you with less. It is not financial, tax or legal advice." It is replaced when O20 is resolved.
+    *   **`disclaimer.ts`:** placeholder text: "This tool shows projections under the assumptions you enter. It uses the same return every year; real markets go up and down, and many sequences of returns would leave you with less. It is not financial, tax or legal advice." It is replaced when O20 is resolved.
 
 #### Tools (stage 0)
 
@@ -1844,7 +1851,9 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     | `simulate.test.ts`, `engineIndex.test.ts` | 4 | Variants and reuse of the chosen strategy; chart rows by source; `runPlan` on the reference plan (strategy comparisons, placement comparison without the year-one sale tax, overrides applied); `engineError`; `configDefaults` in published units |
     | `worker.test.ts` | 4 | `handleRun` posts result then tips, only an error on failure, empty tips when tips fail; the client drops older revisions, terminates a busy Worker, reuses an idle one, reports a crash |
     | `warnings.test.ts`, `tips.test.ts` | 6 | Each trigger at and around its threshold; collapsed years; tips ranked by effect |
-    | `changeSummary.test.ts`, `store.test.ts` | 5 | Diff fields and the named edit; a run scheduled 500 ms after the last edit; an older revision's result dropped; rule overrides set and reset |
+    | `changeSummary.test.ts`, `store.test.ts` (happy-dom) | 5 | Diff fields; the single named edit and "N changes"; no summary after a load; a run scheduled 500 ms after the last edit; every action raises the revision; an older revision's result and tips dropped; rule overrides set and reset; `readyToRun` with a half-typed birth year and a mix not at 100 (nothing sent, "Incomplete", the missing list) |
+    | `defaults.test.ts` | 5 | `defaultLifeExpectancy` for each sex at a table row, between rows, above 100 and never below age + 1; the store fills an empty target once and never replaces a typed one; the empty plan's defaults (Balanced, Index ETFs, Registered last) |
+    | `src/ui` tests (`*.test.tsx`, React Testing Library, happy-dom) | 5 | Each tab renders from the store and writes through `setInput`; the Spending mode switch keeps both sets of values; the O28 note; card colours (legacy only, neutral when opposite); the Incomplete list's links |
     | `persistence.test.ts` | 7 | Round trip including rule overrides; newer-version refusal; the frozen v1 file loads |
     | `config.test.ts` (exists from stage 0) | 0 (changed at 2) | Key list has no duplicates and matches `SOURCES.md`; entry shape by value kind; structured planning values; missing, unknown and wrong-year keys; unfetched and out-of-date status; monthly amounts × 12 on load; the committed config passes; `configCompare` differences |
     | `configCheck.test.ts` | 2 | `yieldWarnings` (from `tools/lib.ts`) flags a class whose yield is above its gross return |
@@ -1875,7 +1884,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   **CUJ 3 (`placement.spec.ts`):** change the preset. The comparison shows lifetime tax and the after-tax legacy for the preset and the baseline.
     *   **CUJ 4 (`first-death.spec.ts`):** with targets 78 and 94, the rows after 78 show one spouse not alive, the survivor benefits started, and the survivor percentage applied.
     *   **CUJ 5 (`resume.spec.ts`):** export, clear storage, import. The inputs are identical. A file with `schemaVersion: 2` is refused with both versions named.
-    *   **CUJ 6 (`settings.spec.ts`):** change the OAS clawback threshold in Settings. It is marked changed with the default beside it, the header reads "1 value changed", results update, the change survives export and import, and Reset restores the default. (The config-notice check for an unvalidated key moves here too, if M2 is resolved.)
+    *   **CUJ 6 (`settings.spec.ts`):** change the OAS clawback threshold in Settings. It is marked changed with the default beside it, the header reads "1 value changed", results update, the change survives export and import, and Reset restores the default. The config notice for unvalidated defaults is checked here too, against the bundled config (no separate test config); the check is skipped once every default is validated.
     *   **`no-network.spec.ts`:** a full session makes no request outside the app's own origin.
 
 ### Verification Plan
@@ -1883,7 +1892,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 *   **Compilation/Build**: `npm run typecheck` and `npm run build` succeed.
 *   **Unit Tests**: `npm test` passes, including every tax fixture, the reference plan and the property tests.
 *   **Static Analysis & Linting**: `npm run lint`, `npm run format:check` and `npm run config:check` pass.
-*   **Test Coverage Requirement**: from the `stage-2` tag (CI sets `ENFORCE_COVERAGE`): 90% branches for `src/engine/**`; 70% for the rest of `src/` (target to be set in stage 5; Known gaps M3).
+*   **Test Coverage Requirement**: from the `stage-2` tag (CI sets `ENFORCE_COVERAGE`): 90% branches for `src/engine/**`; 80% for `src/state/**` and `src/worker/**`; 70% for `src/ui/**`, with screen tests written with React Testing Library in happy-dom.
 *   **E2E/Integration**: `npm run test:e2e` passes in Chromium, including the no-network test.
 *   **Fixtures**: before each stage tag, the author reviews `git diff tests/fixtures config`.
 *   **Paid-tool comparison (manual, before stage 8)**: recorded in `tests/fixtures/paid-tool-comparison.md`. Any difference the tools' assumptions don't explain is investigated before stage 8.

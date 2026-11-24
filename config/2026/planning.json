@@ -172,17 +172,42 @@
     }
   },
   "planning.mixes": {
-    "value": null,
+    "value": {
+      "conservative": {
+        "cad_equity": 13,
+        "us_equity": 17,
+        "intl_equity": 7,
+        "em_equity": 3,
+        "bonds": 50,
+        "cash": 10
+      },
+      "balanced": {
+        "cad_equity": 20,
+        "us_equity": 25,
+        "intl_equity": 10,
+        "em_equity": 5,
+        "bonds": 35,
+        "cash": 5
+      },
+      "growth": {
+        "cad_equity": 27,
+        "us_equity": 33,
+        "intl_equity": 13,
+        "em_equity": 7,
+        "bonds": 17,
+        "cash": 3
+      }
+    },
     "unit": "none",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "author decision, open (O24)",
-      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+      "url": "author decision, 2026-11-24",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1 (Starting mixes, O24: 40%, 60% and 80% stocks, the same split within stocks)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-24",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "planning.fee_levels": {
@@ -206,17 +231,26 @@
     }
   },
   "planning.spending_phases": {
-    "value": null,
+    "value": [
+      {
+        "fromYear": 15,
+        "keepPct": 70
+      },
+      {
+        "fromYear": 25,
+        "keepPct": 60
+      }
+    ],
     "unit": "none",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "author decision, open (O27)",
-      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+      "url": "author decision, 2026-11-24",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1 (Spending phases, O27: slower years from year 15 at 70%, later years from year 25 at 60%)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-24",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "planning.survivor_spending": {
