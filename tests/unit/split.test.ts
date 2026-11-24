@@ -4,10 +4,12 @@ import { noFixedIncome } from '../../src/engine/solver/incomeAssembly';
 import {
   bestSplit,
   householdTax,
+  spouseTax,
   splitChoices,
   type SplitSpouse,
 } from '../../src/engine/tax/split';
 import { personalTax } from '../../src/engine/tax/personalTax';
+import { incomeTotals } from '../../src/engine/jurisdiction/federal';
 import { ontario } from '../../src/engine/jurisdiction/ontario';
 import { planConfig, valueOf, yearContext, zeroIncome } from './helpers/couplePlan';
 
@@ -91,5 +93,17 @@ describe('bestSplit', () => {
   it('leaves out a working or dead spouse', () => {
     const working = bestSplit(spouse(120_000), spouse(0, 70, { excluded: true }), ctx);
     expect(working.share).toBe(0);
+  });
+});
+
+describe('a spouse taxed at the working rate (C2; stage 3 decisions S2 and S3)', () => {
+  it('applies the rate to taxable amounts: gains at the inclusion rate, dividends as cash', () => {
+    const inclusion = valueOf<number>(cfg, 'federal.capital_gains.inclusion_rate');
+    const income = { ...zeroIncome(), cpp: 10_000, eligibleDividends: 2_000, capitalGains: 6_000 };
+    const t = spouseTax(spouse(0, 60, { flatRate: 0.3 }), income, ctx);
+    expect(t.total).toBeCloseTo(0.3 * (10_000 + 2_000 + 6_000 * inclusion), 6);
+    expect(t.clawback).toBe(0);
+    // taxableIncome keeps its tax-return meaning (dividends grossed up).
+    expect(t.taxableIncome).toBeCloseTo(incomeTotals(income, ctx).taxableIncome, 6);
   });
 });

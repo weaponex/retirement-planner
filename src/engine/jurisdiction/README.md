@@ -18,8 +18,11 @@ province it has.
     - `provincialTax(income, age, ctx): number`: provincial tax for one return, including
       surtax, credits and premiums;
     - `lifMaxFactor(ageAtStartOfYear, ctx): number`: the LIF maximum factor (stage 2);
-    - `unlockShare(ctx): number`: the one-time LIRA unlock share (stage 2).
-    `probate` arrives in stage 3. The LIF rules themselves (minimum, the earnings floor, the
+    - `unlockShare(ctx): number`: the one-time LIRA unlock share (stage 2);
+    - `probate(estateAssets, ctx): number`: `ontarioProbate`, 0 at or below
+      `ontario.probate.threshold`, else `ontario.probate.rate` × the excess (the Act's rounding
+      up to each $1,000 is not modelled) (stage 3).
+    The LIF rules themselves (minimum, the earnings floor, the
     opening year) are in `src/engine/accounts/liraLif.ts`; the jurisdiction supplies only its
     values.
 - `federal.ts`

@@ -5,7 +5,7 @@
 // `federal.split.max_share` in `SPLIT_STEP` steps, in both directions, and keeps
 // the lowest household tax; ties go to the smaller transfer, then to spouse 1
 // transferring.
-import { SPLIT_STEP } from '../constants';
+import { SPLIT_STEP, SPLIT_TIE_TOLERANCE } from '../constants';
 import { plain } from '../config/read';
 import type { Owner, SplitChoice, TaxableIncome, YearContext } from '../types';
 import { incomeTotals } from '../jurisdiction/federal';
@@ -63,8 +63,12 @@ export interface SpouseTax {
 /** One spouse's tax: at a flat rate for a working spouse, else `personalTax`. */
 export function spouseTax(s: SplitSpouse, income: TaxableIncome, ctx: YearContext): SpouseTax {
   if (s.flatRate !== undefined) {
-    const taxableIncome = flatTaxable(income, ctx);
-    return { total: taxableIncome * s.flatRate, clawback: 0, taxableIncome };
+    // taxableIncome keeps its tax-return meaning (stage 3 decision S3).
+    return {
+      total: flatTaxable(income, ctx) * s.flatRate,
+      clawback: 0,
+      taxableIncome: incomeTotals(income, ctx).taxableIncome,
+    };
   }
   const t = personalTax(income, s.age, ctx.jurisdiction, ctx);
   return {
@@ -126,7 +130,9 @@ export function bestSplit(a: SplitSpouse, b: SplitSpouse, ctx: YearContext): Bes
       continue;
     const [ta, tb] = householdTax(a, b, choice, ctx);
     const total = ta.total + tb.total;
-    if (total < best.householdTax) best = { ...choice, householdTax: total };
+    // A tie (within floating-point noise) keeps the earlier choice: the smaller
+    // transfer, then spouse 1 transferring.
+    if (total < best.householdTax - SPLIT_TIE_TOLERANCE) best = { ...choice, householdTax: total };
   }
   return best;
 }

@@ -14,7 +14,7 @@ a whole plan. Stage 4 adds the variants, the comparisons and the `index.ts` entr
 - `constants.ts`: engine settings, not rule values:
   - `MONTHS_PER_YEAR`, `SOLVER_PRECISION`, `SOLVER_MAX_STEPS` (40: enough to narrow $10 billion
     to $0.01);
-  - `SPLIT_STEP`, `MAX_SPLIT_PASSES`;
+  - `SPLIT_STEP`, `MAX_SPLIT_PASSES` (3), `SPLIT_TIE_TOLERANCE`;
   - `INVARIANT_TOLERANCE`, `WEIGHT_SUM_TOLERANCE`;
   - `CONFIG_YEAR_MIN`, `CONFIG_YEAR_MAX`, `MAX_FEE` (fee-level schema bound), `OVERRIDE_RANGES`
     (rule-override ranges by unit);
@@ -26,7 +26,7 @@ a whole plan. Stage 4 adds the variants, the comparisons and the `index.ts` entr
     `NormalizedInputs` (every `…Today` field as `…Nom`);
   - the engine state: `PlanState`, `AccountState`, `PositionState`, `SpouseYearState`,
     `SplitChoice`, `Draw`, `Variant`, `Death`, `YearInProgress`, `IntegrityFailure`;
-  - the results: `YearRow` (with `AccountYear` and `SpouseYear`), `PlanSummary`,
+  - the results: `YearRow` (with `AccountYear`, `SpouseYear` and `EstateYear`), `PlanSummary`,
     `StrategyResult`;
   - the id unions, including `EngineAccountType` (adds `rrif` and `lif`).
 - `units.ts`: `TodayDollars` and `FutureDollars` (branded), `makeDeflator(cfg)`,

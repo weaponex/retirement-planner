@@ -7,6 +7,7 @@
 import { netGains } from '../accounts/nonRegistered';
 import { firstTfsa, fitsInRoom, useRoom } from '../accounts/tfsa';
 import { checkYear, type YearChecks } from '../invariants';
+import { incomeTotals } from '../jurisdiction/federal';
 import { accountValue, buy, currentWeights, sellProRataHoldings } from '../invest/rebalance';
 import { classReturns } from '../invest/returns';
 import type {
@@ -16,6 +17,7 @@ import type {
   Owner,
   PlanState,
   SpouseYear,
+  TaxableIncome,
   Variant,
   YearContext,
   YearRow,
@@ -28,11 +30,36 @@ import {
   fixedIncome,
   fixedTotal,
   ownerCashYields,
+  noEstate,
   prepareYear,
+  type SolvedYear,
+  type TaxedIncome,
 } from '../solver/yearSolve';
 import { flatTaxable } from '../tax/split';
 
 const OWNERS: Owner[] = [0, 1];
+
+const noIncome = (): TaxableIncome => ({
+  pensionEligible: 0,
+  oas: 0,
+  cpp: 0,
+  otherOrdinary: 0,
+  eligibleDividends: 0,
+  foreignDividends: 0,
+  capitalGains: 0,
+});
+
+function addIncome(a: TaxableIncome, b: TaxableIncome): TaxableIncome {
+  return {
+    pensionEligible: a.pensionEligible + b.pensionEligible,
+    oas: a.oas + b.oas,
+    cpp: a.cpp + b.cpp,
+    otherOrdinary: a.otherOrdinary + b.otherOrdinary,
+    eligibleDividends: a.eligibleDividends + b.eligibleDividends,
+    foreignDividends: a.foreignDividends + b.foreignDividends,
+    capitalGains: a.capitalGains + b.capitalGains,
+  };
+}
 
 function firstOf(accounts: AccountState[], type: string, owner: Owner) {
   return accounts
@@ -45,7 +72,7 @@ export function workingYear(
   inputs: NormalizedInputs,
   ctx: YearContext,
   variant: Variant,
-): { nextState: PlanState; row: YearRow } {
+): SolvedYear {
   const returns = classReturns(ctx.cfg, inputs.investing);
   const p = prepareYear(state, inputs, ctx, variant, returns);
   let s = p.state;
@@ -58,7 +85,10 @@ export function workingYear(
   let accounts = s.accounts;
   let spouses = s.spouses;
   const taxBy: [number, number] = [0, 0];
-  const taxableBy: [number, number] = [0, 0];
+  const taxed: [TaxedIncome, TaxedIncome] = [
+    { income: noIncome(), tax: 0 },
+    { income: noIncome(), tax: 0 },
+  ];
   const gainsBy: [number, number] = [p.rebalanceGains[0], p.rebalanceGains[1]];
   const minimumsBy: [number, number] = [0, 0];
 
@@ -94,7 +124,7 @@ export function workingYear(
     const benefitTaxable = flatTaxable(benefitIncome, ctx);
     const yieldTax = yieldTaxable * rate;
     const benefitTax = benefitTaxable * rate;
-    taxableBy[o] = yieldTaxable + benefitTaxable;
+    taxed[o] = { income: addIncome(yieldIncome, benefitIncome), tax: yieldTax + benefitTax };
     taxBy[o] = yieldTax + benefitTax;
 
     // The yield, less its tax, is reinvested in the owner's non-registered
@@ -128,13 +158,15 @@ export function workingYear(
       // Only non-registered sales realize gains.
       if (a.type === 'nonreg') gainsBy[a.owner] += sale.realizedGain;
     }
+    // Sheltered yields are credited before deposits, as in retired years.
+    holdings = creditYields([{ ...a, holdings }], p.yieldCredit)[0]!.holdings;
     const into = deposits[a.id] ?? 0;
     if (into > 0) holdings = buy(holdings, into, currentWeights(holdings, p.mix));
     return { ...a, holdings };
   });
 
   // Price returns, then contributions at the end of the year.
-  const priced = applyPriceReturns(creditYields(accounts, p.yieldCredit), returns);
+  const priced = applyPriceReturns(accounts, returns);
   accounts = priced.accounts;
   const indexed = ctx.deflator(ctx.yearIndex);
   for (const input of inputs.accounts) {
@@ -195,18 +227,12 @@ export function workingYear(
     ),
     forcedDrawsNom: minimumsBy[o],
     realizedGainsNom: gainsBy[o],
-    taxableIncomeNom: taxableBy[o],
+    // The tax-return taxable income (stage 3 decision S3), not the working-rate base.
+    taxableIncomeNom: incomeTotals(taxed[o].income, ctx).taxableIncome,
     taxNom: taxBy[o],
     clawbackNom: 0,
     splitShare: 0,
   })) as [SpouseYear, SpouseYear];
-  const net =
-    fixedTotal(fixed[0]) +
-    fixedTotal(fixed[1]) +
-    yields[0].total +
-    yields[1].total -
-    taxBy[0] -
-    taxBy[1];
   const totalDraws = Object.values(draws).reduce((a, b) => a + b, 0);
   const row: YearRow = {
     year: p.state.year,
@@ -215,9 +241,11 @@ export function workingYear(
     balancesEndNom: Object.fromEntries(accounts.map((a) => [a.id, accountValue(a)])),
     cashYieldNom: yields[0].total + yields[1].total,
     spendNeedNom: 0,
-    afterTaxCashNom: net,
-    surplusNom: Math.max(0, net),
+    // No spending need before the first retirement; what is saved shows as deposits (S3).
+    afterTaxCashNom: 0,
+    surplusNom: 0,
     shortfallNom: 0,
+    estate: noEstate(),
   };
 
   const tfsaIn: [number, number] = [0, 0];
@@ -234,5 +262,5 @@ export function workingYear(
     workingDraws: totalDraws,
   };
   checkYear(state, s, row, ctx, checks);
-  return { nextState: advance(s, inputs, state.splitShare), row };
+  return { nextState: advance(s, inputs, state.splitShare), row, endState: s, taxed };
 }

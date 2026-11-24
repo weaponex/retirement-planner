@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadConfig, rebaseConfig } from '../../src/engine/config/load';
 import { applyRuleOverrides } from '../../src/engine/config/overrides';
 import { makeDeflator, normalizeInputs, toDisplay } from '../../src/engine/units';
+import { noEstate } from '../../src/engine/solver/yearSolve';
 import type { SpouseYear, YearRow } from '../../src/engine/types';
 import { couplePlan, valueOf } from './helpers/couplePlan';
 
@@ -71,6 +72,7 @@ describe('toDisplay', () => {
     afterTaxCashNom: 4000,
     surplusNom: 0,
     shortfallNom: 0,
+    estate: noEstate(),
   });
 
   it('divides money by the deflator for each row and keeps other numbers', () => {

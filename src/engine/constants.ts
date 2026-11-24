@@ -12,6 +12,12 @@ export const SOLVER_MAX_STEPS = 40;
 /** Pension-split search: 0% to 50% in 5% steps. */
 export const SPLIT_STEP = 0.05;
 /**
+ * Two splits whose household tax differs by less than this are a tie (decided by
+ * the tie rule), so floating-point noise never picks the split. One millionth of
+ * a dollar, far below a cent.
+ */
+export const SPLIT_TIE_TOLERANCE = 1e-6;
+/**
  * Solves per year while the best split keeps changing (stage 2 decision 15). Three
  * passes matched the full search exactly over 1,054 plans; two missed by up to 57.
  */

@@ -16,6 +16,13 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    // The reference plan's independent calculator is plain Node JavaScript.
+    files: ['tests/fixtures/reference-plan/calculator/**/*.mjs'],
+    languageOptions: {
+      globals: { console: 'readonly', process: 'readonly', structuredClone: 'readonly' },
+    },
+  },
+  {
     files: ['src/ui/**/*.{ts,tsx}', 'src/main.tsx'],
     plugins: { 'react-hooks': reactHooks },
     rules: reactHooks.configs.recommended.rules,

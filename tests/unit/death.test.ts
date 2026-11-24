@@ -1,9 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { lifLimits } from '../../src/engine/accounts/liraLif';
-import { deaths, firstDeathTransfer } from '../../src/engine/project/death';
+import {
+  deaths,
+  estate,
+  finalReturn,
+  firstDeathTransfer,
+  secondDeath,
+} from '../../src/engine/project/death';
+import { ontario } from '../../src/engine/jurisdiction/ontario';
+import { personalTax } from '../../src/engine/tax/personalTax';
 import type { PlanState } from '../../src/engine/types';
 import { account, spouseState } from './helpers/accounts';
-import { normalized, planConfig, yearContext } from './helpers/couplePlan';
+import {
+  couplePlan,
+  normalized,
+  planConfig,
+  valueOf,
+  yearContext,
+  zeroIncome,
+} from './helpers/couplePlan';
 
 const ctx = yearContext(0, planConfig());
 
@@ -79,6 +94,95 @@ describe('deaths', () => {
     const list = deaths(inputs);
     expect(list.map((d) => d.year)).toEqual(
       inputs.spouses.map((s) => s.birthYear + s.lifeExpectancyTarget).sort((a, b) => a - b),
+    );
+  });
+});
+
+describe('the final return (stage 3, T10)', () => {
+  const cfg = planConfig();
+  const ctx3 = yearContext(10, cfg);
+  const yearIncome = { ...zeroIncome(), cpp: 15_000, oas: 9_000, pensionEligible: 20_000 };
+  const yearTax = personalTax(yearIncome, 88, ontario, ctx3).total;
+  const end: PlanState = {
+    year: 2036,
+    yearIndex: 10,
+    spouses: [
+      spouseState({ alive: true, age: 88, carriedLossNom: 2_000 }),
+      spouseState({ alive: false, age: 86 }),
+    ],
+    accounts: [
+      account('rrsp-0-1', 'rrsp', 0, { bonds: 50_000 }),
+      account('lira-0-1', 'lira', 0, { bonds: 30_000 }),
+      account('rrif-0-2', 'rrif', 0, { bonds: 100_000 }),
+      account('tfsa-0-1', 'tfsa', 0, { cash: 40_000 }),
+      account('nonreg-0-1', 'nonreg', 0, { cad_equity: 60_000 }, { cad_equity: 40_000 }),
+    ],
+    splitShare: { from: 0, share: 0 },
+    firstDeathYear: 2030,
+  };
+
+  it('counts every registered balance, converted or not, and deemed gains after the carried loss', () => {
+    const fr = finalReturn(0, end, yearIncome, yearTax, ctx3);
+    expect(fr.deemedRegisteredNom).toBeCloseTo(180_000, 6);
+    expect(fr.deemedGainsNom).toBeCloseTo(20_000 - 2_000, 6);
+    const full = { ...yearIncome, otherOrdinary: 180_000, capitalGains: 18_000 };
+    expect(fr.finalReturnTaxNom).toBeCloseTo(
+      personalTax(full, 88, ontario, ctx3).total - yearTax,
+      6,
+    );
+  });
+
+  it('pays the final tax first, then probate on non-registered assets and the home', () => {
+    const inputs = normalized(
+      couplePlan({ estate: { survivorPct: 70, legacyGoalToday: 0, homeValueToday: 500_000 } }),
+    );
+    const finalTax = 70_000;
+    const e = estate(end, finalTax, inputs, ctx3);
+    expect(e.homeNom).toBeCloseTo(500_000 * ctx3.deflator(10), 6);
+    const base = 60_000 + e.homeNom - finalTax;
+    expect(e.probateNom).toBeCloseTo(ontario.probate(base, ctx3), 6);
+    expect(e.afterTaxLegacyNom).toBeCloseTo(280_000 + e.homeNom - finalTax - e.probateNom, 6);
+  });
+
+  it('probate is 0 at or below the threshold, the rate on the excess above it', () => {
+    const threshold = valueOf<number>(cfg, 'ontario.probate.threshold');
+    const rate = valueOf<number>(cfg, 'ontario.probate.rate');
+    expect(ontario.probate(threshold, ctx3)).toBe(0);
+    expect(ontario.probate(threshold + 10_000, ctx3)).toBeCloseTo(rate * 10_000, 6);
+  });
+
+  it('same-year deaths: the first rollover, then one final return covering every account', () => {
+    const base = couplePlan();
+    const plan = couplePlan({
+      spouses: [
+        { ...base.spouses[0], lifeExpectancyTarget: 85 },
+        { ...base.spouses[1], lifeExpectancyTarget: 83 },
+      ],
+    });
+    const inputs = normalized(plan);
+    const both: PlanState = {
+      ...end,
+      spouses: [spouseState({ age: 85 }), spouseState({ age: 83, carriedLossNom: 9_000 })],
+      accounts: [
+        account('rrif-0-1', 'rrif', 0, { bonds: 100_000 }),
+        account('rrif-1-1', 'rrif', 1, { bonds: 70_000 }),
+        account('nonreg-1-1', 'nonreg', 1, { cash: 10_000 }),
+      ],
+    };
+    expect(deaths(inputs)[0].year).toBe(deaths(inputs)[1].year);
+    const taxed: [
+      { income: typeof yearIncome; tax: number },
+      { income: typeof yearIncome; tax: number },
+    ] = [
+      { income: yearIncome, tax: yearTax },
+      { income: zeroIncome(), tax: 0 },
+    ];
+    const e = secondDeath(both, taxed, inputs, ctx3);
+    // Spouse 1 (index 0) counts as dying first; the final return is spouse 2's and covers both RRIFs.
+    expect(e.deemedRegisteredNom).toBeCloseTo(170_000, 6);
+    expect(e.finalReturnTaxNom).toBeCloseTo(
+      personalTax({ ...zeroIncome(), otherOrdinary: 170_000 }, 83, ontario, ctx3).total,
+      6,
     );
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ageTable, planValue, MissingRuleValueError } from '../../src/engine/config/read';
+import { ageTable, brackets, planValue, MissingRuleValueError } from '../../src/engine/config/read';
 import { planConfig, valueOf, yearContext } from './helpers/couplePlan';
 
 const cfg = planConfig();
@@ -39,6 +39,27 @@ describe('planValue', () => {
   });
 
   it('throws for a key with no value yet', () => {
-    expect(() => planValue(cfg, 'ontario.probate.rate')).toThrow(MissingRuleValueError);
+    expect(() => planValue(cfg, 'planning.mixes')).toThrow(MissingRuleValueError);
+  });
+});
+
+describe('brackets (stage 3 decision S1)', () => {
+  it('a threshold never falls below the one before it', () => {
+    const later = yearContext(33, cfg);
+    const rows = brackets(later, 'ontario.tax.brackets');
+    rows.forEach((r, i) => {
+      if (i > 0) expect(r.from).toBeGreaterThanOrEqual(rows[i - 1]!.from);
+    });
+    // By then the indexed third threshold has passed the fixed fourth, whose band starts there.
+    const raw = valueOf<{ from: number; indexed?: boolean }[]>(cfg, 'ontario.tax.brackets');
+    const third = raw[2]!.from * later.deflator(33);
+    expect(third).toBeGreaterThan(raw[3]!.from);
+    expect(rows[3]!.from).toBeCloseTo(third, 6);
+  });
+
+  it('leaves an ordered table as it is', () => {
+    const rows = brackets(ctx, 'ontario.tax.brackets');
+    const raw = valueOf<{ from: number }[]>(cfg, 'ontario.tax.brackets');
+    rows.forEach((r, i) => expect(r.from).toBeCloseTo(raw[i]!.from, 6));
   });
 });

@@ -53,14 +53,17 @@ describe('runPath', () => {
     expect(summary.summary).toEqual(full.summary);
   });
 
-  it('adds lifetime tax in today dollars year by year (M5)', () => {
+  it('adds lifetime tax, final-return tax and probate in today dollars year by year (M5)', () => {
     const r = run();
     const deflator = makeDeflator(cfg);
-    const nominal = r.rows.reduce((s, row) => s + row.spouse[0].taxNom + row.spouse[1].taxNom, 0);
-    const today = r.rows.reduce(
-      (s, row, i) => s + (row.spouse[0].taxNom + row.spouse[1].taxNom) / deflator(i),
-      0,
-    );
+    const yearTax = (row: (typeof r.rows)[number]) =>
+      row.spouse[0].taxNom +
+      row.spouse[1].taxNom +
+      row.estate.finalReturnTaxNom +
+      row.estate.probateNom;
+    const nominal = r.rows.reduce((s, row) => s + yearTax(row), 0);
+    const today = r.rows.reduce((s, row, i) => s + yearTax(row) / deflator(i), 0);
+    expect(r.rows.at(-1)!.estate.finalReturnTaxNom).toBeGreaterThan(0);
     expect(r.summary.lifetimeTaxNom).toBeCloseTo(nominal, 6);
     expect(r.summary.lifetimeTaxToday).toBeCloseTo(today, 6);
     expect(r.summary.lifetimeTaxToday).toBeLessThan(r.summary.lifetimeTaxNom);
@@ -85,11 +88,17 @@ describe('runPath', () => {
     );
   });
 
-  it('stage 2 legacy is the balances before tax, flagged as such', () => {
+  it('the legacy is after the final return and probate, from the last row', () => {
     const r = run();
     const last = r.rows.at(-1)!;
     const balances = Object.values(last.balancesEndNom).reduce((s, v) => s + v, 0);
-    expect(r.summary.legacyIsPreTax).toBe(true);
-    expect(r.summary.afterTaxLegacyNom).toBeCloseTo(balances, 6);
+    expect(r.summary.legacyIsPreTax).toBe(false);
+    expect(r.summary.afterTaxLegacyNom).toBe(last.estate.afterTaxLegacyNom);
+    expect(r.summary.afterTaxLegacyNom).toBeCloseTo(
+      balances + last.estate.homeNom - last.estate.finalReturnTaxNom - last.estate.probateNom,
+      6,
+    );
+    // Only the second death year has estate fields.
+    expect(r.rows.slice(0, -1).every((row) => row.estate.afterTaxLegacyNom === 0)).toBe(true);
   });
 });

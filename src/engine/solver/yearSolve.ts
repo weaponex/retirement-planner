@@ -27,11 +27,18 @@ import { classReturns, type ClassReturns } from '../invest/returns';
 import { deaths, firstDeathTransfer } from '../project/death';
 import { yearMix } from '../project/initialState';
 import { spendingNeed } from '../project/spendingNeed';
-import { bestSplit, householdTax, type SplitSpouse, type SpouseTax } from '../tax/split';
+import {
+  applySplit,
+  bestSplit,
+  householdTax,
+  type SplitSpouse,
+  type SpouseTax,
+} from '../tax/split';
 import type {
   AccountState,
   AccountYear,
   Draw,
+  EstateYear,
   NormalizedInputs,
   Owner,
   PlanState,
@@ -287,17 +294,37 @@ export interface SolveOptions {
   fixedSplit?: SplitChoice;
 }
 
+/** Each spouse's income for the year (after any split) and the tax settled on it. */
+export interface TaxedIncome {
+  income: TaxableIncome;
+  tax: number;
+}
+
 export interface SolvedYear {
   nextState: PlanState;
   row: YearRow;
+  /** The state at the end of the year, before it advances (the final return reads it). */
+  endState: PlanState;
+  taxed: [TaxedIncome, TaxedIncome];
 }
 
-/** Applies draws and deposits to the accounts and the TFSA room. */
+/** A row's estate fields outside the second death year. */
+export const noEstate = (): EstateYear => ({
+  deemedRegisteredNom: 0,
+  deemedGainsNom: 0,
+  finalReturnTaxNom: 0,
+  homeNom: 0,
+  probateNom: 0,
+  afterTaxLegacyNom: 0,
+});
+
+/** Applies the year's draws, then the sheltered yields, then the deposits, to the accounts and the TFSA room. */
 function settle(
   state: PlanState,
   draws: Draw[],
   deposits: Deposit[],
   mix: Weights,
+  yieldCredit: PreparedYear['yieldCredit'],
 ): { state: PlanState; drawnBy: Record<string, number>; depositedBy: Record<string, number> } {
   const drawnBy: Record<string, number> = {};
   const depositedBy: Record<string, number> = {};
@@ -316,6 +343,9 @@ function settle(
         ) as PlanState['spouses'];
       }
     }
+    // The sheltered yield is credited after the draws and before any deposit,
+    // so a deposit buys at the holdings' weights including it.
+    holdings = creditYields([{ ...a, holdings }], yieldCredit)[0]!.holdings;
     const into = depositedBy[a.id] ?? 0;
     if (into > 0) {
       holdings = buy(holdings, into, currentWeights(holdings, mix));
@@ -482,10 +512,10 @@ export function solveYear(
     afterDraws,
     surplusShares(afterDraws, forcedBy, [fixedTotal(setup.fixed[0]), fixedTotal(setup.fixed[1])]),
   );
-  const settled = settle(s, result.draws, deposits, p.mix);
+  const settled = settle(s, result.draws, deposits, p.mix, p.yieldCredit);
 
   // Step 7: price returns, LIF earnings, carried losses.
-  const priced = applyPriceReturns(creditYields(settled.state.accounts, p.yieldCredit), returns);
+  const priced = applyPriceReturns(settled.state.accounts, returns);
   const accounts = priced.accounts.map((a) =>
     a.type === 'lif'
       ? {
@@ -558,6 +588,7 @@ export function solveYear(
     afterTaxCashNom: result.cash,
     surplusNom: surplus,
     shortfallNom: shortfall,
+    estate: noEstate(),
   };
 
   const nextState = advance(endState, inputs, split);
@@ -574,5 +605,10 @@ export function solveYear(
     tfsaIn,
   };
   checkYear(state, endState, row, ctx, checks);
-  return { nextState, row };
+  const afterSplit = applySplit(result.spouses[0], result.spouses[1], split);
+  const taxed = OWNERS.map((o) => ({
+    income: afterSplit[o],
+    tax: result.taxes[o].total,
+  })) as [TaxedIncome, TaxedIncome];
+  return { nextState, row, endState, taxed };
 }

@@ -11,9 +11,11 @@ by the deflator as plain numbers (M5).
 
 - `initialState.ts`: `initialState(inputs, ctx, variant)`; `yearMix(inputs, year, ctx)`.
 - `spendingNeed.ts`: `phaseIndex`, `monthlyNeed`, `spendingNeed(inputs, state, ctx)`.
-- `workingYear.ts`: `workingYear(state, inputs, ctx, variant): { nextState, row }`.
-- `death.ts`: `deaths(inputs)`; `firstDeathTransfer(state)`. Stage 3 adds same-year deaths,
-  `finalReturn` and `estate`.
+- `workingYear.ts`: `workingYear(state, inputs, ctx, variant)`: a `SolvedYear`, like `solveYear`.
+- `death.ts`: `deaths(inputs)` (first death first); `transferAccounts(state, from, to)`;
+  `firstDeathTransfer(state)`; `finalReturn(deceased, endState, yearIncome, yearTax, ctx)`;
+  `estate(endState, finalReturnTaxNom, inputs, ctx)`; `secondDeath(endState, taxed, inputs, ctx)`,
+  which applies the same-year rollover when both die in one year and returns the row's `estate`.
 - `runPath.ts`: `runPath(inputs, cfg, jurisdiction, variant, detail): { rows, summary }`.
 
 ## Invariants
@@ -25,8 +27,16 @@ by the deflator as plain numbers (M5).
 - `[workingYear.ts]` The yield, gains and benefits are taxed at each owner's marginal rate.
   Contributions land after the price return. RRIF and LIF minimums are taken in working years
   too, taxed at the marginal rate and saved like the benefits.
-- `[runPath.ts]` Rows run from the plan start to the second death. In stage 2 there is no final
-  return: `afterTaxLegacyNom` is the balances before tax and `legacyIsPreTax` is `true`.
+- `[runPath.ts]` Rows run from the plan start to the second death. The second death year's row
+  carries the final return and the estate (`row.estate`, all 0 in other years); lifetime tax
+  includes the final-return tax and probate; `afterTaxLegacyNom` is the estate's, and
+  `legacyIsPreTax` is `false`.
+- `[death.ts]` The final return is one return (T10): the deceased's income after the split plus
+  every RRSP, RRIF, LIRA and LIF balance and the deemed non-registered gains (after the carried
+  loss), taxed once; the year's tax is subtracted. The estate pays it before probate, which
+  applies to non-registered balances and the home.
+- `[workingYear.ts]` `taxableIncomeNom` is the tax-return figure and `afterTaxCashNom` and
+  `surplusNom` are 0 (stage 3 decision S3).
 - `[death.ts]` Accounts keep their id and type and change owner; the deceased's carried loss is
   dropped; the TFSA transfer uses no room.
 

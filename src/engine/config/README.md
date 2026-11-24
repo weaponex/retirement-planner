@@ -65,7 +65,8 @@ fetchedOn, validation }`.
   - `dropInvalidOverrides(overrides, cfg, scope?): { kept, dropped }`, for import.
 - `read.ts`
   - With a `YearContext`: `plain` (never indexed); `amount`, `list` (indexed when the entry is);
-    `brackets`, `phaseIn`; `ageTable(ctx, key, age)` (the row at or below the age, the last
+    `brackets` (a threshold never falls below the one before it, stage 3 decision S1),
+    `phaseIn`; `ageTable(ctx, key, age)` (the row at or below the age, the last
     row above the table, `undefined` below it).
   - With a `Config`: `planValue(cfg, key)` (unindexed values read once per plan) and
     `planObject(cfg, key)` (structured planning values).

@@ -1,14 +1,14 @@
 // One run of the plan at fixed returns (design file 34; Result definitions).
 // Builds one YearContext per year, runs working years then retired-household
-// years to the second death, and adds up the summary. Stage 2 stops after the
-// second death year without a final return: the legacy is the balances before tax.
+// years to the second death, files the final return and works out the estate
+// in the second death year, and adds up the summary.
 import type { Config } from '../config/load';
 import type { Jurisdiction } from '../jurisdiction/types';
-import { accountValue } from '../invest/rebalance';
 import type { NormalizedInputs, PlanSummary, Variant, YearContext, YearRow } from '../types';
 import { makeDeflator } from '../units';
 import { firstRetirementYear, lastYear } from '../solver/startOfYear';
 import { solveYear } from '../solver/yearSolve';
+import { secondDeath } from './death';
 import { initialState } from './initialState';
 import { workingYear } from './workingYear';
 
@@ -46,13 +46,24 @@ export function runPath(
 
   while (state.year <= end) {
     const ctx = ctxFor(state.yearIndex);
-    const { nextState, row } =
+    const solved =
       state.year < retire
         ? workingYear(state, inputs, ctx, variant)
         : solveYear(state, inputs, ctx, variant);
+    const { nextState } = solved;
+    // Step 8: the final return and the estate, in the second death year.
+    const row: YearRow =
+      state.year === end
+        ? { ...solved.row, estate: secondDeath(solved.endState, solved.taxed, inputs, ctx) }
+        : solved.row;
     // Today's-dollar totals: each year's amount ÷ that year's deflator (M5).
+    // Lifetime tax includes the final-return tax and probate.
     const f = deflator(state.yearIndex);
-    const tax = row.spouse[0].taxNom + row.spouse[1].taxNom;
+    const tax =
+      row.spouse[0].taxNom +
+      row.spouse[1].taxNom +
+      row.estate.finalReturnTaxNom +
+      row.estate.probateNom;
     lifetimeTaxNom += tax;
     lifetimeTaxToday += tax / f;
     if (row.shortfallNom > COVERED_TOLERANCE) {
@@ -69,7 +80,6 @@ export function runPath(
     state = nextState;
   }
 
-  const legacy = state.accounts.reduce((s, a) => s + accountValue(a), 0);
   return {
     rows,
     summary: {
@@ -79,8 +89,8 @@ export function runPath(
       totalShortfallToday,
       lifetimeTaxNom,
       lifetimeTaxToday,
-      afterTaxLegacyNom: lastRow ? legacy : 0,
-      legacyIsPreTax: true,
+      afterTaxLegacyNom: lastRow?.estate.afterTaxLegacyNom ?? 0,
+      legacyIsPreTax: false,
       clawbackYears,
       savedToTfsaNom,
       warningFacts: {},

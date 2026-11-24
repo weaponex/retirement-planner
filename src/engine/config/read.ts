@@ -53,14 +53,21 @@ export function list(ctx: YearContext, key: string): number[] {
   return (entry.value as number[]).map((n) => n * f);
 }
 
-/** A bracket table with each row's threshold indexed by its own flag, or the entry's. */
+/**
+ * A bracket table with each row's threshold indexed by its own flag, or the
+ * entry's. A threshold never falls below the one before it (stage 3 decision
+ * S1): Ontario's top two thresholds are not indexed, so in later years an
+ * indexed threshold can pass them; the band of a row it passes then shrinks to
+ * nothing, and rates never step down.
+ */
 export function brackets(ctx: YearContext, key: string): BracketRow[] {
   const entry = entryIn(ctx.cfg, key);
   const rows = entry.value as { from: number; rate: number; indexed?: boolean }[];
-  return rows.map((r) => ({
-    from: r.from * factor(ctx, r.indexed ?? entry.indexed),
-    rate: r.rate,
-  }));
+  let floor = 0;
+  return rows.map((r) => {
+    floor = Math.max(floor, r.from * factor(ctx, r.indexed ?? entry.indexed));
+    return { from: floor, rate: r.rate };
+  });
 }
 
 /** A phase-in schedule; band starts and caps are indexed when the entry says so. */

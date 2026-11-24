@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "planStartYear": 2026,
+  "spouses": [
+    {
+      "name": "Avery",
+      "birthYear": 1964,
+      "birthMonth": 2,
+      "sexAtBirth": "F",
+      "retirementYear": 2028,
+      "lifeExpectancyTarget": 85,
+      "cppAt65Today": 1050,
+      "cppStartAge": 65,
+      "oasStartAge": 67,
+      "yearsInCanadaAt65": 40,
+      "workingMarginalRate": 0.3148,
+      "afterTaxPayToday": 0
+    },
+    {
+      "name": "Jordan",
+      "birthYear": 1967,
+      "birthMonth": 8,
+      "sexAtBirth": "M",
+      "retirementYear": 2030,
+      "lifeExpectancyTarget": 92,
+      "cppAt65Today": 900,
+      "cppStartAge": 70,
+      "oasStartAge": 65,
+      "yearsInCanadaAt65": 32,
+      "workingMarginalRate": 0.2965,
+      "afterTaxPayToday": 52000
+    }
+  ],
+  "accounts": [
+    {
+      "id": "rrsp-0-1",
+      "owner": 0,
+      "type": "rrsp",
+      "balanceToday": 380000,
+      "annualContributionToday": 10000,
+      "conversionAge": 71
+    },
+    {
+      "id": "tfsa-0-1",
+      "owner": 0,
+      "type": "tfsa",
+      "balanceToday": 95000,
+      "annualContributionToday": 7000,
+      "tfsaRoomToday": 12000
+    },
+    {
+      "id": "nonreg-0-1",
+      "owner": 0,
+      "type": "nonreg",
+      "balanceToday": 190000,
+      "annualContributionToday": 0,
+      "positions": {
+        "cad_equity": { "valueToday": 120000, "originalCostToday": 70000 },
+        "bonds": { "valueToday": 40000, "originalCostToday": 41000 },
+        "us_equity": { "valueToday": 30000, "originalCostToday": 18000 }
+      }
+    },
+    {
+      "id": "rrsp-1-1",
+      "owner": 1,
+      "type": "rrsp",
+      "balanceToday": 310000,
+      "annualContributionToday": 12000,
+      "conversionAge": 65
+    },
+    {
+      "id": "lira-1-1",
+      "owner": 1,
+      "type": "lira",
+      "balanceToday": 150000,
+      "annualContributionToday": 0,
+      "conversionAge": 66,
+      "lifUnlock50": true
+    },
+    {
+      "id": "tfsa-1-1",
+      "owner": 1,
+      "type": "tfsa",
+      "balanceToday": 80000,
+      "annualContributionToday": 7000,
+      "tfsaRoomToday": 9000
+    },
+    {
+      "id": "nonreg-1-1",
+      "owner": 1,
+      "type": "nonreg",
+      "balanceToday": 40000,
+      "annualContributionToday": 5000,
+      "positions": {
+        "intl_equity": { "valueToday": 25000, "originalCostToday": 22000 },
+        "cash": { "valueToday": 15000, "originalCostToday": 15000 }
+      }
+    }
+  ],
+  "dbPensions": [
+    {
+      "owner": 0,
+      "lifetimeAnnualToday": 28000,
+      "startAge": 64,
+      "bridgeAnnualToday": 6000,
+      "bridgeEndAge": 65,
+      "indexing": "fixed",
+      "indexRate": 0.015,
+      "survivorPct": 60
+    }
+  ],
+  "spending": {
+    "mode": "one_total",
+    "monthlyTotalToday": 8600,
+    "categories": {},
+    "phases": [
+      { "fromYear": 10, "keepPct": 90 },
+      { "fromYear": 20, "keepPct": 80 }
+    ]
+  },
+  "estate": {
+    "survivorPct": 40,
+    "legacyGoalToday": 500000,
+    "homeValueToday": 650000
+  },
+  "investing": {
+    "mixId": "custom",
+    "mix": {
+      "cad_equity": 20,
+      "us_equity": 20,
+      "intl_equity": 10,
+      "em_equity": 5,
+      "bonds": 35,
+      "cash": 10
+    },
+    "shapeId": "gradual_shift",
+    "presetId": "bonds_sheltered_first",
+    "rebalance": true,
+    "returnOverride": { "us_equity": 0.066 },
+    "feeLevel": "index_etf"
+  },
+  "withdrawal": {
+    "strategyId": "registered_last",
+    "bracketLevel": "first_bracket"
+  }
+}

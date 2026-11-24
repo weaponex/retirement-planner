@@ -1199,6 +1199,19 @@ Already settled before the triage, so not decided again: the split test (stage 2
 | T15 | Strict config check | `config:check --strict` is a gate before the URL is shared beyond testers (with O20), not a CI step. The engine already throws on any missing value | Before wider sharing |
 | T16 | The editorial clean-up | After stage 3 and before stage 4, one editorial pass (Known gaps FR2-E). The Known gaps table now lists open rows only | Before stage 4 |
 
+#### Stage 3 decisions (2026-11-24)
+
+Settled while matching the engine against the reference plan (`tests/fixtures/reference-plan/`, whose `NOTES.md` lists every reading the separate session made). S1 to S4 were decided by the author; S5 and S6 are design choices made to match the reference (S5 applies the existing tie rule). Where these and older text disagree, these win.
+
+| # | Topic | Decision |
+|---|---|---|
+| S1 | Bracket thresholds that cross | After indexing, each bracket row's `from` is at least the previous row's. Ontario's top two thresholds are not indexed, so from about 2042 the indexed third threshold passes $150,000: its band then shrinks to nothing and rates never step down. Applies to every bracket table (`read.ts` `brackets`) |
+| S2 | The working marginal rate's base | The rate applies to taxable amounts: every `TaxableIncome` field, with capital gains at `federal.capital_gains.inclusion_rate` (after losses and the carried loss) and eligible dividends as the cash received; never below 0. For working years and a spouse still working (C2) |
+| S3 | Two row fields | `taxableIncomeNom` is always the tax-return taxable income (line 26000), also for a spouse taxed at the working rate. Working years show `afterTaxCashNom` and `surplusNom` of 0: what is saved appears as deposits |
+| S4 | A forced sale's gain | When a working year's tax exceeds the yield, the sale that pays it realizes a gain or loss at average cost. It counts in `realizedGainsNom` and in the year's netting with the carried-forward loss, but is not taxed again that year (decision 9a) |
+| S5 | Split ties | Two splits whose household tax differs by less than `SPLIT_TIE_TOLERANCE` ($0.000001) are a tie, settled by the tie rule (the smaller transfer, then spouse 1 transferring), so floating-point noise never picks the split |
+| S6 | Sheltered yields and deposits | Each year: the draws, then the sheltered yields are added, then the deposits (surplus, a working year's saved income, contributions after the price return), each bought at the account's weights at that point, then price returns on everything |
+
 #### Stage 2 file boundary
 
 The files stage 2 may create or change. Anything not listed here is out of bounds for stage 2.

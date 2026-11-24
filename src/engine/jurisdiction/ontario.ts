@@ -91,9 +91,21 @@ export function ontarioLifMaxFactor(ageAtStartOfYear: number, ctx: YearContext):
   return factor;
 }
 
+/**
+ * Ontario's Estate Administration Tax: nothing if the estate is at or below
+ * `ontario.probate.threshold`, else `ontario.probate.rate` × the value above
+ * it. The Act rounds up to each $1,000; that is not modelled.
+ */
+export function ontarioProbate(estateAssets: number, ctx: YearContext): number {
+  const threshold = amount(ctx, 'ontario.probate.threshold');
+  if (estateAssets <= threshold) return 0;
+  return plain(ctx, 'ontario.probate.rate') * (estateAssets - threshold);
+}
+
 export const ontario: Jurisdiction = {
   id: 'ON',
   provincialTax: (income, age, ctx) => ontarioTaxParts(income, age, ctx).total,
   lifMaxFactor: ontarioLifMaxFactor,
   unlockShare: (ctx) => plain(ctx, 'ontario.lif.unlock_share'),
+  probate: ontarioProbate,
 };

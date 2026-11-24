@@ -350,6 +350,19 @@ export interface AccountYear {
   endNom: number;
 }
 
+/** The second death year's final return and estate (all 0 in other years). */
+export interface EstateYear {
+  /** RRSP, RRIF, LIRA and LIF balances counted as income on the final return. */
+  deemedRegisteredNom: number;
+  /** Deemed non-registered gains, after the carried-forward loss. */
+  deemedGainsNom: number;
+  /** Tax on the final return beyond what the year's ordinary tax already paid. */
+  finalReturnTaxNom: number;
+  homeNom: number;
+  probateNom: number;
+  afterTaxLegacyNom: number;
+}
+
 export interface YearRow {
   year: number;
   spouse: [SpouseYear, SpouseYear];
@@ -362,6 +375,7 @@ export interface YearRow {
   afterTaxCashNom: number;
   surplusNom: number;
   shortfallNom: number;
+  estate: EstateYear;
 }
 
 export interface PlanSummary {
@@ -372,7 +386,7 @@ export interface PlanSummary {
   lifetimeTaxNom: number;
   lifetimeTaxToday: number;
   afterTaxLegacyNom: number;
-  /** True in stage 2: there is no final return yet, so the legacy is before tax. */
+  /** False from stage 3: the legacy is after the final return and probate. */
   legacyIsPreTax: boolean;
   clawbackYears: number;
   savedToTfsaNom: number;

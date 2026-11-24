@@ -15,5 +15,6 @@ export interface Jurisdiction {
   lifMaxFactor(ageAtStartOfYear: number, ctx: YearContext): number;
   /** The share of a LIRA that may be moved to an RRSP/RRIF once, at conversion. */
   unlockShare(ctx: YearContext): number;
-  // Added in stage 3 (design file 27): probate.
+  /** Probate (estate administration tax) on the value passing through the estate. */
+  probate(estateAssets: number, ctx: YearContext): number;
 }

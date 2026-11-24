@@ -16,7 +16,9 @@ here is in future dollars; the `TodayDollars` type may not be imported (lint).
 - `incomeAssembly.ts`: `FixedIncome`; `assembleIncome(spouse, fixed, draws, cashYield,
   realizedGains)`; `splitEligible(...)`; `noFixedIncome`, `noCashYield`.
 - `yearSolve.ts`
-  - `solveYear(state, inputs, ctx, variant, options?)`: `{ nextState, row }`. Throws
+  - `solveYear(state, inputs, ctx, variant, options?)`: a `SolvedYear`, `{ nextState, row,
+    endState, taxed }`: the end-of-year state and each spouse's income after the split with the tax
+    settled on it, which the final return reads. `noEstate()` fills `row.estate`. Throws
     `EngineIntegrityError` if the solve does not converge or an invariant fails. `options.fixedSplit` solves once at that split (tests).
   - Shared with working years: `prepareYear`, `fixedIncome`, `fixedTotal`, `ownerCashYields`,
     `creditYields`, `applyPriceReturns`, `advance`.
@@ -25,8 +27,10 @@ here is in future dollars; the `TodayDollars` type may not be imported (lint).
 
 - The order within a year is the design's, with two choices made here: the first-death transfer
   runs before the conversions, so the survivor's age drives them; and sheltered yields are worked
-  out on the start-of-year balance but credited after the year's draws, so they never enlarge the
-  balance the RRIF and LIF limits are measured on.
+  out on the start-of-year balance but credited after the year's draws and before any deposit, so
+  they never enlarge the balance the RRIF and LIF limits are measured on (stage 3 decision S6).
+- Two splits whose household tax differs by less than `SPLIT_TIE_TOLERANCE` are a tie, settled by
+  the tie rule (stage 3 decision S5).
 - A RRIF has no maximum; a LIF's limits are fixed at the start of the year.
 - W is found by bisection between 0 and everything available, to `SOLVER_PRECISION` in at most
   `SOLVER_MAX_STEPS` steps. If everything is not enough, everything is drawn and the shortfall
