@@ -39,3 +39,9 @@ Run `npm run typecheck && npm run lint && npm test`.
 
 Follow the stage order and gates in the design's Detailed Implementation Plan, and tag each
 green stage (`stage-0` … `stage-8`).
+
+## Git
+
+- Trunk-based: commit directly to `main`. No feature or stage branches, and no pull requests
+  unless the author asks for one. Stages are marked by tags only.
+- Every green push to `main` deploys to GitHub Pages.
