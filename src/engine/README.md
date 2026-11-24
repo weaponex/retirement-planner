@@ -7,7 +7,8 @@ engine-wide settings (`constants.ts`), the data contracts (`types.ts`) from the 
 [Data contracts](../../docs/designs/retirement-planner.md#data-contracts), the dollar conversions
 (`units.ts`) and the runtime invariants (`invariants.ts`). The subfolders load the rule values,
 compute tax, model accounts, benefits and investments, choose withdrawals, solve each year and run
-a whole plan. Stage 4 adds the variants, the comparisons and the `index.ts` entry point.
+a whole plan, run the variants and build the screens' `Result`. `index.ts` is the entry point the
+Worker calls.
 
 ## Interface
 
@@ -27,10 +28,16 @@ a whole plan. Stage 4 adds the variants, the comparisons and the `index.ts` entr
   - the engine state: `PlanState`, `AccountState`, `PositionState`, `SpouseYearState`,
     `SplitChoice`, `Draw`, `Variant`, `Death`, `YearInProgress`, `IntegrityFailure`;
   - the results: `YearRow` (with `AccountYear`, `SpouseYear` and `EstateYear`), `PlanSummary`,
-    `StrategyResult`;
+    `StrategyResult`; for the screens, `Result`, `Comparison`, `Tips`, `Tip`, `EngineError` and
+    `Warning` (a placeholder until stage 6);
   - the id unions, including `EngineAccountType` (adds `rrif` and `lif`).
 - `units.ts`: `TodayDollars` and `FutureDollars` (branded), `makeDeflator(cfg)`,
   `normalizeInputs(inputs, cfg)`, `toDisplay(rows, deflator)`.
+- `index.ts`: `runPlan(inputs, { revision, appVersion, today }): Result` (overrides applied,
+  config rebased, inputs normalized, then `simulate` and the `results` functions);
+  `runTips(inputs, result): Tips` (empty until stage 6); `engineError(error, revision,
+  appVersion): EngineError`; and the re-exports `loadConfig`, `applyRuleOverrides`,
+  `configStatus`, `configDefaults`, `normalizeInputs`, `toDisplay`.
 - `invariants.ts`: `EngineIntegrityError`, `failedChecks(next, row, checks)`,
   `checkYear(prev, next, row, ctx, checks)`.
 - Subfolders:
@@ -45,6 +52,8 @@ a whole plan. Stage 4 adds the variants, the comparisons and the `index.ts` entr
   - [withdraw](./withdraw/README.md): the withdrawal strategies and the surplus.
   - [solver](./solver/README.md): one retired-household year.
   - [project](./project/README.md): a whole plan (`runPath`).
+  - [simulate](./simulate/README.md): the user's plan, the strategies and the baseline.
+  - [results](./results/README.md): the goals, comparisons, year-one sale tax and estate figures.
 
 ## Invariants
 

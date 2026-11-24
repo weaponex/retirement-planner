@@ -10,6 +10,7 @@ export default tseslint.config(
       'playwright-report/',
       'test-results/',
       'node_modules/',
+      'private/',
       'src/engine/config/bundle.ts',
     ],
   },

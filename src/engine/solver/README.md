@@ -19,7 +19,7 @@ here is in future dollars; the `TodayDollars` type may not be imported (lint).
   - `solveYear(state, inputs, ctx, variant, options?)`: a `SolvedYear`, `{ nextState, row,
     endState, taxed }`: the end-of-year state and each spouse's income after the split with the tax
     settled on it, which the final return reads. `noEstate()` fills `row.estate`. Throws
-    `EngineIntegrityError` if the solve does not converge or an invariant fails. `options.fixedSplit` solves once at that split (tests).
+    `EngineIntegrityError` if the solve does not converge or an invariant fails. `options.fixedSplit` solves once at that split (tests); `options.ignoreRebalanceGains` treats the rebalance's gains as zero (the year-one sale tax, `gainsFor`).
   - Shared with working years: `prepareYear`, `fixedIncome`, `fixedTotal`, `ownerCashYields`,
     `creditYields`, `applyPriceReturns`, `advance`.
 

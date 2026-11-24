@@ -758,7 +758,8 @@ Result {
 }
 Comparison {                                 // this variant − the other
   lifetimeTaxDiffToday, legacyDiffToday,
-  oppositeDirections: boolean }              // tax and legacy both better or both worse
+  oppositeDirections: boolean }              // one better, the other worse: lower tax but a
+                                             // smaller legacy, or the reverse (under $1 ignored)
 Tips { revision,
   byWarning: { [warningCode]: Tip[] } }      // at most 3 per warning; filled in stage 6
 Tip { inputPath, change: string,             // for example "+2 years"
@@ -1343,7 +1344,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 *   **Proposed Changes**: `tsconfig.base.json` holds the shared options: all strict, with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`, and the path alias `@engine/*` → `src/engine/*`. The others extend it.
     *   `app`: `lib: ["ES2022", "DOM"]`, includes `src` except `src/worker`.
     *   `worker`: `lib: ["ES2022", "WebWorker"]`, includes `src/worker` and `src/engine`.
-    *   `node`: includes `tools`, `tests`, and the config files.
+    *   `node`: includes `tools`, `tests`, `src/engine`, `src/worker/protocol.ts` and `src/worker/client.ts` (so the tests can import them), and the config files. `worker` also loads the `vite/client` types, for the inline Worker import.
     *   Add `src/vite-env.d.ts`.
 
 ##### 6. `./vite.config.ts` (Exists, stage 0)
@@ -1383,7 +1384,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 *   **Proposed Changes**:
     *   `.prettierignore` lists `docs/`, `*.md`, `package-lock.json`, `config/**/*.json`, `src/engine/config/bundle.ts`, `dist/`, `coverage/`, `playwright-report/`, `test-results/`. Markdown and config JSON keep their hand-written layout; Prettier formats code only.
     *   `@typescript-eslint/no-magic-numbers` in `src/engine/**`, ignoring `[0, 1, -1, 2, 100]`, with `ignoreNumericLiteralTypes: true` (so types such as `schemaVersion: 1` pass), `ignoreEnums: true`, `ignoreReadonlyClassProperties: true` and `ignoreArrayIndexes: true` (which `federalBasicAmount` relies on). The only exempt file is `src/engine/constants.ts`, which also holds `MONTHS_PER_YEAR = 12`.
-    *   `ignores`: `dist/`, `coverage/`, `playwright-report/`, `test-results/`, `src/engine/config/bundle.ts`.
+    *   `ignores`: `dist/`, `coverage/`, `playwright-report/`, `test-results/`, `private/`, `src/engine/config/bundle.ts`.
     *   `no-restricted-imports`:
         *   `src/engine/**` may not import `src/ui/**` or `src/state/**`;
         *   `src/engine/{solver,project,simulate}/**` may not import the `TodayDollars` type.
@@ -1643,19 +1644,19 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
 ##### 35. (Removed: no market generator or stress paths with fixed returns)
 
-##### 36. `./src/engine/simulate/variants.ts` and `./simulate.ts` (Create, stage 4)
+##### 36. `./src/engine/simulate/variants.ts` and `./simulate.ts` (Exists, stage 4)
 
 *   **Proposed Changes**:
     *   `variants(inputs)` returns the user's plan, the placement baseline, and one variant per withdrawal strategy, reusing the user's run for the chosen one.
-    *   `simulate(inputs, cfg)` runs the user's plan in full detail, the strategies with chart rows (`StrategyResult`), and the placement baseline as a summary.
+    *   `simulate(inputs, cfg, jurisdiction)` runs the user's plan in full detail, the strategies with chart rows (`StrategyResult`, from `chartRows`), and the placement baseline as a summary.
 
-##### 37. `./src/engine/results/compare.ts` (Create, stage 4)
+##### 37. `./src/engine/results/compare.ts` (Exists, stage 4)
 
 *   **Proposed Changes**: Implement the [Result definitions](#result-definitions) and build the `Result` fields in [Data contracts](#data-contracts):
     *   `goals(rows, summary, inputs, deflator)`: whether spending is covered over the years from the first retirement to the second death, and the legacy status, including `no_goal`;
     *   `compare(a, b): Comparison`: the differences in lifetime tax and the after-tax legacy, with the opposite-direction flag;
-    *   `yearOneSaleTax(...)`: the second solve of year one with the rebalance gains set to zero;
-    *   `estateSummary(rows, deflator)`: the Estate chart's figures from the second death year's row.
+    *   `yearOneSaleTax(inputs, cfg, jurisdiction, deflator, variant)`: the second solve of year one with the rebalance gains set to zero (`solveYear` and `workingYear` take `ignoreRebalanceGains`);
+    *   `estateSummary(rows, inputs, deflator)`: the Estate chart's figures from the second death year's row.
 
 ##### 38. `./src/engine/invariants.ts` (Exists, stage 2)
 
@@ -1670,22 +1671,22 @@ The files stage 2 may create or change. Anything not listed here is out of bound
         *   reruns the plan with each related input nudged up and down by its configured step, and returns the top three inputs by effect with conditional wording;
         *   a rerun that fails is dropped and logged, and the other tips are still returned.
 
-##### 40. `./src/engine/index.ts` (Create, stage 4)
+##### 40. `./src/engine/index.ts` (Exists, stage 4)
 
 *   **Proposed Changes**: Exports:
-    *   `runPlan(inputs): Result` (main results and strategies) and `runTips(inputs, result): Tips`
+    *   `runPlan(inputs, { revision, appVersion, today }): Result` (main results and strategies), `runTips(inputs, result): Tips` and `engineError(error, revision, appVersion): EngineError`
     *   `loadConfig`, `applyRuleOverrides`, `configStatus`, `configDefaults`
     *   `normalizeInputs`, `toDisplay`
     *   the types `PlanInputs`, `Result`, `Tips`, `EngineError`, `YearRow`, `PlanSummary`
 
 #### Worker (stage 4)
 
-##### 41. `./src/worker/engine.worker.ts` and `./src/worker/client.ts` (Create, stage 4)
+##### 41. `./src/worker/engine.worker.ts`, `./protocol.ts`, `./createWorker.ts`, `./client.ts` (Exists, stage 4)
 
 *   **Proposed Changes**:
-    *   `client.ts` creates the Worker from a `blob:` URL of the bundled Worker code, so it runs under the page's security policy.
-    *   The Worker receives `{ type: 'run', inputs, revision }` and posts `result` (with `revision`), then `tips` (with `revision`), or `error` (including `EngineIntegrityError` details). It runs one revision at a time; when a newer revision is sent during a run, `client.ts` terminates the Worker and starts a new one.
-    *   The client exposes `run(inputs, revision)` with callbacks for the result and the tips.
+    *   `createWorker.ts` imports the Worker with Vite's `?worker&inline`, so its bundle is inlined and started from a `blob:` URL and runs under the page's security policy.
+    *   `protocol.ts`: the Worker receives `{ type: 'run', inputs, revision, appVersion }` and `handleRun` posts `result` (with `revision`), then `tips` (with `revision`), or `error` (an `EngineError`, with `EngineIntegrityError` details). `engine.worker.ts` only passes messages to it.
+    *   `client.ts`: `createEngineClient(makeWorker, appVersion, callbacks)` exposes `run(inputs, revision)` and `dispose()`, with callbacks for the result, the tips and errors. It runs one revision at a time; when a newer revision is sent during a run, it terminates the Worker and starts a new one, and it drops replies for older revisions.
 
 #### State and persistence (stages 5, 7)
 
@@ -1839,7 +1840,9 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     | `read.test.ts` | 2 | `ageTable` above the last row and below the first; `planValue` |
     | `death.test.ts` | 2 (first-death transfer); 3 (the rest) | Stage 2: accounts keep id and type and change owner; the survivor's age drives minimums; the deceased's carried loss is dropped; the TFSA transfer uses no room. Stage 3: rollover at original cost; same-year deaths; final return includes unconverted RRSP/LIRA; probate |
     | `units.test.ts` | 2 | `normalizeInputs` and `toDisplay` round trip; DB `fixed` and `none` amounts left nominal; `rebaseConfig` with `planStartYear = taxYear + 3` for each value kind (number, bracket rows by their flags, list, phase-in `from` and `cap`; age tables untouched), including a stale override rebased from its own year |
-    | `compare.test.ts` | 4 | Spending-covered and legacy-goal flags; differences against a baseline; opposite-direction flag |
+    | `compare.test.ts` | 4 | Spending-covered and legacy-goal flags (including `no_goal`), Goal 1 counted from the first retirement; differences against a baseline; opposite-direction flag; the year-one sale tax (gain, loss, working year); the estate figures add up |
+    | `simulate.test.ts`, `engineIndex.test.ts` | 4 | Variants and reuse of the chosen strategy; chart rows by source; `runPlan` on the reference plan (strategy comparisons, placement comparison without the year-one sale tax, overrides applied); `engineError`; `configDefaults` in published units |
+    | `worker.test.ts` | 4 | `handleRun` posts result then tips, only an error on failure, empty tips when tips fail; the client drops older revisions, terminates a busy Worker, reuses an idle one, reports a crash |
     | `warnings.test.ts`, `tips.test.ts` | 6 | Each trigger at and around its threshold; collapsed years; tips ranked by effect |
     | `changeSummary.test.ts`, `store.test.ts` | 5 | Diff fields and the named edit; a run scheduled 500 ms after the last edit; an older revision's result dropped; rule overrides set and reset |
     | `persistence.test.ts` | 7 | Round trip including rule overrides; newer-version refusal; the frozen v1 file loads |

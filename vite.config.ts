@@ -9,7 +9,7 @@ const CSP = [
   "default-src 'none'",
   "script-src 'self'",
   "style-src 'self'",
-  "worker-src 'self'",
+  "worker-src 'self' blob:",
   "img-src 'self' data:",
   "font-src 'self'",
   "connect-src 'none'",

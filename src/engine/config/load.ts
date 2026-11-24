@@ -161,3 +161,31 @@ export function configStatus(config: Config, overrides: RuleOverrides, today: Da
     outOfDate: today.getFullYear() > config.taxYear,
   };
 }
+
+/** A default rule value as Settings shows it: in its published unit (design file 24). */
+export interface ConfigDefault {
+  value: unknown;
+  unit: Unit;
+  taxYear: number;
+  source: ConfigEntry['source'];
+  validation: ConfigEntry['validation'];
+}
+
+/**
+ * The bundled defaults shown next to user overrides. Monthly amounts are shown
+ * as published (the loaded yearly value ÷ 12).
+ */
+export function configDefaults(config: Config = loadConfig()): Record<string, ConfigDefault> {
+  const out: Record<string, ConfigDefault> = {};
+  for (const [key, entry] of config.entries) {
+    const monthly = entry.publishedUnit === 'CAD_per_month' && typeof entry.value === 'number';
+    out[key] = {
+      value: monthly ? (entry.value as number) / MONTHS_PER_YEAR : entry.value,
+      unit: entry.publishedUnit,
+      taxYear: entry.taxYear,
+      source: entry.source,
+      validation: entry.validation,
+    };
+  }
+  return out;
+}

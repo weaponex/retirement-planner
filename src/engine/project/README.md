@@ -11,7 +11,7 @@ by the deflator as plain numbers (M5).
 
 - `initialState.ts`: `initialState(inputs, ctx, variant)`; `yearMix(inputs, year, ctx)`.
 - `spendingNeed.ts`: `phaseIndex`, `monthlyNeed`, `spendingNeed(inputs, state, ctx)`.
-- `workingYear.ts`: `workingYear(state, inputs, ctx, variant)`: a `SolvedYear`, like `solveYear`.
+- `workingYear.ts`: `workingYear(state, inputs, ctx, variant, options?)`: a `SolvedYear`, like `solveYear`, with the same `ignoreRebalanceGains` option.
 - `death.ts`: `deaths(inputs)` (first death first); `transferAccounts(state, from, to)`;
   `firstDeathTransfer(state)`; `finalReturn(deceased, endState, yearIncome, yearTax, ctx)`;
   `estate(endState, finalReturnTaxNom, inputs, ctx)`; `secondDeath(endState, taxed, inputs, ctx)`,

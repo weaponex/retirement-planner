@@ -9,6 +9,8 @@
     "tools",
     "tests",
     "src/engine",
+    "src/worker/protocol.ts",
+    "src/worker/client.ts",
     "vite.config.ts",
     "vitest.config.ts",
     "playwright.config.ts"

@@ -2,7 +2,7 @@
 // are in today's dollars; fields ending in `Nom` are in future dollars.
 // This file declares shapes only.
 import type { AssetClass } from './config/keys';
-import type { Config } from './config/load';
+import type { Config, ConfigStatus } from './config/load';
 import type { Jurisdiction } from './jurisdiction/types';
 
 export type { AssetClass };
@@ -415,4 +415,89 @@ export interface StrategyResult {
     savedToTfsaNom: number;
     spendNeedNom: number;
   }[];
+}
+
+// ------------------------------------------------- results for the screens
+
+/** This variant − the other (design: Data contracts, Results for the screens). */
+export interface Comparison {
+  lifetimeTaxDiffToday: number;
+  legacyDiffToday: number;
+  /** One of the two is better and the other worse: lower tax but a smaller legacy, or the reverse. */
+  oppositeDirections: boolean;
+}
+
+/** Defined in stage 6 (Known gaps M1, warningFacts). */
+export type Warning = never;
+
+export interface Result {
+  revision: number;
+  appVersion: string;
+  configStatus: ConfigStatus;
+  /** The user's plan, full detail. */
+  plan: { variantId: string; summary: PlanSummary; rows: YearRow[] };
+  goals: {
+    spending: {
+      met: boolean;
+      /** Counted from the first retirement year to the second death year, both included. */
+      yearsCovered: number;
+      yearsTotal: number;
+      shortYears: number[];
+      firstShortfallYear?: number;
+      totalShortfallToday: number;
+    };
+    legacy: {
+      status: 'met' | 'missed' | 'no_goal';
+      afterTaxLegacyToday: number;
+      goalToday: number;
+      /** Legacy − goal; 0 with no goal. */
+      differenceToday: number;
+    };
+  };
+  /** In the order registered_last, fill_brackets, early_rrsp. */
+  strategies: (StrategyResult & { vsRegisteredLast: Comparison })[];
+  placement: {
+    baseline: PlanSummary;
+    /** Each side's lifetime tax leaves out its own year-one sale tax. */
+    vsBaseline: Comparison;
+  };
+  /** The tax on the first year's sale of the user's own non-registered positions. */
+  yearOneSale: { gainsNom: number; taxNom: number; taxToday: number };
+  /** The Estate chart, at the end of the second death year. */
+  estate: {
+    year: number;
+    balancesToday: number;
+    homeToday: number;
+    deemedRegisteredToday: number;
+    deemedGainsToday: number;
+    finalReturnTaxToday: number;
+    probateToday: number;
+    afterTaxLegacyToday: number;
+  };
+  /** Empty until stage 6. */
+  warnings: Warning[];
+}
+
+export interface Tip {
+  inputPath: string;
+  /** For example "+2 years". */
+  change: string;
+  effect: number;
+  text: string;
+}
+
+export interface Tips {
+  revision: number;
+  /** At most 3 per warning; empty until stage 6. */
+  byWarning: Record<string, Tip[]>;
+}
+
+export interface EngineError {
+  revision: number;
+  appVersion: string;
+  kind: 'integrity' | 'unexpected';
+  year?: number;
+  variantId?: string;
+  check?: string;
+  message: string;
 }

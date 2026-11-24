@@ -19,7 +19,7 @@ export interface PathResult {
 }
 
 /** Years of the plan with a shortfall above this are counted as not covered. */
-const COVERED_TOLERANCE = 0.01;
+export const COVERED_TOLERANCE = 0.01;
 
 export function runPath(
   inputs: NormalizedInputs,

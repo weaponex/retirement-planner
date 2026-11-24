@@ -3,7 +3,7 @@
 ## Overview
 
 The app's source. `main.tsx` is the browser entry point; for now it mounts a placeholder page
-until stage 5 adds the app shell. [`engine/`](./engine/README.md) holds the calculation. `ui/`
+until stage 5 adds the app shell. [`engine/`](./engine/README.md) holds the calculation and [`worker/`](./worker/README.md) runs it off the main thread. `ui/`
 exists but is still empty; the screens are added in stage 5.
 
 ## Interface
@@ -12,6 +12,7 @@ exists but is still empty; the screens are added in stage 5.
 - `vite-env.d.ts`: `/// <reference types="vite/client" />` only; declares no symbols.
 - Subfolders:
   - [engine](./engine/README.md): the calculation engine (config, tax, data contracts).
+  - [worker](./worker/README.md): the engine Worker and the client the app uses to run it.
 
 ## Invariants
 

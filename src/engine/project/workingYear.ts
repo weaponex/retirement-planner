@@ -29,9 +29,11 @@ import {
   creditYields,
   fixedIncome,
   fixedTotal,
+  gainsFor,
   ownerCashYields,
   noEstate,
   prepareYear,
+  type SolveOptions,
   type SolvedYear,
   type TaxedIncome,
 } from '../solver/yearSolve';
@@ -72,9 +74,10 @@ export function workingYear(
   inputs: NormalizedInputs,
   ctx: YearContext,
   variant: Variant,
+  options: SolveOptions = {},
 ): SolvedYear {
   const returns = classReturns(ctx.cfg, inputs.investing);
-  const p = prepareYear(state, inputs, ctx, variant, returns);
+  const p = gainsFor(prepareYear(state, inputs, ctx, variant, returns), options);
   let s = p.state;
   const fixed = fixedIncome(s, inputs, ctx, false);
   const yields = ownerCashYields(s, returns);

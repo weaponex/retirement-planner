@@ -292,6 +292,16 @@ const sameSplit = (a: SplitChoice, b: SplitChoice) =>
 export interface SolveOptions {
   /** Solve once at this split, with no search (used to compare against the full search in tests). */
   fixedSplit?: SplitChoice;
+  /**
+   * Treat the gains the rebalance realizes as zero: used once, on the first
+   * year, to measure the tax on the year-one sale (design: Result contract).
+   */
+  ignoreRebalanceGains?: boolean;
+}
+
+/** The prepared year, with the rebalance gains set to zero when asked. */
+export function gainsFor(p: PreparedYear, options: SolveOptions): PreparedYear {
+  return options.ignoreRebalanceGains ? { ...p, rebalanceGains: [0, 0] } : p;
 }
 
 /** Each spouse's income for the year (after any split) and the tax settled on it. */
@@ -428,7 +438,7 @@ export function solveYear(
   options: SolveOptions = {},
 ): SolvedYear {
   const returns = classReturns(ctx.cfg, inputs.investing);
-  const p = prepareYear(state, inputs, ctx, variant, returns);
+  const p = gainsFor(prepareYear(state, inputs, ctx, variant, returns), options);
   const s = p.state;
 
   const setup: YearSetup = {
