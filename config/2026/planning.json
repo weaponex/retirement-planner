@@ -186,17 +186,21 @@
     }
   },
   "planning.fee_levels": {
-    "value": null,
+    "value": {
+      "index_etf": 0.002,
+      "robo": 0.006,
+      "advisor": 0.02
+    },
     "unit": "none",
     "taxYear": 2026,
     "indexed": false,
     "source": {
-      "url": "author decision, open (O25)",
-      "locator": "docs/designs/retirement-planner.md#design-values-version-1"
+      "url": "author decision, 2026-11-19",
+      "locator": "docs/designs/retirement-planner.md#design-values-version-1 (Fee levels, O25: Index ETFs 0.20%, Robo-advisor 0.60%, Mutual funds with an advisor 2.00%)"
     },
-    "fetchedOn": null,
+    "fetchedOn": "2026-11-19",
     "validation": {
-      "status": "unfetched"
+      "status": "unvalidated"
     }
   },
   "planning.spending_phases": {

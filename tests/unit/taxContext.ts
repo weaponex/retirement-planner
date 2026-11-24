@@ -1,12 +1,13 @@
 // Test helpers for tax tests. Not a test file.
 import { loadConfig } from '../../src/engine/config/load';
+import { ontario } from '../../src/engine/jurisdiction/ontario';
 import type { TaxableIncome, YearContext } from '../../src/engine/types';
 
 export const cfg = loadConfig();
 
-/** A year context with a made-up inflation factor (units.ts arrives in stage 2). */
+/** A year context with a made-up inflation factor, so indexing is visible in tests. */
 export function context(yearIndex = 0, inflation = 0.05): YearContext {
-  return { yearIndex, deflator: (t) => (1 + inflation) ** t, cfg };
+  return { yearIndex, deflator: (t) => (1 + inflation) ** t, cfg, jurisdiction: ontario };
 }
 
 export const noIncome: TaxableIncome = {

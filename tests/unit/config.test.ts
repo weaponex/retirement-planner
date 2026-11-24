@@ -108,10 +108,10 @@ describe('checkBundle and configStatus', () => {
   });
 
   it('flags unfetched keys and an out-of-date year', () => {
-    const status = configStatus(buildConfig(skeleton()), new Date('2027-02-01'));
+    const status = configStatus(buildConfig(skeleton()), {}, new Date('2027-02-01'));
     expect(status.unfetchedKeys).toHaveLength(ALL_KEYS.length);
     expect(status.outOfDate).toBe(true);
-    expect(configStatus(buildConfig(skeleton()), new Date('2026-06-01')).outOfDate).toBe(false);
+    expect(configStatus(buildConfig(skeleton()), {}, new Date('2026-06-01')).outOfDate).toBe(false);
   });
 
   it('converts monthly amounts to yearly on load', () => {

@@ -1,6 +1,6 @@
 // Ontario tax for one person's return, following Form ON428 Part C
-// (design: Order of the Ontario calculation).
-import { amount, brackets, list, phaseIn, plain } from '../config/read';
+// (design: Order of the Ontario calculation), and Ontario's LIF values.
+import { ageTable, amount, brackets, list, phaseIn, plain } from '../config/read';
 import { bracketTax, lowestRate, phaseInAmount } from '../tax/tables';
 import type { TaxableIncome, YearContext } from '../types';
 import { ageAmount, incomeTotals } from './federal';
@@ -78,7 +78,22 @@ export function ontarioTaxParts(
   };
 }
 
+/**
+ * The LIF maximum factor (FR-M9): the `ontario.lif.max_factor` row at or below
+ * the start-of-year age, the last row (90, 100%) above it. Ages below the
+ * table's first row have no Ontario maximum and are an error.
+ */
+export function ontarioLifMaxFactor(ageAtStartOfYear: number, ctx: YearContext): number {
+  const factor = ageTable(ctx, 'ontario.lif.max_factor', ageAtStartOfYear);
+  if (factor === undefined) {
+    throw new Error(`ontario.lif.max_factor has no row at or below age ${ageAtStartOfYear}`);
+  }
+  return factor;
+}
+
 export const ontario: Jurisdiction = {
   id: 'ON',
   provincialTax: (income, age, ctx) => ontarioTaxParts(income, age, ctx).total,
+  lifMaxFactor: ontarioLifMaxFactor,
+  unlockShare: (ctx) => plain(ctx, 'ontario.lif.unlock_share'),
 };

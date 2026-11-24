@@ -1,6 +1,27 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { ASSET_CLASSES } from '../src/engine/config/keys';
 import type { RawBundle } from '../src/engine/config/load';
+
+/**
+ * One warning per asset class whose cash yield is above its gross return
+ * (FR-M5): its price return would then fall every year. A warning, not an error.
+ */
+export function yieldWarnings(bundle: RawBundle): string[] {
+  const market = bundle.files.market ?? {};
+  const valueOf = (key: string) => (market[key] as { value?: unknown } | undefined)?.value;
+  const warnings: string[] = [];
+  for (const cls of ASSET_CLASSES) {
+    const yieldRate = valueOf(`market.${cls}.yield`);
+    const gross = valueOf(`market.${cls}.geometric_return`);
+    if (typeof yieldRate === 'number' && typeof gross === 'number' && yieldRate > gross) {
+      warnings.push(
+        `market.${cls}: yield ${yieldRate} is above the return ${gross}, so its price falls every year`,
+      );
+    }
+  }
+  return warnings;
+}
 
 export const ROOT = resolve(import.meta.dirname, '..');
 export const CONFIG_DIR = join(ROOT, 'config');
