@@ -23,8 +23,9 @@ One run posts the main `Result`, then the `Tips`, or an `EngineError`.
   a new one; replies for any revision but the latest are dropped.
 - `[protocol.ts:handleRun]` A failed main run posts only an error. Failed tips are logged and
   posted empty, so the results stay.
-- `[tsconfig.node.json]` `protocol.ts` and `client.ts` are also in the node project, so the tests
-  can import them; `engine.worker.ts` and `createWorker.ts` are not (Worker and Vite types).
+- `[tsconfig.node.json, tsconfig.app.json]` Every file here except `engine.worker.ts` is in the
+  app and node projects, so the app and the tests can import them; `engine.worker.ts` needs the
+  WebWorker types and is only in the worker project.
 
 ## Side Effects
 

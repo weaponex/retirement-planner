@@ -8,6 +8,7 @@ const ENFORCE_COVERAGE = process.env.ENFORCE_COVERAGE === 'true';
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
+  define: { __APP_VERSION__: JSON.stringify('test') },
   test: {
     include: ['tests/{unit,property,reference}/**/*.test.{ts,tsx}'],
     exclude: ['tests/e2e/**', 'node_modules/**'],

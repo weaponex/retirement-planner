@@ -1,21 +1,27 @@
+// The browser entry point: one plan store connected to the engine Worker, and
+// the app shell.
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { PlanStoreContext } from './state/react';
+import { createPlanStore } from './state/store';
+import { App } from './ui/App';
+import { bundledConfig } from './ui/config';
+import './ui/styles.css';
+import { createEngineClient } from './worker/client';
+import { createWorker } from './worker/createWorker';
 
-// Stage 0 placeholder. Stage 5 replaces this with the app shell.
-function Placeholder() {
-  return (
-    <main>
-      <h1>Retirement Planner</h1>
-      <p>Under construction.</p>
-    </main>
-  );
-}
+const store = createPlanStore({
+  cfg: bundledConfig(),
+  connect: (callbacks) => createEngineClient(createWorker, __APP_VERSION__, callbacks),
+});
 
 const root = document.getElementById('root');
 if (root) {
   createRoot(root).render(
     <StrictMode>
-      <Placeholder />
+      <PlanStoreContext.Provider value={store}>
+        <App />
+      </PlanStoreContext.Provider>
     </StrictMode>,
   );
 }

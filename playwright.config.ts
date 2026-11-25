@@ -5,7 +5,16 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173/retirement-planner/',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Locally, PW_CHANNEL=msedge (or chrome) uses an installed browser instead of Playwright's.
+        ...(process.env.PW_CHANNEL && { channel: process.env.PW_CHANNEL }),
+      },
+    },
+  ],
   webServer: {
     command: 'npm run build && npm run preview -- --port 4173 --strictPort',
     url: 'http://localhost:4173/retirement-planner/',

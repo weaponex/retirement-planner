@@ -935,7 +935,7 @@ The profile of each spouse only: name, birth year and month, sex at birth, retir
 *   **"Which accounts pay for your spending"**, laid out to fit one laptop screen:
     *   three strategy cards in one row; the selected card has a dark border (no radio mark). Each card has the title and a "Learn more" button on its first line, a short description, and at the bottom, in bold, lifetime tax and the after-tax legacy (labelled "Money left"), then the difference from "Registered last" and the amount moved to the TFSA and clawback years. Only the after-tax legacy difference is coloured (green for more, red for less); the tax difference is neutral text. When the two move in opposite directions (lower tax but a smaller legacy, or the reverse), both are neutral text with a short note saying so;
     *   one options row of fixed height under the cards: the bracket level for "Fill lower brackets first", the draw-down years for "Early RRSP drawdown", or "No settings" for "Registered last";
-    *   below, two columns: on the left, a stacked area chart of each year's money by source (before tax, today's dollars), with the spending need as a dashed line (labelled "Spending target"), tax as a red hatched band above it, and money not needed (moved to the TFSA) as a green hatched band on top; source names are written on their bands; an "i" button explains how to read it. A year slider under the chart spans exactly the chart's years, so its handle sits under the chart's year marker. On the right, that year's breakdown: always the same 11 rows in the same order (each of the seven sources, tax, OAS clawback, moved to the TFSA, spending need), with a dash for zero, so nothing moves when the strategy or year changes.
+    *   below, two columns: on the left, a stacked area chart of each year's money by source (before tax, today's dollars), with the spending need as a dashed line, spending need plus tax as a red line above it (the band above that is money not needed, saved to the TFSA or non-registered savings), and the source names in a legend below; a line of text under the chart explains how to read it. A year slider under the chart spans exactly the chart's years, so its handle sits under the chart's year marker. On the right, that year's breakdown: always the same 11 rows in the same order (each of the seven sources, tax, OAS clawback, moved to the TFSA, spending need), with a dash for zero, so nothing moves when the strategy or year changes.
 *   **Fixed layout:** switching strategy changes only numbers and chart shapes; nothing below the cards moves, so the user can click between strategies and compare.
 
 #### Estate tab
@@ -1230,7 +1230,8 @@ Findings from the design reviews that are still open. Each id's prefix names its
 *   no prefix: the implementation-readiness re-run of the first full review ([2026-11-17/implementation_readiness_report_r2.md](../reviews/2026-11-17/implementation_readiness_report_r2.md));
 *   `FR-`: the focused review of the fixed-returns revision ([2026-11-18/](../reviews/2026-11-18/focused_review_report.md));
 *   `SR1-`: the focused review of the screen revision ([2026-11-19/focused_review_report.md](../reviews/2026-11-19/focused_review_report.md));
-*   `SR-`: items raised by the screen revision itself (2026-11-19).
+*   `SR-`: items raised by the screen revision itself (2026-11-19);
+*   `B5-`: found while building stage 5 (2026-11-24).
 
 The second full review (2026-11-19) was triaged with the author on 2026-11-24; its decisions are in [build-decisions.md](../history/build-decisions.md). Closed and withdrawn rows are in [closed-known-gaps.md](../reviews/2026-11-24/closed-known-gaps.md).
 
@@ -1239,6 +1240,7 @@ The second full review (2026-11-19) was triaged with the author on 2026-11-24; i
 | Finding | Gap | Close before |
 |---|---|---|
 | M1 | `NormalizedInputs`, the engine state, the `YearRow` fields, the reference CSV columns and the `Result` contract are defined in [Data contracts](#data-contracts). Still open: the `warningFacts` content and the `Warning` type | Stage 6 |
+| B5-1 | The Config contract says fee levels can be changed in Settings, but only single-value (`number`) keys can be overridden, and `planning.fee_levels` is one structured value, so Settings shows it read-only. The Custom fee covers other fees. Decide: split it into three number keys, or keep it read-only and change the contract's wording | Stage 7 |
 | SR-4 | Open question O20 (O24, O27 and O28 resolved 2026-11-24; O31 withdrawn) | Before the URL is shared beyond testers |
 
 The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`); stages 0 to 3 are done. The working rules for agents (whole-function rewrites, protected files, units) are in [file 13](#13-agentsmd-and-claudemd-exists-stage-0), `AGENTS.md`.
@@ -1693,7 +1695,9 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
 #### State and persistence (stages 5, 7)
 
-##### 42. `./src/state/store.ts`, `./src/state/defaults.ts`, `./src/state/changeSummary.ts` (Create, stage 5)
+##### 42. `./src/state/store.ts`, `./src/state/defaults.ts`, `./src/state/changeSummary.ts` (Exists, stage 5)
+
+*   Built with them in `src/state`: `draft.ts` (the editable plan, `PlanDraft`, and input paths), `readiness.ts` (`readyToRun`), `labels.ts` (plain names for input paths), `categories.ts` (the category ids), `mix.ts` (the mix sliders), `format.ts` and `react.ts` (the store context and `usePlan`).
 
 *   **Proposed Changes**:
     *   **Store (Zustand):** holds `inputs` (including `ruleOverrides`), `inputsRevision`, `result`, `tips`, `previousResult`, `edits` (the input paths edited since the last result, with the time of the last) and `status` (incomplete / up to date / updating / error).
@@ -1704,7 +1708,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   **`defaults.ts`:** the empty-plan values: the Balanced mix, the Index ETFs fee level, the spending phases from `planning.spending_phases`, the category list, the strategy "Registered last" and the bracket level "Top of the first bracket"; and `defaultLifeExpectancy(sex, age, cfg)`.
     *   **`changeSummary(previous, current, edits)`:** lists changes in whether spending is covered, after-tax legacy, lifetime tax, clawback years and first shortfall year, plus warnings added or cleared. It names the edit when there is one ("Retirement year, Alex"), or counts them ("3 changes: …"). A plan load or import shows no change summary.
 
-##### 43. `./src/state/persistence/planSchema.ts`, `./storage.ts`, `./exportImport.ts` (Create, stages 5 and 7)
+##### 43. `./src/state/persistence/planSchema.ts`, `./storage.ts`, `./exportImport.ts` (`planSchema.ts` exists, stage 5; the others stage 7)
 
 *   `planSchema.ts` is built in stage 5, for the readiness check; the other two in stage 7.
 
@@ -1728,7 +1732,9 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
 #### Screens (stage 5; warnings in stage 6)
 
-##### 45. `./src/ui/App.tsx` and `./src/ui/styles.css` (Create, stage 5)
+##### 45. `./src/ui/App.tsx` and `./src/ui/styles.css` (Exists, stage 5)
+
+*   Import and Export in the header arrive with stage 7.
 
 *   **Proposed Changes**:
     *   Tab bar for Household, Savings, Spending, Withdrawals, Estate and Results (with its badge); no results panel on the input tabs.
@@ -1736,7 +1742,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   Footer shows the disclaimer.
     *   First-run disclaimer dialog.
 
-##### 46. `./src/ui/tabs/HouseholdTab.tsx`, `./SavingsTab.tsx`, `./SpendingTab.tsx`, `./WithdrawalsTab.tsx`, `./EstateTab.tsx`, `./ResultsTab.tsx`, and `./src/ui/settings/SettingsScreen.tsx` (Create, stage 5)
+##### 46. `./src/ui/tabs/HouseholdTab.tsx`, `./SavingsTab.tsx`, `./SpendingTab.tsx`, `./WithdrawalsTab.tsx`, `./EstateTab.tsx`, `./ResultsTab.tsx`, and `./src/ui/settings/SettingsScreen.tsx` (Exists, stage 5)
 
 *   **Proposed Changes**: Laid out as in [Screens](#screens).
     *   **Household:** spouses only: birth year and month, sex at birth, retirement year, life expectancy target with the 25%-survival note, CPP estimate, residence years, working marginal rate, after-tax pay.
@@ -1747,7 +1753,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   **Results:** status line, the two goal cards with the summary line, warnings, and the four charts.
     *   **Settings:** every rule value by section, with default, source, "changed" mark and Reset; deep links from Edit strips on other screens.
 
-##### 47. `./src/ui/results/Goals.tsx`, `./UpdatingState.tsx`, `./ResultsBadge.tsx`, `./ChangeSummary.tsx`, `./WarningsList.tsx`, `./ConfigNotice.tsx`, `./IntegrityError.tsx` (Create, stages 5–6)
+##### 47. `./src/ui/results/Goals.tsx`, `./UpdatingState.tsx`, `./ResultsBadge.tsx`, `./ChangeSummary.tsx`, `./WarningsList.tsx`, `./ConfigNotice.tsx`, `./IntegrityError.tsx` (Exists, stage 5; warnings in stage 6)
 
 *   **Proposed Changes**:
     *   **Goals:** Goal 1, whether spending is covered every year (with its label, the year strip, and the first shortfall year if not); Goal 2, the after-tax legacy against the goal; then one line with lifetime tax, clawback years and the change summary.
@@ -1758,11 +1764,11 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   **Config notice:** shown when values are unvalidated or out of date.
     *   **Integrity error:** shows the details with a "Copy details" button.
 
-##### 48. `./src/ui/charts/BalancesChart.tsx`, `./IncomeChart.tsx`, `./TaxChart.tsx`, `./EstateWaterfall.tsx`, `./ChartTable.tsx` (Create, stage 5)
+##### 48. `./src/ui/charts/charts.tsx`, `./data.ts`, `./ChartTable.tsx` (Exists, stage 5)
 
-*   **Proposed Changes**: Charts in today's dollars for the user's plan, as described in [Results tab](#results-tab). Every chart has a table view (`ChartTable`), and labels say "today's dollars". There is no separate year-by-year table (2026-11-19). `IncomeChart` is the Withdrawals tab's stacked area chart (sources labelled on their bands, spending-need line, tax and TFSA bands, year marker driven by a slider spanning the plot area); it draws any strategy's rows from `StrategyResult` without a rerun.
+*   **Proposed Changes**: Charts in today's dollars for the user's plan, as described in [Results tab](#results-tab). `charts.tsx` holds `BalancesChart`, `IncomeChart`, `TaxChart` and `EstateWaterfall`; `data.ts` turns the engine's future-dollar rows into chart rows. Every chart has a table view (`ChartTable`), and labels say "today's dollars". There is no separate year-by-year table. `IncomeChart` is the Withdrawals tab's stacked area chart (sources in a legend, the spending-need line, the spending-need-plus-tax line, the year marker driven by the year slider); it draws any strategy's rows from `StrategyResult` without a rerun. The yearly charts mark the first death; animation is off, so switching strategy only redraws.
 
-##### 49. `./src/ui/inputs/Field.tsx`, `./CurrencyInput.tsx`, `./PercentInput.tsx`, `./AgeInput.tsx`, `./SegmentedChoice.tsx` (Create, stage 5)
+##### 49. `./src/ui/inputs/Field.tsx`, `./CurrencyInput.tsx`, `./PercentInput.tsx`, `./AgeInput.tsx`, `./SegmentedChoice.tsx` (Exists, stage 5)
 
 *   **Proposed Changes**:
     *   Labels sit above inputs, with glossary tooltips.
@@ -1770,7 +1776,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   Segmented choices are built from real radio inputs, so they work by keyboard.
     *   Inline validation messages don't shift the layout.
 
-##### 50. `./src/ui/content/glossary.ts`, `./explanations.ts`, `./disclaimer.ts` (Create, stage 5)
+##### 50. `./src/ui/content/glossary.ts`, `./explanations.ts`, `./disclaimer.ts` (Exists, stage 5)
 
 *   **Proposed Changes**:
     *   **`glossary.ts`:** the terms in the [Glossary](#glossary), which lists only terms users see.
@@ -1851,9 +1857,9 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     | `simulate.test.ts`, `engineIndex.test.ts` | 4 | Variants and reuse of the chosen strategy; chart rows by source; `runPlan` on the reference plan (strategy comparisons, placement comparison without the year-one sale tax, overrides applied); `engineError`; `configDefaults` in published units |
     | `worker.test.ts` | 4 | `handleRun` posts result then tips, only an error on failure, empty tips when tips fail; the client drops older revisions, terminates a busy Worker, reuses an idle one, reports a crash |
     | `warnings.test.ts`, `tips.test.ts` | 6 | Each trigger at and around its threshold; collapsed years; tips ranked by effect |
-    | `changeSummary.test.ts`, `store.test.ts` (happy-dom) | 5 | Diff fields; the single named edit and "N changes"; no summary after a load; a run scheduled 500 ms after the last edit; every action raises the revision; an older revision's result and tips dropped; rule overrides set and reset; `readyToRun` with a half-typed birth year and a mix not at 100 (nothing sent, "Incomplete", the missing list) |
-    | `defaults.test.ts` | 5 | `defaultLifeExpectancy` for each sex at a table row, between rows, above 100 and never below age + 1; the store fills an empty target once and never replaces a typed one; the empty plan's defaults (Balanced, Index ETFs, Registered last) |
-    | `src/ui` tests (`*.test.tsx`, React Testing Library, happy-dom) | 5 | Each tab renders from the store and writes through `setInput`; the Spending mode switch keeps both sets of values; the O28 note; card colours (legacy only, neutral when opposite); the Incomplete list's links |
+    | `planState.test.ts` (draft paths, readiness, labels, the mix sliders, formats, the change summary), `store.test.ts` (the store and the defaults; plain Node, as it needs no DOM) | 5 | Diff fields; the single named edit and "N changes"; no summary after a load; a run scheduled 500 ms after the last edit; every action raises the revision; an older revision's result and tips dropped; rule overrides set and reset; `readyToRun` with a half-typed birth year and a mix not at 100 (nothing sent, "Incomplete", the missing list) |
+    | `store.test.ts` (defaults) | 5 | `defaultLifeExpectancy` for each sex at a table row, between rows, above 100 and never below age + 1; the store fills an empty target once and never replaces a typed one; the empty plan's defaults (Balanced, Index ETFs, Registered last) |
+    | `ui.test.tsx` (React Testing Library, happy-dom; the real engine behind a synchronous fake Worker, `helpers/renderApp.tsx`) | 5 | Each tab renders from the store and writes through `setInput`; the Spending mode switch keeps both sets of values; the O28 note; card colours (legacy only, neutral when opposite); the Incomplete list's links |
     | `persistence.test.ts` | 7 | Round trip including rule overrides; newer-version refusal; the frozen v1 file loads |
     | `config.test.ts` (exists from stage 0) | 0 (changed at 2) | Key list has no duplicates and matches `SOURCES.md`; entry shape by value kind; structured planning values; missing, unknown and wrong-year keys; unfetched and out-of-date status; monthly amounts × 12 on load; the committed config passes; `configCompare` differences |
     | `configCheck.test.ts` | 2 | `yieldWarnings` (from `tools/lib.ts`) flags a class whose yield is above its gross return |
@@ -1876,9 +1882,9 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 
 ##### 59. (Removed: no benchmark script; the speed check is manual)
 
-##### 60. `./tests/e2e/*.spec.ts` (Create, stages 5–7)
+##### 60. `./tests/e2e/*.spec.ts` (Exists, stage 5; more at stage 7)
 
-*   **Proposed Changes**: One spec per CUJ, plus one check.
+*   **Proposed Changes**: One spec per CUJ, plus one check. Stage 5 built CUJ 2, 3, 4 and 6 (without export and import) and the no-network check; they enter a made-up couple through the screens (`helpers.ts`). CUJ 1 and 5 need the sample plan and export, in stage 7. Locally, `PW_CHANNEL=msedge` runs them in an installed Edge.
     *   **CUJ 1 (`first-plan.spec.ts`):** load the sample plan; results appear without a button press. Both goal cards show their result, the lifetime tax is shown, each yearly chart's table view has one row per year, and the plan survives a page reload.
     *   **CUJ 2 (`cross-tab.spec.ts`):** click each strategy card on Withdrawals. The cards, chart and breakdown keep their positions; after selecting one, the Results tab shows "Updating" and then "What your last change did" with lifetime tax and clawback years.
     *   **CUJ 3 (`placement.spec.ts`):** change the preset. The comparison shows lifetime tax and the after-tax legacy for the preset and the baseline.
