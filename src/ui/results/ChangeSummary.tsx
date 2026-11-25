@@ -1,4 +1,5 @@
-// "What your last change did" (design file 47).
+// "Last change: …" in the summary row under the goals (design file 47; mockup
+// Results).
 import { usePlan } from '../../state/react';
 
 export function ChangeSummaryLine() {
@@ -6,7 +7,7 @@ export function ChangeSummaryLine() {
   if (!summary) return null;
   return (
     <span className="change-summary">
-      {' · '}What your last change did: {summary.edit}
+      Last change: {summary.edit}
       {summary.changes.length > 0
         ? ` · ${summary.changes.join(' · ')}`
         : ' · no change to the headline numbers'}

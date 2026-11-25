@@ -8,12 +8,13 @@ test('the placement comparison shows tax and legacy against the baseline', async
   await enterCouple(page);
   await waitForResults(page);
   await tab(page, 'Savings');
-  await page.getByText('Which account holds what', { exact: true }).click();
+  await page.getByRole('button', { name: /^Which account holds what/ }).click();
   await page.getByText('Growth tax-free first', { exact: true }).click();
   await waitForResults(page);
   await tab(page, 'Savings');
-  const comparison = page.locator('.comparison');
-  await expect(comparison).toContainText('Against the same mix in every account');
+  await page.getByRole('button', { name: /^Which account holds what/ }).click();
+  const comparison = page.locator('.comparison-box');
+  await expect(comparison).toContainText('Compared with the same mix in every account');
   await expect(comparison).toContainText('lifetime tax');
-  await expect(comparison).toContainText('after-tax legacy');
+  await expect(comparison).toContainText('left after tax');
 });

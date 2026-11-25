@@ -55,3 +55,4 @@ Moved out of the design's [Known gaps from review](../../designs/retirement-plan
 | ~~SR1-M8~~ | Fixed 2026-11-24 (author), stage 5 preparation: category ids listed on the Spending tab; mode switching keeps both sets; year 0 is the first retirement; the spending.active ±5% nudge | — |
 | ~~SR1-M12~~ | Fixed 2026-11-24 (author), stage 5 preparation: "Registered last" is the default; only the legacy difference is coloured, neutral when the two move in opposite directions | — |
 | ~~SR1-M13~~ | Fixed 2026-11-24 (author), stage 5 preparation: its remaining items (SR1-M2, SR1-M8, SR1-M12) are closed | — |
+| ~~B5-2~~ | Fixed 2026-11-24: every stage 5 screen rebuilt from the mockups; all items in [mockup-gaps.md](mockup-gaps.md) closed | — |

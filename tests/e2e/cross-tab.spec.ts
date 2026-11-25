@@ -13,21 +13,20 @@ test('strategy cards stay in place and the change summary follows', async ({ pag
   const cards = page.getByRole('radio');
   await expect(cards).toHaveCount(3);
   await expect(cards.first()).toContainText('Lifetime tax');
-  const breakdown = page.locator('table.breakdown');
+  const breakdown = page.locator('.breakdown');
   const before = await breakdown.boundingBox();
   for (const name of ['Fill lower brackets first', 'Early RRSP drawdown', 'Registered last']) {
-    await page.getByRole('radio', { name: new RegExp(name) }).click();
+    await page.getByRole('radio', { name, exact: true }).click();
     expect(await breakdown.boundingBox()).toEqual(before);
   }
-  await page.getByRole('radio', { name: /Early RRSP drawdown/ }).click();
-  await expect(page.getByRole('radio', { name: /Early RRSP drawdown/ })).toHaveAttribute(
-    'aria-checked',
-    'true',
-  );
+  await page.getByRole('radio', { name: 'Early RRSP drawdown', exact: true }).click();
+  await expect(
+    page.getByRole('radio', { name: 'Early RRSP drawdown', exact: true }),
+  ).toHaveAttribute('aria-checked', 'true');
   await expect(breakdown.locator('tr')).toHaveCount(11);
 
   await waitForResults(page);
-  await expect(page.getByText(/What your last change did: Withdrawal strategy/)).toBeVisible();
+  await expect(page.getByText(/Last change: Withdrawal strategy/)).toBeVisible();
   await expect(page.getByText(/Lifetime tax \$/)).toBeVisible();
-  await expect(page.getByText(/OAS clawback in \d+ year/)).toBeVisible();
+  await expect(page.locator('.summary-row')).toContainText('OAS clawback years');
 });

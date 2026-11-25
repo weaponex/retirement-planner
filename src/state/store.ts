@@ -40,6 +40,8 @@ export interface PlanState {
   clearInput(path: string): void;
   setRule(key: string, value: number): void;
   resetRule(key: string): void;
+  /** Removes every rule override. */
+  resetAllRules(): void;
   loadPlan(inputs: PlanDraft): void;
   chooseMix(mixId: 'conservative' | 'balanced' | 'growth' | 'custom'): void;
   setSpendingMode(mode: 'by_category' | 'one_total'): void;
@@ -155,6 +157,9 @@ export function createPlanStore(options: StoreOptions): PlanStore {
         const overrides = { ...(get().inputs.ruleOverrides ?? {}) };
         delete overrides[key];
         change({ ...get().inputs, ruleOverrides: overrides }, `ruleOverrides.${key}`);
+      },
+      resetAllRules() {
+        change({ ...get().inputs, ruleOverrides: {} }, 'ruleOverrides');
       },
       loadPlan(inputs) {
         set({ result: undefined, tips: undefined, previousResult: undefined, summary: undefined });

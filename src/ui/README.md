@@ -8,16 +8,24 @@ the app shell, six tabs, Settings, the result views and charts. Screens read the
 
 ## Interface
 
-- `App.tsx`: the header (tax-year chip, Settings), the config notice, the tab bar with the Results
-  badge, the footer disclaimer and the first-run dialog. `TABS`.
+- `App.tsx`: the header (the household's names, the tax-year chip, Load sample plan, Import,
+  Export and Settings; on Settings its own header with Back to plan), the config notice, the tab
+  bar with the Results badge, the welcome screen for an empty plan, the footer disclaimer and the
+  first-run dialog. `TABS`.
 - `tabs/`: `HouseholdTab`, `SavingsTab`, `SpendingTab`, `WithdrawalsTab`, `EstateTab`, `ResultsTab`.
-- `settings/SettingsScreen.tsx`: every rule value by section; single values can be changed.
+- `settings/SettingsScreen.tsx`: every rule value by section, credits and returns as tables;
+  single values can be changed (Enter or leaving the field applies). `settings/names.ts`:
+  `RULE_NAMES`, `ruleName` (plain names, never config keys).
 - `results/`: `Goals`, `UpdatingState` and `StatusLine`, `ResultsBadge`, `ChangeSummaryLine`,
   `WarningsList` (empty until stage 6), `ConfigNotice` and `TaxYearChip`, `IntegrityError`.
-- `charts/`: `charts.tsx` (four charts), `data.ts` (chart rows in today's dollars), `ChartTable`.
+- `charts/`: `charts.tsx` (balances, tax, estate in recharts), `IncomeChart.tsx` (the income
+  chart in SVG, shared by Withdrawals and Results), `data.ts` (chart rows in today's dollars),
+  `ChartTable`.
 - `inputs/`: `Field`, `TextInput`, `CurrencyInput`, `PercentInput`, `AgeInput`, `SegmentedChoice`.
 - `content/`: `glossary.ts`, `explanations.ts`, `disclaimer.ts`. `common.tsx`: `Section`,
-  `RuleStrip`, `useSpouseName`. `config.ts`, `rules.ts`, `hooks.ts`: rule values and conversions.
+  `Strip`, `useRule`, `RuleValue`, `useSpouseName`, `CLASS_COLOURS`, `SOURCE_COLOURS`.
+- `styles.css`: the mockups' look (design: Look and feel). Fonts are bundled through
+  `@fontsource` and imported in `main.tsx`. `config.ts`, `rules.ts`, `hooks.ts`: rule values and conversions.
 
 ## Invariants
 

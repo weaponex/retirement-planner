@@ -15,7 +15,7 @@ last change sends a ready plan to the engine Worker. A reply for an older revisi
   0 for a spouse not working and a one total of 0 in category mode; otherwise the `missing` list.
 - `store.ts`: `createPlanStore({ cfg, connect, now?, initial? })`; `statusOf(state)`
   (`incomplete`, `updating`, `up_to_date`, `error`); `RUN_DELAY_MS`; `inputAt`.
-  Actions: `setInput`, `clearInput`, `setRule`, `resetRule`, `loadPlan`, `chooseMix`,
+  Actions: `setInput`, `clearInput`, `setRule`, `resetRule`, `resetAllRules`, `loadPlan`, `chooseMix`,
   `setSpendingMode`, `addAccount`, `removeAccount`, `addDbPension`, `removeDbPension`, `setView`.
 - `defaults.ts`: `emptyPlan(cfg, today)`, `defaultLifeExpectancy(sex, age, cfg)`, `startingMix`.
 - `changeSummary.ts`: `changeSummary(previous, current, edits, draft)`, `describeEdits`.

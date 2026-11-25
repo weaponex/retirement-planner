@@ -1,12 +1,11 @@
-// The engine-integrity error (design: Verification): no results, the details,
-// and "Copy details".
+// The safety-check error (design: Verification; mockup States): no results,
+// why, the details, and "Copy details".
 import { useState } from 'react';
 import type { EngineError } from '../../engine/types';
 
 export function errorDetails(e: EngineError): string {
   return [
     `App version: ${e.appVersion}`,
-    `Kind: ${e.kind}`,
     e.year !== undefined ? `Year: ${e.year}` : undefined,
     e.variantId ? `Variant: ${e.variantId}` : undefined,
     e.check ? `Check: ${e.check}` : undefined,
@@ -21,22 +20,23 @@ export function IntegrityError({ error }: { error: EngineError }) {
   const details = errorDetails(error);
   return (
     <div className="error-box" role="alert">
-      <h3>The calculation stopped</h3>
+      <h3>The calculation failed a safety check</h3>
       <p>
-        {error.kind === 'integrity'
-          ? 'An accounting check inside the engine failed, so no results are shown.'
-          : 'Something went wrong in the calculation, so no results are shown.'}{' '}
-        With your exported plan, these details are enough to reproduce it.
+        No results are shown because they could be wrong. This is a bug in the planner, not in your
+        plan. With your plan, these details are enough to reproduce it.
       </p>
       <pre>{details}</pre>
-      <button
-        type="button"
-        onClick={() => {
-          void navigator.clipboard?.writeText(details).then(() => setCopied(true));
-        }}
-      >
-        {copied ? 'Copied' : 'Copy details'}
-      </button>
+      <div className="row">
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            void navigator.clipboard?.writeText(details).then(() => setCopied(true));
+          }}
+        >
+          {copied ? 'Copied' : 'Copy details'}
+        </button>
+      </div>
     </div>
   );
 }

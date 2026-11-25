@@ -15,16 +15,19 @@ test('a changed rule value is marked, counted and can be reset', async ({ page }
 
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   const row = page.locator(`[data-key="${KEY}"]`);
-  await row.getByLabel(`New value for ${KEY}`).fill('50000');
-  await row.getByRole('button', { name: 'Change' }).click();
-  await expect(row).toContainText('changed');
-  await expect(row).toContainText('(default');
-  await expect(page.getByRole('button', { name: /Tax year \d+ · 1 value changed/ })).toBeVisible();
+  await row.getByLabel('Clawback starts above').fill('50000');
+  await row.getByLabel('Clawback starts above').press('Enter');
+  await expect(row).toContainText('Changed');
+  await expect(row).toContainText('· default');
+  await expect(page.getByText(/You’ve changed 1 value from its default/)).toBeVisible();
 
+  await page.getByRole('button', { name: 'Back to plan' }).click();
+  await expect(page.getByRole('button', { name: /Tax year \d+ · 1 value changed/ })).toBeVisible();
   await waitForResults(page);
-  await expect(page.getByText(/What your last change did: A rule value in Settings/)).toBeVisible();
+  await expect(page.getByText(/Last change: A rule value in Settings/)).toBeVisible();
 
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
-  await row.getByRole('button', { name: 'Reset' }).click();
+  await page.locator(`[data-key="${KEY}"]`).getByRole('button', { name: 'Reset' }).click();
+  await page.getByRole('button', { name: 'Back to plan' }).click();
   await expect(page.getByRole('button', { name: /Tax year \d+ · default values/ })).toBeVisible();
 });

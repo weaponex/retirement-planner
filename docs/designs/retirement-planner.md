@@ -906,7 +906,7 @@ From the mockups, for every screen:
 
 #### Where the mockups are overridden
 
-Later decisions win over the mockups: "Let the planner pick" (its card and its options row) is cut; the after-tax stock-share figure in the placement comparison is cut; the spouse's death age is labelled "Life expectancy target", not "Plan to age"; the screens say "the same return every year", not "steady average returns"; the fee levels show their values (0.20%, 0.60%, 2.00%), not "[fee]"; the LIF maximum table is the FSRA table now in the config; the warnings on Results arrive in stage 6, and Load sample plan, Import, Export and the saving and import messages in stage 7. The mockups' "[Mockup: …]" notes are not part of the app.
+Later decisions win over the mockups: "Let the planner pick" (its card and its options row) is cut; the after-tax stock-share figure in the placement comparison is cut; the spouse's death age is labelled "Life expectancy target", not "Plan to age"; the screens say "the same return every year", not "steady average returns"; the fee levels show their values (0.20%, 0.60%, 2.00%), not "[fee]"; the LIF maximum table is the FSRA table now in the config; the warnings on Results arrive in stage 6, and Load sample plan, Import, Export and the saving and import messages in stage 7. The strategy cards colour only the after-tax legacy difference, and not when tax and legacy move in opposite directions (SR1-M12); the mockup coloured both. The mockups' "[Mockup: …]" notes are not part of the app.
 
 **Defaults shown where they apply.** A rule value that matters to a screen is shown on that screen as a grey strip with the value and an "Edit" link to Settings (for example the CPP and OAS adjustment rates under the start ages, the TFSA yearly limit under Accounts, the bracket and clawback thresholds beside the Fill lower brackets levels, the probate rate on Estate).
 
@@ -1257,7 +1257,6 @@ The second full review (2026-11-19) was triaged with the author on 2026-11-24; i
 |---|---|---|
 | M1 | `NormalizedInputs`, the engine state, the `YearRow` fields, the reference CSV columns and the `Result` contract are defined in [Data contracts](#data-contracts). Still open: the `warningFacts` content and the `Warning` type | Stage 6 |
 | B5-1 | The Config contract says fee levels can be changed in Settings, but only single-value (`number`) keys can be overridden, and `planning.fee_levels` is one structured value, so Settings shows it read-only. The Custom fee covers other fees. Decide: split it into three number keys, or keep it read-only and change the contract's wording | Stage 7 |
-| B5-2 | The stage 5 screens were built without the mockups and do not match them in look or in parts of their content. Every difference is listed in [mockup-gaps.md](../reviews/2026-11-24/mockup-gaps.md) | `stage-5` tag |
 | SR-4 | Open question O20 (O24, O27 and O28 resolved 2026-11-24; O31 withdrawn) | Before the URL is shared beyond testers |
 
 The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`); stages 0 to 3 are done. The working rules for agents (whole-function rewrites, protected files, units) are in [file 13](#13-agentsmd-and-claudemd-exists-stage-0), `AGENTS.md`.
