@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Household tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F2}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #1C1C1A; font-size: 14px; background: #F6F5F2; min-height: 1000px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<span style="font-family: 'Space Grotesk', Inter, sans-serif; font-weight: 600; font-size: 18px">Retirement planner</span>
+<span style="font-size: 13px; color: #5C5A55">Sample couple: Alex and Sam</span>
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 999px; background: #EAF0FB; color: #1E3A8A">Tax year 2026 · default values</span>
+<span style="flex-grow: 1"></span>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Load sample plan</button>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Import</button>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Export</button>
+<a href="Settings.dc.html" style="font-size: 13px; padding: 9px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; color: #1C1C1A; text-decoration: none">Settings</a>
+</header>
+
+<nav aria-label="Plan sections" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<a href="Main.dc.html" style="padding: 12px 14px; color: #1C1C1A; text-decoration: none; border-bottom: 2px solid #1C1C1A; font-weight: 600">Household</a>
+<a href="Investing.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Savings</a>
+<a href="Spending.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Spending</a>
+<a href="Withdrawals.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Withdrawals</a>
+<a href="Estate.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Estate</a>
+<a href="Results.dc.html" aria-label="Results, 2 warnings" style="padding: 12px 14px; color: #55534E; text-decoration: none; display: inline-flex; align-items: center; gap: 6px">Results<span style="font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: #FDF3E1; color: #7A4100">2</span></a>
+</nav>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; max-width: 1280px; margin: 0 auto; box-sizing: border-box">
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px">
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 600">Spouse 1</h2>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="n1">Name</label><input id="n1" value="Alex" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="by1">Born</label><input id="by1" value="March 1963" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="sx1">Sex at birth</label><select id="sx1" style="font: inherit; width: 100%; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px; background: #FFFFFF"><option>Male</option></select></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="ry1">Retires in</label><input id="ry1" value="2027" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="le1">Plan to age</label><input id="le1" value="94" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+</div>
+<p style="margin: 0; font-size: 12px; color: #6B6964">Default: the age a man of 63 has a 25% chance of reaching (FP Canada 2026). A lower age raises the risk of outliving the plan.</p>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="cpp1">CPP at 65 (monthly estimate)</label><input id="cpp1" value="$1,180" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="yc1">Years in Canada by 65</label><input id="yc1" value="40" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+</div>
+<p style="margin: 0; font-size: 12px; color: #6B6964">From My Service Canada. That estimate assumes you keep contributing to 65. <a href="#">How to adjust it</a>. Full OAS needs 40 years after age 18.</p>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="mr1">Tax rate while working</label><input id="mr1" value="43%" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="pay1">After-tax pay (yearly)</label><input id="pay1" value="$78,000" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 600">Spouse 2</h2>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="n2">Name</label><input id="n2" value="Sam" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="by2">Born</label><input id="by2" value="October 1965" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="sx2">Sex at birth</label><select id="sx2" style="font: inherit; width: 100%; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px; background: #FFFFFF"><option>Female</option></select></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="ry2">Retires in</label><input id="ry2" value="2029" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="le2">Plan to age</label><input id="le2" value="96" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+</div>
+<p style="margin: 0; font-size: 12px; color: #6B6964">Default: the age a woman of 61 has a 25% chance of reaching (FP Canada 2026).</p>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="cpp2">CPP at 65 (monthly estimate)</label><input id="cpp2" value="$890" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="yc2">Years in Canada by 65</label><input id="yc2" value="40" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="mr2">Tax rate while working</label><input id="mr2" value="31%" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="pay2">After-tax pay (yearly)</label><input id="pay2" value="$52,000" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+</div>
+</section>
+</div>
+
+</main>
+</div>
+
+<footer style="padding: 16px 24px; color: #6B6964; font-size: 12px; border-top: 1px solid #E3E1DC; background: #FFFFFF">This tool shows projections under the assumptions you enter. It is not financial, tax or legal advice. [Final wording pending]</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

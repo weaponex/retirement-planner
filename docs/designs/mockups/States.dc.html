@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Updating and error states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F2}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #1C1C1A; font-size: 14px; background: #F6F5F2; min-height: 900px; padding: 32px; box-sizing: border-box">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1216px; margin: 0 auto">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-size: 12px; font-weight: 600; color: #5C5A55">Results tab: updating after an edit</p>
+<div style="display: flex; gap: 4px; background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 10px; padding: 0 8px; font-size: 13px; color: #55534E; overflow: hidden"><span style="padding: 10px 8px">Estate</span><span style="padding: 10px 8px; color: #1C1C1A; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-bottom: 2px solid #1C1C1A">Results<span style="font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: #EAF0FB; color: #1E3A8A; display: inline-flex; align-items: center; gap: 4px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; border: 2px solid #1E3A8A; border-right-color: transparent"></span>Updating</span></span></div>
+<div style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<p role="status" style="margin: 0; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #1E3A8A"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; border: 2px solid #1E3A8A; border-right-color: transparent"></span>Updating…</p>
+<div style="opacity: 0.45; display: flex; flex-direction: column; gap: 14px">
+<div><p style="margin: 0; font-size: 12px">Spending covered every year</p><p style="margin: 2px 0 0; font-size: 22px; font-weight: 600">Yes</p></div>
+<div><p style="margin: 0; font-size: 12px">After-tax money left</p><p style="margin: 2px 0 0; font-size: 22px; font-weight: 600">$612,000</p></div>
+<div><p style="margin: 0; font-size: 12px">Lifetime tax</p><p style="margin: 2px 0 0; font-size: 22px; font-weight: 600">$1,184,000</p></div>
+</div>
+</div>
+<p style="margin: 0; font-size: 12px; color: #6B6964">Starts half a second after you stop typing and usually finishes in under a second. The old figures stay visible, faded, so nothing jumps. Charts on the input tabs update the same way.</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-size: 12px; font-weight: 600; color: #5C5A55">Results tab: money runs out</p>
+<div style="display: flex; gap: 4px; background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 10px; padding: 0 8px; font-size: 13px; color: #55534E; overflow: hidden"><span style="padding: 10px 8px">Estate</span><span style="padding: 10px 8px; color: #1C1C1A; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-bottom: 2px solid #1C1C1A">Results<span style="font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: #FDECEC; color: #7A1A1A; display: inline-flex; align-items: center; gap: 4px">Short from 2058</span></span></div>
+<div style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<div><p style="margin: 0; font-size: 12px; color: #5C5A55">Spending covered every year</p><p style="margin: 2px 0 0; font-size: 22px; font-weight: 600; color: #9F1D1D">No, from 2058</p><p style="margin: 2px 0 0; font-size: 12px; color: #6B6964">Short $184,000 in total over 6 years</p></div>
+<div><p style="margin: 0; font-size: 12px; color: #5C5A55">After-tax money left</p><p style="margin: 2px 0 0; font-size: 22px; font-weight: 600">$0</p><p style="margin: 2px 0 0; font-size: 12px; color: #6B6964">Goal $400,000 · missed</p></div>
+<div><p style="margin: 0; font-size: 12px; color: #5C5A55">Lifetime tax</p><p style="margin: 2px 0 0; font-size: 22px; font-weight: 600">$1,021,000</p></div>
+</div>
+<div style="background: #FDECEC; color: #7A1A1A; border-radius: 10px; padding: 12px 14px; font-size: 13px">Money runs out at Sam's age 92, before the second death. See what helps under Warnings.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-size: 12px; font-weight: 600; color: #5C5A55">Results tab: calculation failed (no results shown)</p>
+<div style="display: flex; gap: 4px; background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 10px; padding: 0 8px; font-size: 13px; color: #55534E; overflow: hidden"><span style="padding: 10px 8px">Estate</span><span style="padding: 10px 8px; color: #1C1C1A; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-bottom: 2px solid #1C1C1A">Results<span style="font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: #FDECEC; color: #7A1A1A; display: inline-flex; align-items: center; gap: 4px">Error</span></span></div>
+<div role="alert" style="background: #FFFFFF; border: 2px solid #9F1D1D; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-weight: 600; color: #9F1D1D">The calculation failed a safety check</p>
+<p style="margin: 0; font-size: 13px; color: #3F3D39">No results are shown because they could be wrong. This is a bug in the planner, not in your plan.</p>
+<pre style="margin: 0; font-family: ui-monospace, Menlo, monospace; font-size: 12px; background: #F3F2EE; border-radius: 8px; padding: 10px; white-space: pre-wrap">Year 2041 · your plan
+Check: money is conserved across accounts
+Off by $0.31</pre>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Copy details</button>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Export plan</button>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-size: 12px; font-weight: 600; color: #5C5A55">Saving failed</p>
+<div role="status" style="background: #FDF3E1; color: #5B3300; border-radius: 10px; padding: 14px 16px; font-size: 13px; display: flex; flex-direction: column; gap: 8px">
+<p style="margin: 0; font-weight: 600">Your plan couldn't be saved in this browser</p>
+<p style="margin: 0">The browser may be in private mode or out of space. Export your plan so you don't lose it.</p>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #B45309; border-radius: 8px; background: #FFFFFF; min-height: 40px; align-self: flex-start">Export plan</button>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-size: 12px; font-weight: 600; color: #5C5A55">Import refused</p>
+<div role="alert" style="background: #FDECEC; color: #7A1A1A; border-radius: 10px; padding: 14px 16px; font-size: 13px; display: flex; flex-direction: column; gap: 6px">
+<p style="margin: 0; font-weight: 600">This file is from a newer version of the planner</p>
+<p style="margin: 0">The file uses plan format 2; this app reads format 1. Open it in the newer app instead.</p>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

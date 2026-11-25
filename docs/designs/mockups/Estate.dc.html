@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Estate tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F2}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #1C1C1A; font-size: 14px; background: #F6F5F2; min-height: 1300px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<span style="font-family: 'Space Grotesk', Inter, sans-serif; font-weight: 600; font-size: 18px">Retirement planner</span>
+<span style="font-size: 13px; color: #5C5A55">Sample couple: Alex and Sam</span>
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 999px; background: #EAF0FB; color: #1E3A8A">Tax year 2026 · default values</span>
+<span style="flex-grow: 1"></span>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Import</button>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Export</button>
+<a href="Settings.dc.html" style="font-size: 13px; padding: 9px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; color: #1C1C1A; text-decoration: none">Settings</a>
+</header>
+
+<nav aria-label="Plan sections" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<a href="Main.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Household</a>
+<a href="Investing.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Savings</a>
+<a href="Spending.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Spending</a>
+<a href="Withdrawals.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Withdrawals</a>
+<a href="Estate.dc.html" style="padding: 12px 14px; color: #1C1C1A; text-decoration: none; border-bottom: 2px solid #1C1C1A; font-weight: 600">Estate</a>
+<a href="Results.dc.html" aria-label="Results, 2 warnings" style="padding: 12px 14px; color: #55534E; text-decoration: none; display: inline-flex; align-items: center; gap: 6px">Results<span style="font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: #FDF3E1; color: #7A4100">2</span></a>
+</nav>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; max-width: 1280px; margin: 0 auto; box-sizing: border-box">
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div>
+<h2 style="margin: 0 0 4px; font-size: 18px; font-weight: 600">When one of you dies</h2>
+<p style="margin: 0; font-size: 13px; color: #5C5A55">The plan assumes the first death at the earlier "plan to age" on the Household tab: Alex at 94 in 2057.</p>
+</div>
+<div style="max-width: 360px"><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="sv">Survivor's spending, as a share of the couple's</label><input id="sv" value="70%" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"><p style="margin: 6px 0 0; font-size: 12px; color: #6B6964">Default 70%: a single person needs about 71% of a couple's spending for the same standard of living.</p></div>
+<div style="background: #F3F2EE; border-radius: 10px; padding: 14px 16px">
+<p style="margin: 0 0 8px; font-weight: 600; font-size: 13px">What the plan does at the first death</p>
+<ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #3F3D39">
+<li>RRSP, RRIF, LIF, TFSA and non-registered accounts pass to the survivor without tax.</li>
+<li>The deceased's OAS stops. Their CPP becomes a survivor benefit, capped at the CPP maximum.</li>
+<li>Workplace pensions continue at their survivor share (set on the <a href="Investing.dc.html">Savings tab</a>).</li>
+<li>The survivor files as a single person, so tax often rises.</li>
+</ul>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div>
+<h2 style="margin: 0 0 4px; font-size: 18px; font-weight: 600">What you leave behind</h2>
+<p style="margin: 0; font-size: 13px; color: #5C5A55">Measured after the second death, after all taxes and probate, in today's dollars.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="lg">Legacy goal</label><input id="lg" value="$400,000" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"><p style="margin: 6px 0 0; font-size: 12px; color: #6B6964">Leave at 0 if you have no target.</p></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="hv">Home value (optional)</label><input id="hv" value="$850,000" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"><p style="margin: 6px 0 0; font-size: 12px; color: #6B6964">Counts toward the legacy and probate, pays no capital gains tax, grows with inflation and is never sold to pay for spending.</p></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #F3F2EE; border-radius: 8px; padding: 10px 12px; font-size: 13px"><span>Ontario probate: <b style="font-weight: 600">$15 per $1,000</b> of estate value above <b style="font-weight: 600">$50,000</b>.</span><a href="Settings.dc.html" style="margin-left: auto">Edit</a></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #F3F2EE; border-radius: 8px; padding: 10px 12px; font-size: 13px"><span>RRSP, RRIF, LIF and TFSA are assumed to name a beneficiary, so they skip probate. Non-registered accounts and the home go through the estate.</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #F3F2EE; border-radius: 8px; padding: 10px 12px; font-size: 13px"><span>On the final return, whatever is left in RRSP, RRIF and LIF is taxed as income, and non-registered investments are taxed as if sold.</span></div>
+</div>
+</section>
+</main>
+</div>
+
+<footer style="padding: 16px 24px; color: #6B6964; font-size: 12px; border-top: 1px solid #E3E1DC; background: #FFFFFF">This tool shows projections under the assumptions you enter. It is not financial, tax or legal advice. [Final wording pending]</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1300}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

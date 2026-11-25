@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>First run</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F2}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #1C1C1A; font-size: 14px; background: #F6F5F2; min-height: 900px; position: relative">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<span style="font-family: 'Space Grotesk', Inter, sans-serif; font-weight: 600; font-size: 18px">Retirement planner</span>
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 999px; background: #EAF0FB; color: #1E3A8A">Tax year 2026 · default values</span>
+<span style="flex-grow: 1"></span>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Import</button>
+<a href="Settings.dc.html" style="font-size: 13px; padding: 9px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; color: #1C1C1A; text-decoration: none">Settings</a>
+</header>
+
+<div style="max-width: 760px; margin: 0 auto; padding: 56px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; align-items: flex-start">
+<h1 style="margin: 0; font-family: 'Space Grotesk', Inter, sans-serif; font-size: 32px; font-weight: 600">Plan your retirement as a couple in Ontario</h1>
+<p style="margin: 0; font-size: 16px; color: #3F3D39; line-height: 1.6">Enter your ages, savings, pensions and spending. The planner works out, year by year, how much to withdraw from each account, the tax you pay, and what's left at the end, in today's dollars.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<a href="Main.dc.html" style="font-size: 15px; font-weight: 600; padding: 12px 18px; border: 1px solid #1C1C1A; border-radius: 10px; background: #1C1C1A; color: #FFFFFF; text-decoration: none">Start your plan</a>
+<a href="Main.dc.html" style="font-size: 15px; padding: 12px 18px; border: 1px solid #CFCCC5; border-radius: 10px; background: #FFFFFF; color: #1C1C1A; text-decoration: none">Load sample plan</a>
+<button style="font: inherit; font-size: 15px; padding: 12px 18px; border: 1px solid #CFCCC5; border-radius: 10px; background: #FFFFFF; min-height: 48px">Import a saved plan</button>
+</div>
+<p style="margin: 0; font-size: 13px; color: #6B6964">Your plan stays in this browser. Nothing is sent anywhere. Export it to keep a copy.</p>
+</div>
+
+<div style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: rgba(28, 28, 26, 0.45); display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box">
+<div role="dialog" aria-labelledby="dt" style="background: #FFFFFF; border-radius: 14px; padding: 28px; max-width: 520px; display: flex; flex-direction: column; gap: 14px">
+<h2 id="dt" style="margin: 0; font-size: 20px; font-weight: 600">Before you start</h2>
+<p style="margin: 0; font-size: 14px; color: #3F3D39; line-height: 1.6">This tool shows projections under the assumptions you enter. It is not financial, tax or legal advice. [Final wording pending]</p>
+<p style="margin: 0; font-size: 14px; color: #3F3D39; line-height: 1.6">Tax and benefit amounts start at 2026 values. You can change them in Settings.</p>
+<button style="font: inherit; font-size: 15px; font-weight: 600; padding: 12px 18px; border: 1px solid #1C1C1A; border-radius: 10px; background: #1C1C1A; color: #FFFFFF; min-height: 48px; align-self: flex-start">I understand</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

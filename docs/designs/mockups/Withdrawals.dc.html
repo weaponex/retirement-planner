@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Withdrawals tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F2}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #1C1C1A; font-size: 14px; background: #F6F5F2; min-height: 1500px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<span style="font-family: 'Space Grotesk', Inter, sans-serif; font-weight: 600; font-size: 18px">Retirement planner</span>
+<span style="font-size: 13px; color: #5C5A55">Sample couple: Alex and Sam</span>
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 999px; background: #EAF0FB; color: #1E3A8A">Tax year 2026 · default values</span>
+<span style="flex-grow: 1"></span>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Import</button>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Export</button>
+<a href="Settings.dc.html" style="font-size: 13px; padding: 9px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; color: #1C1C1A; text-decoration: none">Settings</a>
+</header>
+
+<nav aria-label="Plan sections" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<a href="Main.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Household</a>
+<a href="Investing.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Savings</a>
+<a href="Spending.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Spending</a>
+<a href="Withdrawals.dc.html" style="padding: 12px 14px; color: #1C1C1A; text-decoration: none; border-bottom: 2px solid #1C1C1A; font-weight: 600">Withdrawals</a>
+<a href="Estate.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Estate</a>
+<a href="Results.dc.html" aria-label="Results, 2 warnings" style="padding: 12px 14px; color: #55534E; text-decoration: none; display: inline-flex; align-items: center; gap: 6px">Results<span style="font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: #FDF3E1; color: #7A4100">2</span></a>
+</nav>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; max-width: 1280px; margin: 0 auto; box-sizing: border-box">
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; overflow: hidden">
+<button onClick="{{ t_cpp }}" aria-expanded="{{ o_cpp }}" style="font: inherit; color: inherit; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 16px 20px; border: none; background: #FFFFFF; text-align: left; min-height: 60px; cursor: pointer">
+<span aria-hidden="true" style="width: 16px; color: #5C5A55">{{ c_cpp }}</span>
+<span style="font-size: 16px; font-weight: 600; margin-right: 8px">When to start CPP and OAS</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1 1 300px"><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">Alex: CPP at <b style="font-weight: 600">65</b> · OAS at <b style="font-weight: 600">67</b></span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">Sam: CPP at <b style="font-weight: 600">70</b> · OAS at <b style="font-weight: 600">65</b></span></span>
+<span style="font-size: 13px; color: #1D4ED8">{{ l_cpp }}</span>
+</button>
+<sc-if value="{{ o_cpp }}" hint-placeholder-val="{{ false }}">
+<div style="padding: 16px 20px 20px 48px; border-top: 1px solid #EFEDE8">
+<p style="margin: 0 0 16px; font-size: 13px; color: #5C5A55">Starting later means bigger payments for life.</p>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="c1">Alex: CPP at</label><select id="c1" style="font: inherit; width: 100%; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px; background: #FFFFFF"><option>65</option></select></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="o1">Alex: OAS at</label><select id="o1" style="font: inherit; width: 100%; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px; background: #FFFFFF"><option>67</option></select></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="c2">Sam: CPP at</label><select id="c2" style="font: inherit; width: 100%; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px; background: #FFFFFF"><option>70</option></select></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="o2">Sam: OAS at</label><select id="o2" style="font: inherit; width: 100%; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px; background: #FFFFFF"><option>65</option></select></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #F3F2EE; border-radius: 8px; padding: 10px 12px; font-size: 13px"><span>CPP can start from <b style="font-weight: 600">60</b> to <b style="font-weight: 600">70</b>: <b style="font-weight: 600">−0.6%</b> for each month before 65, <b style="font-weight: 600">+0.7%</b> for each month after.</span><a href="Settings.dc.html" style="margin-left: auto">Edit</a></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #F3F2EE; border-radius: 8px; padding: 10px 12px; font-size: 13px"><span>OAS can start from <b style="font-weight: 600">65</b> to <b style="font-weight: 600">70</b>: <b style="font-weight: 600">+0.6%</b> for each month after 65, and <b style="font-weight: 600">+10%</b> from age 75. Full OAS is <b style="font-weight: 600">$742.31</b> a month (January 2026).</span><a href="Settings.dc.html" style="margin-left: auto">Edit</a></div>
+</div>
+</div>
+</sc-if>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; overflow: hidden">
+<button onClick="{{ t_conv }}" aria-expanded="{{ o_conv }}" style="font: inherit; color: inherit; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 16px 20px; border: none; background: #FFFFFF; text-align: left; min-height: 60px; cursor: pointer">
+<span aria-hidden="true" style="width: 16px; color: #5C5A55">{{ c_conv }}</span>
+<span style="font-size: 16px; font-weight: 600; margin-right: 8px">Converting RRSP and LIRA</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1 1 300px"><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">Alex: RRIF at <b style="font-weight: 600">71</b> · LIF at <b style="font-weight: 600">65</b>, 50% unlocked</span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">Sam: RRIF at <b style="font-weight: 600">65</b></span></span>
+<span style="font-size: 13px; color: #1D4ED8">{{ l_conv }}</span>
+</button>
+<sc-if value="{{ o_conv }}" hint-placeholder-val="{{ false }}">
+<div style="padding: 16px 20px 20px 48px; border-top: 1px solid #EFEDE8">
+<p style="margin: 0 0 16px; font-size: 13px; color: #5C5A55">Minimum withdrawals start the year after conversion.</p>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="r1">Alex: RRSP to RRIF at</label><input id="r1" value="71" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="r2">Sam: RRSP to RRIF at</label><input id="r2" value="65" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="l1">Alex: LIRA to LIF at</label><input id="l1" value="65" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+</div>
+<label style="display: flex; gap: 8px; align-items: center; margin-top: 14px; font-size: 13px"><input type="checkbox" checked> Unlock 50% of Alex's LIRA into the RRSP when it becomes a LIF</label>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #F3F2EE; border-radius: 8px; padding: 10px 12px; font-size: 13px; margin-top: 14px"><span>Latest conversion: the end of the year you turn <b style="font-weight: 600">71</b>. RRIF minimum at 71 is <b style="font-weight: 600">5.28%</b>, rising each year.</span><a href="Settings.dc.html" style="margin-left: auto">See table</a></div>
+</div>
+</sc-if>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; overflow: hidden">
+<button onClick="{{ t_split }}" aria-expanded="{{ o_split }}" style="font: inherit; color: inherit; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 16px 20px; border: none; background: #FFFFFF; text-align: left; min-height: 60px; cursor: pointer">
+<span aria-hidden="true" style="width: 16px; color: #5C5A55">{{ c_split }}</span>
+<span style="font-size: 16px; font-weight: 600; margin-right: 8px">Pension income splitting</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1 1 300px"><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap"><b style="font-weight: 600">Automatic</b></span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">Up to 50% · RRIF and LIF from 65</span></span>
+<span style="font-size: 13px; color: #1D4ED8">{{ l_split }}</span>
+</button>
+<sc-if value="{{ o_split }}" hint-placeholder-val="{{ false }}">
+<div style="padding: 16px 20px 20px 48px; border-top: 1px solid #EFEDE8">
+<p style="margin: 0; font-size: 13px; color: #5C5A55">Done for you each year: up to <b style="font-weight: 600">50%</b> of eligible pension income moves to the spouse where it lowers the household's tax. RRIF and LIF income counts from age <b style="font-weight: 600">65</b>; workplace pensions at any age. <a href="Settings.dc.html">Edit</a></p>
+</div>
+</sc-if>
+</section>
+
+<section style="position: relative; background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div>
+<h2 style="margin: 0 0 2px; font-size: 16px; font-weight: 600">Which accounts pay for your spending</h2>
+<p style="margin: 0; font-size: 13px; color: #5C5A55">Pick a strategy to see where each year's money comes from and what it costs in tax.</p>
+</div>
+
+<div role="radiogroup" aria-label="Withdrawal strategy" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{ cards }}" as="cd" hint-placeholder-count="4">
+<div style="position: relative; border: {{ cd.border }}; border-radius: 10px; background: #FFFFFF; display: flex; flex-direction: column">
+<button role="radio" aria-checked="{{ cd.on }}" onClick="{{ cd.pick }}" style="font: inherit; color: inherit; text-align: left; cursor: pointer; background: transparent; border: none; border-radius: 10px; padding: 12px 14px; width: 100%; box-sizing: border-box; flex: 1; display: flex; flex-direction: column; gap: 6px">
+<span style="display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; line-height: 1.25; min-height: 30px; padding-right: 84px"><span>{{ cd.name }}</span></span>
+<span style="font-size: 12.5px; line-height: 1.45; color: #5C5A55">{{ cd.desc }}</span>
+<span style="margin-top: auto; padding-top: 8px; border-top: 1px solid #EFEDE8; display: flex; flex-direction: column; gap: 1px">
+<span style="font-size: 12.5px; line-height: 1.5; font-weight: 600; color: #1C1C1A">Lifetime tax {{ cd.tax }}</span>
+<span style="font-size: 12.5px; line-height: 1.5; font-weight: 600; color: #1C1C1A">Left after tax {{ cd.left }}</span>
+<span style="font-size: 12px; line-height: 1.45; min-height: 17px"><span style="color: {{ cd.dTaxInk }}; font-weight: 600">{{ cd.dTax }}</span><span style="color: {{ cd.dLeftInk }}; font-weight: 600">{{ cd.dLeft }}</span><span style="color: #6B6964">{{ cd.dBase }}</span></span>
+<span style="font-size: 12px; line-height: 1.45; color: #6B6964">To TFSA {{ cd.saved }} · Clawback years {{ cd.claw }}</span>
+</span>
+</button>
+<button onClick="{{ cd.learn }}" aria-label="{{ cd.learnLabel }}" style="position: absolute; top: 12px; right: 10px; font: inherit; font-size: 12px; font-weight: 500; padding: 0 10px; height: 30px; border: 1px solid #CFCCC5; border-radius: 999px; background: #FFFFFF; color: #1C1C1A; cursor: pointer">Learn more</button>
+</div>
+</sc-for>
+</div>
+
+<div aria-live="polite" style="height: 44px; box-sizing: border-box; background: #F7F6F3; border-radius: 10px; padding: 0 14px; display: flex; align-items: center; gap: 8px; font-size: 13px; overflow: hidden; white-space: nowrap">
+<sc-if value="{{ isReg }}" hint-placeholder-val="{{ false }}"><span style="color: #5C5A55">No settings for this strategy.</span></sc-if>
+<sc-if value="{{ isFill }}" hint-placeholder-val="{{ false }}">
+<span style="color: #5C5A55">Draw each of you up to</span>
+<button onClick="{{ pickB1 }}" aria-pressed="{{ isB1 }}" style="font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 999px; border: {{ b1Border }}; background: #FFFFFF; cursor: pointer">Top of first bracket · <b style="font-weight: 600">$58,523</b></button>
+<button onClick="{{ pickOas }}" aria-pressed="{{ isOas }}" style="font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 999px; border: {{ oasBorder }}; background: #FFFFFF; cursor: pointer">Under OAS clawback · <b style="font-weight: 600">$95,323</b></button>
+<a href="Settings.dc.html" style="margin-left: auto">Edit</a>
+</sc-if>
+<sc-if value="{{ isEarly }}" hint-placeholder-val="{{ false }}"><span>Draw-down years <b style="font-weight: 600">2027 to 2034</b>, until Alex's OAS and Sam's CPP start.</span><span style="margin-left: auto; color: #5C5A55">Ages are set in <b style="font-weight: 600">When to start CPP and OAS</b></span></sc-if>
+<sc-if value="{{ isBest }}" hint-placeholder-val="{{ true }}">
+<span style="color: #5C5A55">Aim for</span>
+<button onClick="{{ pickLeft }}" aria-pressed="{{ isLeft }}" style="font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 999px; border: {{ leftBorder }}; background: #FFFFFF; cursor: pointer">Most left after tax</button>
+<button onClick="{{ pickTax }}" aria-pressed="{{ isTaxGoal }}" style="font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 999px; border: {{ taxBorder }}; background: #FFFFFF; cursor: pointer">Least lifetime tax</button>
+<span style="margin-left: auto; color: #1E3A8A">Picked <b style="font-weight: 600">{{ bestName }}</b> · {{ bestShort }}</span>
+</sc-if>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr); gap: 20px; align-items: start">
+<div style="position: relative; min-width: 0">
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px">
+<p style="margin: 0; font-weight: 600; font-size: 14px">Where each year's money comes from</p>
+<p style="margin: 0; font-size: 12px; color: #6B6964">Before tax · today's dollars</p>
+<button onClick="{{ toggleInfo }}" aria-expanded="{{ infoOpen }}" aria-label="How to read this chart" style="font: inherit; font-size: 12px; font-weight: 600; width: 24px; height: 24px; border-radius: 999px; border: 1px solid #CFCCC5; background: #FFFFFF; color: #3F3D39; cursor: pointer; padding: 0">i</button>
+</div>
+<sc-if value="{{ infoOpen }}" hint-placeholder-val="{{ false }}">
+<div role="note" style="position: absolute; top: 30px; left: 0; z-index: 4; width: 380px; background: #FFFFFF; border: 1px solid #CFCCC5; border-radius: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); padding: 14px 16px; font-size: 13px; color: #3F3D39; line-height: 1.5; display: flex; flex-direction: column; gap: 8px">
+<p style="margin: 0">Each year the plan covers the spending you set on the <a href="Spending.dc.html">Spending tab</a>, after tax. The strategy decides which account the money comes from. Required RRIF and LIF minimums always come out first.</p>
+<p style="margin: 0">The coloured stack is all the money coming in. Up to the <b style="font-weight: 600">dashed line</b> pays for spending. The <b style="font-weight: 600; color: #B91C1C">red hatched band</b> above it is tax. Anything above that wasn't needed that year and goes to the <b style="font-weight: 600; color: #15803D">TFSA</b> (green hatching).</p>
+<button onClick="{{ toggleInfo }}" style="align-self: flex-end; font: inherit; font-size: 13px; padding: 4px 12px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; cursor: pointer">Got it</button>
+</div>
+</sc-if>
+<svg viewBox="0 0 600 300" width="100%" role="img" aria-label="{{ chartLabel }}" style="display: block">
+<defs>
+<pattern id="hTax" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#DC2626" fill-opacity="0.35"></rect><line x1="0" y1="0" x2="0" y2="6" stroke="#B91C1C" stroke-width="2.5"></line></pattern>
+<pattern id="hSave" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect width="6" height="6" fill="#FFFFFF" fill-opacity="0.55"></rect><line x1="0" y1="0" x2="0" y2="6" stroke="#15803D" stroke-width="2"></line></pattern>
+</defs>
+<line x1="44" x2="596" y1="{{ g1 }}" y2="{{ g1 }}" stroke="#EFEDE8"></line>
+<line x1="44" x2="596" y1="{{ g2 }}" y2="{{ g2 }}" stroke="#EFEDE8"></line>
+<line x1="44" x2="596" y1="{{ g3 }}" y2="{{ g3 }}" stroke="#EFEDE8"></line>
+<text x="38" y="{{ g1 }}" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6B6964">{{ gl1 }}</text>
+<text x="38" y="{{ g2 }}" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6B6964">{{ gl2 }}</text>
+<text x="38" y="{{ g3 }}" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6B6964">{{ gl3 }}</text>
+<text x="38" y="{{ g0 }}" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6B6964">$0</text>
+<path d="{{ p_work }}" fill="#C9C6BE"></path>
+<path d="{{ p_db }}" fill="#7C3AED"></path>
+<path d="{{ p_cpp }}" fill="#0F766E"></path>
+<path d="{{ p_oas }}" fill="#5EBFB3"></path>
+<path d="{{ p_rrif }}" fill="#1E40AF"></path>
+<path d="{{ p_nonreg }}" fill="#D97706"></path>
+<path d="{{ p_tfsa }}" fill="#16A34A"></path>
+<path d="{{ p_taxband }}" fill="url(#hTax)"></path>
+<path d="{{ p_saveband }}" fill="url(#hSave)"></path>
+<path d="{{ p_target }}" fill="none" stroke="#1C1C1A" stroke-width="2" stroke-dasharray="6 4"></path>
+<text x="{{ lx_work }}" y="{{ ly_work }}" visibility="{{ lv_work }}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="#1C1C1A" pointer-events="none">Work</text>
+<text x="{{ lx_db }}" y="{{ ly_db }}" visibility="{{ lv_db }}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="#FFFFFF" pointer-events="none">Pension</text>
+<text x="{{ lx_cpp }}" y="{{ ly_cpp }}" visibility="{{ lv_cpp }}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="#FFFFFF" pointer-events="none">CPP</text>
+<text x="{{ lx_oas }}" y="{{ ly_oas }}" visibility="{{ lv_oas }}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="#0B3B36" pointer-events="none">OAS</text>
+<text x="{{ lx_rrif }}" y="{{ ly_rrif }}" visibility="{{ lv_rrif }}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="#FFFFFF" pointer-events="none">RRSP / RRIF</text>
+<text x="{{ lx_nonreg }}" y="{{ ly_nonreg }}" visibility="{{ lv_nonreg }}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="#FFFFFF" pointer-events="none">Non-reg.</text>
+<text x="{{ lx_tfsa }}" y="{{ ly_tfsa }}" visibility="{{ lv_tfsa }}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="#FFFFFF" pointer-events="none">TFSA</text>
+<line x1="44" x2="596" y1="{{ g0 }}" y2="{{ g0 }}" stroke="#CFCCC5"></line>
+<line x1="{{ cx }}" x2="{{ cx }}" y1="8" y2="{{ g0 }}" stroke="#1C1C1A" stroke-width="1.5"></line>
+<text x="{{ tx1 }}" y="290" text-anchor="start" font-size="11" fill="#6B6964">2027</text>
+<text x="{{ tx2 }}" y="290" text-anchor="middle" font-size="11" fill="#6B6964">2037 slower</text>
+<text x="{{ tx3 }}" y="290" text-anchor="middle" font-size="11" fill="#6B6964">2047 later</text>
+<text x="{{ tx4 }}" y="290" text-anchor="end" font-size="11" fill="#6B6964">2058 survivor</text>
+</svg>
+<input id="yr" type="range" min="2027" max="2061" step="1" value="{{ year }}" onChange="{{ onYear }}" aria-label="Look at a year" style="display: block; box-sizing: border-box; width: calc(92% + 16px); margin: 2px 0 0 calc(7.333% - 8px); padding: 0; accent-color: #1C1C1A">
+<label for="yr" style="display: block; margin: 2px 0 0 7.333%; font-size: 12px; color: #5C5A55">Drag to look at a year</label>
+</div>
+
+<div style="border: 1px solid #E3E1DC; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; font-size: 13px">
+<p style="margin: 0 0 6px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums">{{ year }} · ages {{ ages }}</p>
+<sc-for list="{{ detail }}" as="d" hint-placeholder-count="11">
+<div style="display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: {{ d.rule }}; min-height: 20px"><span style="width: 10px; height: 10px; border-radius: 3px; flex: none; background: {{ d.color }}"></span><span style="flex: 1; min-width: 0">{{ d.label }}</span><span style="font-variant-numeric: tabular-nums; font-weight: {{ d.weight }}; color: {{ d.ink }}">{{ d.val }}</span></div>
+</sc-for>
+</div>
+</div>
+<p style="margin: 0; font-size: 12px; color: #6B6964">[Mockup: amounts come from a rough illustrative model, not the planner's engine.]</p>
+<sc-if value="{{ mOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(28, 28, 26, 0.4); border-radius: 12px; display: flex; justify-content: center; align-items: flex-start; padding: 24px; z-index: 5">
+<div role="dialog" aria-modal="true" aria-labelledby="mtitle" style="background: #FFFFFF; border-radius: 14px; width: 100%; max-width: 680px; padding: 24px 28px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: flex-start; gap: 12px">
+<div style="flex: 1"><h3 id="mtitle" style="margin: 0 0 4px; font-size: 20px; font-weight: 600">{{ mTitle }}</h3><p style="margin: 0; font-size: 14px; color: #5C5A55">{{ mTagline }}</p></div>
+<button onClick="{{ closeModal }}" aria-label="Close" style="font: inherit; font-size: 20px; line-height: 1; width: 40px; height: 40px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; cursor: pointer">×</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 20px">
+<sc-for list="{{ mBlocks }}" as="bk" hint-placeholder-count="4">
+<div><p style="margin: 0 0 4px; font-size: 13px; font-weight: 600">{{ bk.h }}</p><p style="margin: 0; font-size: 13px; color: #3F3D39; line-height: 1.5">{{ bk.t }}</p></div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px">
+<div style="background: #ECF6F3; border-radius: 10px; padding: 14px"><p style="margin: 0 0 6px; font-size: 13px; font-weight: 600; color: #0B4F49">Pros</p><ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #0B4F49; line-height: 1.5"><sc-for list="{{ mPros }}" as="it" hint-placeholder-count="4"><li>{{ it.t }}</li></sc-for></ul></div>
+<div style="background: #FDF1F0; border-radius: 10px; padding: 14px"><p style="margin: 0 0 6px; font-size: 13px; font-weight: 600; color: #8A1C1C">Cons</p><ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #8A1C1C; line-height: 1.5"><sc-for list="{{ mCons }}" as="it" hint-placeholder-count="4"><li>{{ it.t }}</li></sc-for></ul></div>
+</div>
+<div><p style="margin: 0 0 6px; font-size: 13px; font-weight: 600">When it makes sense</p><ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #3F3D39; line-height: 1.5"><sc-for list="{{ mWhen }}" as="it" hint-placeholder-count="4"><li>{{ it.t }}</li></sc-for></ul></div>
+<sc-if value="{{ mHasNote }}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 13px; color: #3F3D39; background: #F3F2EE; border-radius: 8px; padding: 10px 12px">{{ mNote }}</p></sc-if>
+<div style="background: #EAF0FB; color: #1E3A8A; border-radius: 10px; padding: 12px 14px; font-size: 13px"><b style="font-weight: 600">In your plan:</b> {{ mInPlan }}</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end">
+<button onClick="{{ closeModal }}" style="font: inherit; font-size: 14px; padding: 10px 16px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 44px; cursor: pointer">Close</button>
+<button onClick="{{ useModal }}" style="font: inherit; font-size: 14px; font-weight: 600; padding: 10px 16px; border: 1px solid #1C1C1A; border-radius: 8px; background: #1C1C1A; color: #FFFFFF; min-height: 44px; cursor: pointer">{{ mUseLabel }}</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+</section>
+
+</main>
+</div>
+
+<footer style="padding: 16px 24px; color: #6B6964; font-size: 12px; border-top: 1px solid #E3E1DC; background: #FFFFFF">This tool shows projections under the assumptions you enter. It is not financial, tax or legal advice. [Final wording pending]</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+// Illustrative toy model for the Withdrawals mockup. Not the engine.
+var START = 2027, END = 2061, REAL = 0.03;
+var SRC = ['work', 'db', 'cpp', 'oas', 'rrif', 'nonreg', 'tfsa'];
+function spendTarget(y) {
+  var t = y >= 2047 ? 73920 : y >= 2037 ? 83160 : 92400;
+  return y > 2057 ? Math.round(t * 0.7) : t;
+}
+function personTax(inc, age, oas) {
+  // rough combined federal + Ontario, 2026 thresholds, credits folded into a zero band
+  var free = age >= 65 ? 21000 : 16500;
+  var bands = [[free, 0], [53891, 0.2005], [58523, 0.2415], [107785, 0.2965], [117045, 0.3148], [150000, 0.3389], [181440, 0.4341], [1e12, 0.4641]];
+  var t = 0, lo = 0;
+  for (var i = 0; i < bands.length; i++) { var hi = bands[i][0]; if (inc > lo) t += (Math.min(inc, hi) - lo) * bands[i][1]; lo = hi; }
+  var claw = Math.min(oas, Math.max(0, inc - 95323) * 0.15);
+  return { tax: t + claw, claw: claw };
+}
+function rrifMin(age, bal) {
+  if (age < 71) return bal / (90 - age);
+  var r = Math.min(0.2, 0.0528 + (age - 71) * 0.0028 + Math.max(0, age - 85) * 0.004);
+  return bal * r;
+}
+function run(strategy, target) {
+  var A = { rrsp: 540000 + 47500, tfsa: 102000, alive: true, birth: 1963, rrifAt: 71, lifAt: 65 };
+  var S = { rrsp: 210000, tfsa: 88000, alive: true, birth: 1965, rrifAt: 65 };
+  var lif = 47500; // Alex LIRA after 50% unlock moved into RRSP above
+  var nonreg = 160000, acb = 121000, room = { a: 0, s: 14500 };
+  var rows = [], life = 0, clawYears = 0, savedTot = 0;
+  for (var y = START; y <= END; y++) {
+    var aAge = y - A.birth, sAge = y - S.birth;
+    if (y > 2057) A.alive = false;
+    if (!A.alive && (A.rrsp || lif || A.tfsa)) { S.rrsp += A.rrsp + lif; S.tfsa += A.tfsa; A.rrsp = 0; lif = 0; A.tfsa = 0; }
+    room.a += 7000; room.s += 7000;
+    var inc = { a: {}, s: {} };
+    inc.s.work = y <= 2028 ? 74000 : 0; // gross pay before retiring
+    inc.s.db = sAge >= 64 ? 24000 + (sAge < 65 ? 4200 : 0) : 0;
+    inc.a.cpp = A.alive && aAge >= 65 ? 14160 : 0;
+    inc.s.cpp = sAge >= 70 ? 15170 : 0;
+    if (!A.alive) inc.s.cpp = Math.min(18380, inc.s.cpp + 8500);
+    inc.a.oas = A.alive && aAge >= 67 ? 10190 * (aAge >= 75 ? 1.1 : 1) : 0;
+    inc.s.oas = sAge >= 65 ? 8908 * (sAge >= 75 ? 1.1 : 1) : 0;
+    if (!A.alive) inc.s.db = sAge >= 64 ? 24000 : 0;
+    // required minimums
+    var draw = { a: 0, s: 0 };
+    if (A.alive && aAge > A.rrifAt) draw.a += rrifMin(aAge, A.rrsp);
+    if (A.alive && aAge > 65) draw.a += Math.min(lif, rrifMin(aAge, lif));
+    if (sAge > S.rrifAt) draw.s += rrifMin(sAge, S.rrsp);
+    var nr = 0, tf = 0;
+    var base = function (p) { var o = inc[p]; return (o.work || 0) + (o.db || 0) + (o.cpp || 0) + (o.oas || 0); };
+    if (strategy === 'fill') {
+      if (A.alive) draw.a = Math.max(draw.a, Math.min(A.rrsp + lif, target - base('a')));
+      draw.s = Math.max(draw.s, Math.min(S.rrsp, target - base('s')));
+    }
+    var tgt = spendTarget(y);
+    var gainFrac = nonreg > 0 ? Math.max(0, 1 - acb / nonreg) : 0;
+    function evalYear() {
+      var ta = base('a') + draw.a, ts = base('s') + draw.s + nr * gainFrac * 0.5;
+      var xa = A.alive ? personTax(ta, aAge, inc.a.oas || 0) : { tax: 0, claw: 0 };
+      var xs = personTax(ts, sAge, inc.s.oas || 0);
+      var gross = base('a') + base('s') + draw.a + draw.s + nr + tf;
+      return { tax: xa.tax + xs.tax, taxA: xa.tax, taxS: xs.tax, clawA: xa.claw, clawS: xs.claw, claw: xa.claw + xs.claw, gross: gross, net: gross - xa.tax - xs.tax };
+    }
+    var e = evalYear();
+    var gap = (aAge < 67) || (sAge < 70); // before both spouses' CPP and OAS have started
+    var drawReg = function (need) {
+      var aRoom = A.alive ? A.rrsp + lif - draw.a : 0, sRoom = S.rrsp - draw.s;
+      var who = (aRoom <= 1 || (sRoom > 1 && base('s') + draw.s < base('a') + draw.a)) ? 's' : 'a';
+      if (who === 'a') draw.a = Math.min(A.rrsp + lif, draw.a + need * 1.3); else draw.s = Math.min(S.rrsp, draw.s + need * 1.3);
+    };
+    for (var k = 0; k < 60 && e.net < tgt - 1; k++) {
+      var need = tgt - e.net;
+      var regLeft = (A.alive ? A.rrsp + lif - draw.a : 0) + S.rrsp - draw.s > 1;
+      if (strategy === 'early' && gap && regLeft) drawReg(need);
+      else if (nonreg - nr > 1) nr = Math.min(nonreg, nr + need);
+      else if ((strategy === 'reglast' || strategy === 'early') && regLeft) drawReg(need);
+      else if (A.tfsa + S.tfsa - tf > 1) tf = Math.min(A.tfsa + S.tfsa, tf + need);
+      else if (strategy === 'fill' && (A.rrsp + lif + S.rrsp - draw.a - draw.s) > 1) {
+        draw.s = Math.min(S.rrsp, draw.s + need * 1.3);
+        if (A.alive) draw.a = Math.min(A.rrsp + lif, draw.a + need * 1.3 - (S.rrsp - draw.s));
+      } else break;
+      e = evalYear();
+    }
+    // overshoot: trim TFSA or non-reg if over, else save surplus
+    var saved = Math.max(0, e.net - tgt);
+    if (saved > 0 && tf > 0) { var cut = Math.min(tf, saved); tf -= cut; e = evalYear(); saved = Math.max(0, e.net - tgt); }
+    if (saved > 0 && nr > 0) { var cut2 = Math.min(nr, saved); nr -= cut2; e = evalYear(); saved = Math.max(0, e.net - tgt); }
+    // apply flows
+    var aR = Math.min(draw.a, A.rrsp + lif), fromLif = Math.min(lif, aR * lif / Math.max(1, A.rrsp + lif));
+    lif -= fromLif; A.rrsp -= aR - fromLif; S.rrsp -= draw.s;
+    var nrFrac = nonreg > 0 ? nr / nonreg : 0; acb -= acb * nrFrac; nonreg -= nr;
+    var tfA = Math.min(A.tfsa, tf / 2), tfS = tf - tfA; if (tfS > S.tfsa) { tfA += tfS - S.tfsa; tfS = S.tfsa; }
+    A.tfsa -= tfA; S.tfsa -= tfS; room.a += tfA; room.s += tfS;
+    var putA = A.alive ? Math.min(room.a, saved / 2) : 0, putS = Math.min(room.s, saved - putA);
+    A.tfsa += putA; S.tfsa += putS; room.a -= putA; room.s -= putS;
+    var rest = saved - putA - putS; nonreg += rest; acb += rest;
+    savedTot += saved;
+    if (y >= 2029) { // retired years only for tax totals
+      life += e.tax; if (e.claw > 50) clawYears++;
+    }
+    rows.push({ y: y, ages: (A.alive ? aAge + ' / ' : '– / ') + sAge,
+      work: inc.s.work, db: inc.s.db, cpp: (inc.a.cpp || 0) + inc.s.cpp, oas: (inc.a.oas || 0) + inc.s.oas,
+      rrif: draw.a + draw.s, nonreg: nr, tfsa: tf, tax: e.tax, target: tgt, saved: saved, claw: e.claw });
+    A.rrsp *= 1 + REAL; lif *= 1 + REAL; S.rrsp *= 1 + REAL; A.tfsa *= 1 + REAL; S.tfsa *= 1 + REAL; nonreg *= 1 + REAL;
+    var lr = rows[rows.length - 1]; lr.taxA = e.taxA; lr.taxS = e.taxS; lr.clawA = e.clawA; lr.clawS = e.clawS; lr.balReg = A.rrsp + lif + S.rrsp; lr.balTfsa = A.tfsa + S.tfsa; lr.balNonreg = nonreg; lr.acb = acb;
+  }
+  var reg = A.rrsp + lif + S.rrsp;
+  var HOME = 850000; // Estate tab sample; grows with inflation, so flat in today's dollars
+  var gainTax = Math.max(0, nonreg - acb) * 0.25, finalTax = reg * 0.38;
+  var probate = Math.max(0, nonreg + HOME - 50000) * 0.015;
+  var left = reg - finalTax + nonreg - gainTax + A.tfsa + S.tfsa + HOME - probate;
+  var estate = { reg: reg, nonreg: nonreg, tfsa: A.tfsa + S.tfsa, home: HOME, finalTax: finalTax, gainTax: gainTax, probate: probate, left: left };
+  return { rows: rows, lifeTax: life + finalTax + gainTax + probate, clawYears: clawYears, left: left, saved: savedTot, estate: estate };
+}
+
+
+var EXPLAIN = {
+  reglast: {
+    title: 'Registered last',
+    tagline: 'Spend from the accounts that cost the least tax today, and leave the RRSP for later.',
+    blocks: [
+      { h: 'What it does', t: 'Each year the plan pays for your spending from non-registered savings first, then RRSP, RRIF and LIF, then the TFSA last. Registered accounts only pay out the required RRIF and LIF minimums until the non-registered money runs out.' },
+      { h: 'Your income', t: 'Taxable income is low in the first years, because only half of the gain on non-registered withdrawals is taxed. It rises later, when CPP and OAS have started and RRIF minimums grow every year.' },
+      { h: 'Your taxes', t: 'Little tax early, more later. Large RRIF minimums in your 70s and 80s can push you into higher brackets and over the OAS clawback threshold. Whatever is left in the RRIF is taxed as income on the final return after the second death.' },
+      { h: 'Your savings', t: 'RRSPs stay invested and tax-deferred the longest. The TFSA is left alone for many years. Non-registered savings shrink first.' }
+    ],
+    pros: ['Simple and easy to follow', 'Defers tax as long as possible', 'Keeps the RRSP growing tax-deferred', 'Keeps the TFSA untouched as a reserve'],
+    cons: ['Bigger tax bills later in life', 'More risk of OAS clawback once RRIF minimums are large', 'A surviving spouse pays tax as a single person on the combined RRIF', 'Large tax on the final return'],
+    when: ['Your RRSPs are small next to your pensions, CPP and OAS, so later income stays in low brackets anyway', 'You expect to spend most of your savings and leaving an estate is not a goal', 'You have a large non-registered account with little gain in it', 'You may need flexible cash early on']
+  },
+  fill: {
+    title: 'Fill lower brackets first',
+    tagline: 'Pay some tax now at a moderate rate to avoid higher rates later.',
+    blocks: [
+      { h: 'What it does', t: 'Each year, each of you draws from your RRSP or RRIF until your taxable income reaches the level you pick, even in years you don’t need all the money. Whatever isn’t needed for spending, after tax, goes into the TFSA (and into non-registered savings once TFSA room runs out). If spending still isn’t covered, the rest comes from non-registered savings, then the TFSA.' },
+      { h: 'Your income', t: 'Taxable income stays close to the same level every year. It is highest compared with Registered last in the early years, before CPP and OAS start.' },
+      { h: 'Your taxes', t: 'More tax in the first years, less later. Smaller RRIFs mean smaller forced minimums, fewer years over the OAS clawback threshold, and less tax on the final return.' },
+      { h: 'Your savings', t: 'The RRSP shrinks faster and the TFSA grows. More of what’s left is in tax-free accounts, which helps a surviving spouse and your heirs.' }
+    ],
+    pros: ['Smoother, more predictable tax', 'Fewer OAS clawback years', 'Smaller tax bill for a surviving spouse and on the final return', 'Builds up the TFSA, which is flexible and tax-free'],
+    cons: ['You pay tax sooner and give up some tax deferral', 'If you die early, you prepaid tax you might never have owed', 'Needs TFSA room; otherwise the extra lands in taxable savings', 'Can reduce income-tested benefits such as GIS for lower-income households', 'The level you pick matters; too high costs more tax than it saves'],
+    when: ['Your RRSPs and RRIFs are large next to your other income', 'You have years between retiring and CPP or OAS starting, especially if you delay CPP to 70', 'You want to protect a surviving spouse or leave an estate', 'You expect a long retirement'],
+    note: 'Choosing the level: the top of the first bracket ($58,523) suits most couples. Drawing up to just under the OAS clawback ($95,323) only pays off when RRSPs are very large.'
+  }
+};
+
+EXPLAIN.early = {
+  title: 'Early RRSP drawdown',
+  tagline: 'Live on your RRSP in the years before CPP and OAS start, then spend the rest last.',
+  blocks: [
+    { h: 'What it does', t: 'From retirement until both of you are receiving CPP and OAS, most of your spending comes from RRSP withdrawals, shared between you so each of you stays in a low bracket. Non-registered savings and the TFSA are left alone. Once government pensions have started, the plan switches to Registered last.' },
+    { h: 'Your income', t: 'In the early years your taxable income comes mainly from the RRSP. Later, delayed CPP and OAS pay more for life, and RRIF minimums are smaller because the RRSP is smaller.' },
+    { h: 'Your taxes', t: 'Uses the low brackets in years when you would otherwise have little taxable income. Smaller RRIFs later mean smaller forced withdrawals, fewer years near the OAS clawback threshold, and less tax on the final return.' },
+    { h: 'Your savings', t: 'The RRSP shrinks quickly at first. Non-registered savings and the TFSA stay invested as a reserve and keep growing.' }
+  ],
+  pros: ['Puts low-income years to use instead of wasting them', 'Works hand in hand with delaying CPP and OAS, which pay more for life and rise with inflation', 'Bigger guaranteed income protects you if you live a long time', 'Smaller RRIF for a surviving spouse'],
+  cons: ['Savings drop quickly in the first years, which can feel uncomfortable', 'If you die early, delaying CPP and OAS may not pay off', 'Selling investments early is riskier if markets fall soon after you retire', 'Depends on the CPP and OAS start ages you choose'],
+  when: ['You retire before 65, or plan to delay CPP or OAS', 'You have a sizeable RRSP', 'You are in good health and expect a long retirement', 'You have other savings to fall back on in an emergency'],
+  note: 'The draw-down years come from the CPP and OAS start ages at the top of this tab. Starting CPP at 70 lengthens them.'
+};
+EXPLAIN.best = {
+  title: 'Let the planner pick',
+  tagline: 'The planner tries the other strategies at many levels and picks the one that best meets your goal.',
+  blocks: [
+    { h: 'What it does', t: 'The planner runs your plan many times: Registered last, Early RRSP drawdown, and Fill lower brackets at levels from $40,000 to $110,000. It picks the one that leaves the most money after tax, or the one with the least lifetime tax, whichever goal you choose.' },
+    { h: 'Your income, taxes and savings', t: 'Whatever the chosen strategy does. The chart and figures show the pick, and the note under the cards says what was picked and how close the runner-up was.' },
+    { h: 'Which goal', t: 'Most money left counts everything: tax, growth and what your estate keeps. Least lifetime tax can favour drawing large amounts early, which may leave less overall.' },
+    { h: 'When inputs change', t: 'The pick is redone as soon as you change anything, so it can change when you edit spending, savings or CPP and OAS ages.' }
+  ],
+  pros: ['No need to choose a strategy or a level yourself', 'Re-checks the choice whenever your plan changes', 'Shows how close the alternatives are'],
+  cons: ['Only best under these assumptions: steady returns and today’s tax rules', 'Small differences between options can flip with small changes', 'May pick something that feels uncomfortable, such as large early withdrawals', 'Harder to understand why it chose what it did'],
+  when: ['You are not sure which strategy suits you', 'As a starting point to compare your own choice against']
+};
+
+var LAYERS = [["work","Work (Sam, until retiring)","#C9C6BE"],["db","Workplace pension","#7C3AED"],["cpp","CPP","#0F766E"],["oas","OAS","#5EBFB3"],["rrif","RRSP / RRIF / LIF","#1E40AF"],["nonreg","Non-registered","#D97706"],["tfsa","TFSA","#16A34A"]];
+var W0 = 44, W1 = 596, H0 = 270, HT = 10;
+function xOf(y) { return W0 + (y - START) / (END - START) * (W1 - W0); }
+function money(v) { return '$' + Math.round(v).toLocaleString('en-CA'); }
+function kfmt(v) { return '$' + Math.round(v / 1000).toLocaleString('en-CA') + 'k'; }
+function band(rows, lo, hi, yOf) {
+  var top = rows.map(function (r) { return xOf(r.y).toFixed(1) + ',' + yOf(hi(r)).toFixed(1); });
+  var bot = rows.slice().reverse().map(function (r) { return xOf(r.y).toFixed(1) + ',' + yOf(lo(r)).toFixed(1); });
+  return 'M' + top.join(' L') + ' L' + bot.join(' L') + ' Z';
+}
+function line(rows, f, yOf) { return 'M' + rows.map(function (r) { return xOf(r.y).toFixed(1) + ',' + yOf(f(r)).toFixed(1); }).join(' L'); }
+function gross(r) { return LAYERS.reduce(function (t, l) { return t + r[l[0]]; }, 0); }
+var RUNS = { reglast: run('reglast', 0), early: run('early', 0), b1: run('fill', 58523), oas: run('fill', 95323) };
+var NAMES = { reglast: 'Registered last', early: 'Early RRSP drawdown', b1: 'Fill to $58,523', oas: 'Fill to $95,323' };
+var TRIED = ['reglast', 'early'];
+for (var lv = 40000; lv <= 110000; lv += 5000) {
+  var kk = 'f' + lv; RUNS[kk] = run('fill', lv); NAMES[kk] = 'Fill to $' + lv.toLocaleString('en-CA'); TRIED.push(kk);
+}
+function pickBest(goal) {
+  var sorted = TRIED.slice().sort(function (a, b) { return goal === 'tax' ? RUNS[a].lifeTax - RUNS[b].lifeTax : RUNS[b].left - RUNS[a].left; });
+  return { key: sorted[0], runner: sorted[1] };
+}
+var GMAX = 0, TMAX = 0;
+Object.keys(RUNS).forEach(function (key) { RUNS[key].rows.forEach(function (r) { GMAX = Math.max(GMAX, gross(r)); TMAX = Math.max(TMAX, r.tax); }); });
+GMAX = Math.ceil(GMAX / 30000) * 30000; TMAX = Math.ceil(TMAX / 10000) * 10000;
+var CARDS = [
+  { id: 'reglast', name: 'Registered last', desc: 'Lowest tax now. Non-registered first, then RRSP/RRIF, then TFSA.' },
+  { id: 'fill', name: 'Fill lower brackets first', desc: 'Smoother tax over your life. Draw RRSP/RRIF up to a set income each year; what you don’t need goes to the TFSA.' },
+  { id: 'early', name: 'Early RRSP drawdown', desc: 'Live on the RRSP until CPP and OAS start, then spend the rest last. Pairs with delaying CPP.' },
+  { id: 'best', name: 'Let the planner pick', desc: 'Tries all of these at many levels and picks the one that best meets your goal.' }
+];
+var r1k = function (x) { return Math.round(x / 1000) * 1000; };
+var BORDER_ON = '2px solid #1C1C1A', BORDER_OFF = '1px solid #CFCCC5';
+
+class Component extends DCLogic {
+  st() { var s = this.state || {}; return { strat: s.strat || 'fill', tgt: s.tgt || 'b1', goal: s.goal || 'left', year: s.year || 2035, modal: s.modal || null, open: s.open || {}, info: !!s.info }; }
+  put(p) { this.setState(Object.assign({}, this.st(), p)); }
+  keyFor(strat, s) {
+    if (strat === 'reglast' || strat === 'early') return strat;
+    if (strat === 'fill') return s.tgt;
+    return pickBest(s.goal).key;
+  }
+  renderVals() {
+    var self = this, s = this.st();
+    var key = this.keyFor(s.strat, s);
+    var otherKey = s.strat === 'reglast' ? 'b1' : 'reglast';
+    var R = RUNS[key], O = RUNS[otherKey];
+    var yOf = function (v) { return H0 - v / GMAX * (H0 - HT); };
+    var tOf = function (v) { return 108 - v / TMAX * 100; };
+    var cum = function (r, n) { var t = 0; for (var i = 0; i < n; i++) t += r[LAYERS[i][0]]; return t; };
+    var v = {};
+    LAYERS.forEach(function (l, i) {
+      v['p_' + l[0]] = band(R.rows, function (r) { return cum(r, i); }, function (r) { return cum(r, i + 1); }, yOf);
+    });
+    v.p_target = line(R.rows, function (r) { return Math.min(r.target, gross(r)); }, yOf);
+    v.p_taxband = band(R.rows, function (r) { return Math.min(r.target, gross(r)); }, function (r) { return Math.min(r.target + r.tax, gross(r)); }, yOf);
+    v.p_saveband = band(R.rows, function (r) { return Math.min(r.target + r.tax, gross(r)); }, function (r) { return gross(r); }, yOf);
+    v.p_taxArea = band(R.rows, function () { return 0; }, function (r) { return r.tax; }, tOf);
+    v.p_taxOther = line(O.rows, function (r) { return r.tax; }, tOf);
+    v.g0 = yOf(0); v.g1 = yOf(GMAX / 3); v.g2 = yOf(GMAX * 2 / 3); v.g3 = yOf(GMAX);
+    v.gl1 = kfmt(GMAX / 3); v.gl2 = kfmt(GMAX * 2 / 3); v.gl3 = kfmt(GMAX);
+    v.tg1 = tOf(TMAX); v.tgl1 = kfmt(TMAX);
+    v.tx1 = xOf(2027); v.tx2 = xOf(2037); v.tx3 = xOf(2047); v.tx4 = xOf(2061);
+    v.cx = xOf(Number(s.year));
+    var thisLabel = s.strat === 'best' ? 'Planner’s pick (' + NAMES[key] + ')' : NAMES[key];
+    v.thisName = 'This choice: ' + thisLabel; v.otherName = NAMES[otherKey];
+    v.taxCaption = 'This choice (red) against ' + NAMES[otherKey] + ' (dashed)';
+    v.lifeTax = money(r1k(R.lifeTax));
+    v.left = money(r1k(R.left));
+    v.saved = money(r1k(R.saved));
+    v.claw = String(R.clawYears); v.clawOther = O.clawYears + ' with ' + NAMES[otherKey];
+    var dt = r1k(R.lifeTax - O.lifeTax), dl = r1k(R.left - O.left);
+    v.taxDelta = key === otherKey ? 'Same as ' + NAMES[otherKey] : money(Math.abs(dt)) + (dt <= 0 ? ' less' : ' more') + ' than ' + NAMES[otherKey];
+    v.taxDColor = dt <= 0 ? '#166534' : '#B91C1C';
+    v.leftDelta = key === otherKey ? 'Same as ' + NAMES[otherKey] : money(Math.abs(dl)) + (dl >= 0 ? ' more' : ' less') + ' than ' + NAMES[otherKey];
+    v.leftDColor = dl >= 0 ? '#166534' : '#B91C1C';
+    v.chartLabel = 'Stacked area chart of yearly income by source from 2027 to 2061 under ' + thisLabel;
+    v.taxLabel = 'Tax each year under ' + thisLabel + ' compared with ' + NAMES[otherKey];
+    var row = R.rows.filter(function (r) { return r.y === Number(s.year); })[0];
+    v.year = s.year; v.ages = row.ages;
+    var dash = function (x) { return x > 0.5 ? money(x) : '—'; };
+    var tone = function (x) { return x > 0.5 ? '#1C1C1A' : '#A8A59C'; };
+    var d = LAYERS.map(function (l) { return { label: l[1], color: l[2], val: dash(row[l[0]]), weight: 400, ink: tone(row[l[0]]), vis: 'visible' }; });
+    d.push({ label: 'Tax', color: '#DC2626', val: row.tax > 0.5 ? '−' + money(row.tax) : '—', weight: 400, ink: tone(row.tax), vis: 'visible' });
+    d.push({ label: 'of which OAS clawback', color: '#F5C2C2', val: dash(row.claw), weight: 400, ink: tone(row.claw), vis: 'visible' });
+    d.push({ label: 'Moved to TFSA', color: '#86EFAC', val: row.saved > 0.5 ? '−' + money(row.saved) : '—', weight: 400, ink: tone(row.saved), vis: 'visible' });
+    d.push({ label: 'Left for spending (target)', color: '#1C1C1A', val: money(row.target), weight: 600, ink: '#1C1C1A', vis: 'visible' });
+    d.forEach(function (x, i) { x.rule = (i === LAYERS.length - 1) ? '1px solid #CFCCC5' : (i === d.length - 1 ? 'none' : '1px solid #EFEDE8'); });
+    v.detail = d;
+    var LIGHT = { work: '#1C1C1A', oas: '#0B3B36' };
+    var SHORT = { work: 'Work', db: 'Pension', cpp: 'CPP', oas: 'OAS', rrif: 'RRSP / RRIF', nonreg: 'Non-reg.', tfsa: 'TFSA' };
+    LAYERS.forEach(function (lay, i) {
+      var k = lay[0], best = null;
+      R.rows.forEach(function (r) { if (!best || r[k] > best[k]) best = r; });
+      var h = best[k] / GMAX * (H0 - HT);
+      var w = SHORT[k].length * 6.4 + 8;
+      v['lv_' + k] = h >= 15 ? 'visible' : 'hidden';
+      v['lx_' + k] = Math.max(W0 + w / 2 + 4, Math.min(W1 - w / 2 - 4, xOf(best.y)));
+      v['ly_' + k] = yOf(cum(best, i) + best[k] / 2);
+    });
+
+
+    var best = pickBest(s.goal);
+    v.cards = CARDS.map(function (c) {
+      var on = s.strat === c.id, ck = self.keyFor(c.id, s), cr = RUNS[ck];
+      return {
+        name: c.name, desc: c.desc, on: on, mark: on ? '◉' : '○',
+        border: on ? BORDER_ON : BORDER_OFF, bg: on ? '#FFFFFF' : '#FFFFFF',
+        tax: kfmt(cr.lifeTax), left: kfmt(cr.left), saved: kfmt(cr.saved), claw: String(cr.clawYears),
+        dTax: c.id === 'reglast' ? '' : kfmt(Math.abs(cr.lifeTax - RUNS.reglast.lifeTax)) + (cr.lifeTax <= RUNS.reglast.lifeTax ? ' less tax' : ' more tax'),
+        dTaxInk: cr.lifeTax <= RUNS.reglast.lifeTax ? '#166534' : '#B91C1C',
+        dLeft: c.id === 'reglast' ? '' : ' \u00B7 ' + kfmt(Math.abs(cr.left - RUNS.reglast.left)) + (cr.left >= RUNS.reglast.left ? ' more left' : ' less left'),
+        dLeftInk: cr.left >= RUNS.reglast.left ? '#166534' : '#B91C1C',
+        dBase: c.id === 'reglast' ? 'The others compare to this' : '',
+        hasBadge: c.id === 'best', badge: c.id === 'best' ? NAMES[best.key] : '',
+        pick: function () { self.put({ strat: c.id }); },
+        learnLabel: 'Learn more about ' + c.name, learn: function () { self.put({ modal: c.id }); }
+      };
+    });
+    v.isReg = s.strat === 'reglast'; v.isFill = s.strat === 'fill'; v.isEarly = s.strat === 'early'; v.isBest = s.strat === 'best';
+    v.isB1 = s.tgt === 'b1'; v.isOas = s.tgt === 'oas';
+    v.b1Border = v.isB1 ? BORDER_ON : BORDER_OFF; v.oasBorder = v.isOas ? BORDER_ON : BORDER_OFF;
+    v.pickB1 = function () { self.put({ tgt: 'b1' }); };
+    v.pickOas = function () { self.put({ tgt: 'oas' }); };
+    v.isLeft = s.goal === 'left'; v.isTaxGoal = s.goal === 'tax';
+    v.leftBorder = v.isLeft ? BORDER_ON : BORDER_OFF; v.taxBorder = v.isTaxGoal ? BORDER_ON : BORDER_OFF;
+    v.pickLeft = function () { self.put({ goal: 'left' }); };
+    v.pickTax = function () { self.put({ goal: 'tax' }); };
+    v.bestName = NAMES[best.key];
+    var gap0 = s.goal === 'tax' ? RUNS[best.runner].lifeTax - RUNS[best.key].lifeTax : RUNS[best.key].left - RUNS[best.runner].left;
+    v.bestShort = 'runner-up ' + NAMES[best.runner] + ', ' + kfmt(gap0) + ' behind';
+    v.infoOpen = !!s.info;
+    v.toggleInfo = function () { self.put({ info: !self.st().info }); };
+    var gap = s.goal === 'tax' ? RUNS[best.runner].lifeTax - RUNS[best.key].lifeTax : RUNS[best.key].left - RUNS[best.runner].left;
+    v.bestWhy = 'It tried ' + TRIED.length + ' options. Runner-up: ' + NAMES[best.runner] + ', ' + money(r1k(gap)) + (s.goal === 'tax' ? ' more lifetime tax.' : ' less left after tax.') + (r1k(gap) < 5000 ? ' The two are close enough that small changes could swap them.' : '');
+
+    ['cpp', 'conv', 'split'].forEach(function (k) {
+      var o = !!s.open[k];
+      v['o_' + k] = o; v['c_' + k] = o ? '▾' : '▸'; v['l_' + k] = o ? 'Close' : 'Open';
+      v['t_' + k] = function () { var n = Object.assign({}, self.st().open); n[k] = !n[k]; self.put({ open: n }); };
+    });
+
+    var mk = s.modal, E = EXPLAIN[mk || 'fill'];
+    var wrap = function (a) { return a.map(function (x) { return { t: x }; }); };
+    v.mOpen = !!mk; v.mTitle = E.title; v.mTagline = E.tagline; v.mBlocks = E.blocks;
+    v.mPros = wrap(E.pros); v.mCons = wrap(E.cons); v.mWhen = wrap(E.when);
+    v.mHasNote = !!E.note; v.mNote = E.note || '';
+    var mKey = this.keyFor(mk || 'fill', s), mOtherKey = mk === 'reglast' ? 'b1' : 'reglast';
+    var MR = RUNS[mKey], MO = RUNS[mOtherKey];
+    var mName = mk === 'best' ? 'The planner’s pick, ' + NAMES[mKey] + ',' : NAMES[mKey];
+    var mdt = r1k(MR.lifeTax - MO.lifeTax), mdl = r1k(MR.left - MO.left);
+    v.mInPlan = mKey === mOtherKey ? mName + ' is the same as ' + NAMES[mOtherKey] + ' for your plan.' :
+      mName + ' gives lifetime tax of ' + money(r1k(MR.lifeTax)) + ', ' + money(Math.abs(mdt)) + (mdt <= 0 ? ' less' : ' more') + ' than ' + NAMES[mOtherKey] + ', and leaves ' + money(r1k(MR.left)) + ' after tax, ' + money(Math.abs(mdl)) + (mdl >= 0 ? ' more.' : ' less.');
+    v.mUseLabel = mk === s.strat ? 'Keep this strategy' : 'Use this strategy';
+    v.closeModal = function () { self.put({ modal: null }); };
+    v.useModal = function () { var m = self.st().modal; self.put({ modal: null, strat: m }); };
+    v.onYear = function (e) { self.put({ year: Number(e.target.value) }); };
+    return v;
+  }
+}
+
+</script>
+</body>
+</html>

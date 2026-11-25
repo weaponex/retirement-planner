@@ -890,7 +890,23 @@ Death { spouse: 0 | 1, year }
 
 ### Screens
 
-Six tabs, in this order, plus Settings: Household, Savings, Spending, Withdrawals, Estate and Results. The brief named three planning areas. Household is added because ages feed all three; accounts and pensions are on Savings, and death and legacy inputs on Estate, because the author expects users to look for them there. There is no results panel on the input tabs: each input tab shows the results that belong to it (the strategy cards and income chart on Withdrawals, the placement comparison on Savings), and the full results are one tab away. The layouts were settled with the author from clickable mockups (a design canvas, not committed).
+Six tabs, in this order, plus Settings: Household, Savings, Spending, Withdrawals, Estate and Results. The brief named three planning areas. Household is added because ages feed all three; accounts and pensions are on Savings, and death and legacy inputs on Estate, because the author expects users to look for them there. There is no results panel on the input tabs: each input tab shows the results that belong to it (the strategy cards and income chart on Withdrawals, the placement comparison on Savings), and the full results are one tab away. The layouts were settled with the author from clickable mockups on 2026-11-19.
+
+**The mockups are part of this design.** The author's canvas "Retirement planner screens" (claude.ai artifact `TFyh6PGvTggAELyaKXqF88`) is copied into [docs/designs/mockups/](mockups/): one `.dc.html` file per screen (Household `Main`, Savings `Investing`, `Spending`, `Withdrawals`, `Estate`, `Results`, `Settings`, `FirstRun`, `States`) and `canvas.json`. They are normative for the look (colours, type, spacing, controls) and for each screen's content and wording, except where a later decision in this document overrides them (see [Where the mockups are overridden](#where-the-mockups-are-overridden)). Their numbers are illustrative, not engine output.
+
+#### Look and feel
+
+From the mockups, for every screen:
+
+*   **Type:** Inter for text (14 px body, 12 px labels and notes), Space Grotesk 600 for the app name and page titles. The fonts are bundled with the app (the security policy blocks font services).
+*   **Colours:** page `#F6F5F2`; cards and bars white with `#E3E1DC` borders; text `#1C1C1A`, labels `#5C5A55`, notes `#6B6964`; input borders `#CFCCC5`; links `#1D4ED8`; rule strips and quiet panels `#F3F2EE`; the tax-year chip `#EAF0FB` on `#1E3A8A`; the Results badge `#FDF3E1` on `#7A4100`; primary buttons `#1C1C1A` with white text.
+*   **Shapes:** cards with 12 px corners and 20–24 px padding; inputs and buttons 8 px corners and at least 40 px tall; pill-shaped segmented choices on `#F3F2EE` with the chosen one white and bold; the chosen strategy card has a 2 px near-black border.
+*   **Layout:** a white header (app name, the household's names, the tax-year chip, then Load sample plan, Import, Export and Settings as bordered buttons) and a white tab bar whose current tab is underlined in near-black and bold; content in a centred column up to 1280 px; fields in pairs on a two-column grid; the disclaimer in a white footer.
+*   **Asset-class colours:** Canadian `#1E40AF`, U.S. `#3B6FD8`, international `#7FA3EA`, emerging `#B9CDF4`, bonds `#0F766E`, cash `#A8A59C`. **Income sources:** work `#C9C6BE`, workplace pension `#7C3AED`, CPP `#0F766E`, OAS `#5EBFB3`, RRSP/RRIF/LIF `#1E40AF`, non-registered `#D97706`, TFSA `#16A34A`.
+
+#### Where the mockups are overridden
+
+Later decisions win over the mockups: "Let the planner pick" (its card and its options row) is cut; the after-tax stock-share figure in the placement comparison is cut; the spouse's death age is labelled "Life expectancy target", not "Plan to age"; the screens say "the same return every year", not "steady average returns"; the fee levels show their values (0.20%, 0.60%, 2.00%), not "[fee]"; the LIF maximum table is the FSRA table now in the config; the warnings on Results arrive in stage 6, and Load sample plan, Import, Export and the saving and import messages in stage 7. The mockups' "[Mockup: …]" notes are not part of the app.
 
 **Defaults shown where they apply.** A rule value that matters to a screen is shown on that screen as a grey strip with the value and an "Edit" link to Settings (for example the CPP and OAS adjustment rates under the start ages, the TFSA yearly limit under Accounts, the bracket and clawback thresholds beside the Fill lower brackets levels, the probate rate on Estate).
 
@@ -1241,6 +1257,7 @@ The second full review (2026-11-19) was triaged with the author on 2026-11-24; i
 |---|---|---|
 | M1 | `NormalizedInputs`, the engine state, the `YearRow` fields, the reference CSV columns and the `Result` contract are defined in [Data contracts](#data-contracts). Still open: the `warningFacts` content and the `Warning` type | Stage 6 |
 | B5-1 | The Config contract says fee levels can be changed in Settings, but only single-value (`number`) keys can be overridden, and `planning.fee_levels` is one structured value, so Settings shows it read-only. The Custom fee covers other fees. Decide: split it into three number keys, or keep it read-only and change the contract's wording | Stage 7 |
+| B5-2 | The stage 5 screens were built without the mockups and do not match them in look or in parts of their content. Every difference is listed in [mockup-gaps.md](../reviews/2026-11-24/mockup-gaps.md) | `stage-5` tag |
 | SR-4 | Open question O20 (O24, O27 and O28 resolved 2026-11-24; O31 withdrawn) | Before the URL is shared beyond testers |
 
 The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`); stages 0 to 3 are done. The working rules for agents (whole-function rewrites, protected files, units) are in [file 13](#13-agentsmd-and-claudemd-exists-stage-0), `AGENTS.md`.

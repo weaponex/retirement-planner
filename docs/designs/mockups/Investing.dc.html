@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Savings tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F2}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #1C1C1A; font-size: 14px; background: #F6F5F2; min-height: 1500px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<span style="font-family: 'Space Grotesk', Inter, sans-serif; font-weight: 600; font-size: 18px">Retirement planner</span>
+<span style="font-size: 13px; color: #5C5A55">Sample couple: Alex and Sam</span>
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 999px; background: #EAF0FB; color: #1E3A8A">Tax year 2026 · default values</span>
+<span style="flex-grow: 1"></span>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Import</button>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Export</button>
+<a href="Settings.dc.html" style="font-size: 13px; padding: 9px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; color: #1C1C1A; text-decoration: none">Settings</a>
+</header>
+
+<nav aria-label="Plan sections" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<a href="Main.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Household</a>
+<a href="Investing.dc.html" style="padding: 12px 14px; color: #1C1C1A; text-decoration: none; border-bottom: 2px solid #1C1C1A; font-weight: 600">Savings</a>
+<a href="Spending.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Spending</a>
+<a href="Withdrawals.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Withdrawals</a>
+<a href="Estate.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Estate</a>
+<a href="Results.dc.html" aria-label="Results, 2 warnings" style="padding: 12px 14px; color: #55534E; text-decoration: none; display: inline-flex; align-items: center; gap: 6px">Results<span style="font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: #FDF3E1; color: #7A4100">2</span></a>
+</nav>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; max-width: 1280px; margin: 0 auto; box-sizing: border-box">
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+<p style="margin: 0; font-size: 13px; color: #5C5A55">Open a section to change it. The line beside each title sums up what's inside.</p>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; overflow: hidden">
+<button onClick="{{ t_acc }}" aria-expanded="{{ o_acc }}" style="font: inherit; color: inherit; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 16px 20px; border: none; background: #FFFFFF; text-align: left; min-height: 60px; cursor: pointer">
+<span aria-hidden="true" style="width: 16px; color: #5C5A55">{{ c_acc }}</span>
+<span style="font-size: 17px; font-weight: 600; margin-right: 8px">Accounts</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1 1 300px"><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap"><b style="font-weight: 600">$1,195,000</b> in 6 accounts</span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">RRSP $750k · TFSA $190k · Non-registered $160k · LIRA $95k</span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">Saving $32,000 a year</span></span>
+<span style="font-size: 13px; color: #1D4ED8">{{ l_acc }}</span>
+</button>
+<sc-if value="{{ o_acc }}" hint-placeholder-val="{{ false }}">
+<div style="padding: 4px 24px 24px 48px; display: flex; flex-direction: column; gap: 20px; border-top: 1px solid #EFEDE8">
+<div style="height: 0"></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; justify-content: flex-end">
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Add account</button>
+</div>
+<p style="margin: 0 0 12px; font-size: 13px; color: #5C5A55">Balances in today's dollars. How the money is invested is set below.</p>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 760px">
+<thead><tr style="text-align: left; color: #5C5A55; border-bottom: 1px solid #E3E1DC">
+<th style="padding: 8px 6px; font-weight: 500">Type</th><th style="padding: 8px 6px; font-weight: 500">Owner</th><th style="padding: 8px 6px; font-weight: 500; text-align: right">Balance</th><th style="padding: 8px 6px; font-weight: 500; text-align: right">Yearly saving</th><th style="padding: 8px 6px; font-weight: 500">Details</th><th style="padding: 8px 6px"></th>
+</tr></thead>
+<tbody>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 10px 6px">RRSP</td><td style="padding: 10px 6px">Alex</td><td style="padding: 10px 6px; text-align: right">$540,000</td><td style="padding: 10px 6px; text-align: right">$12,000</td><td style="padding: 10px 6px">Becomes a RRIF at 71</td><td style="padding: 10px 6px"><a href="#">Edit</a></td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 10px 6px">RRSP</td><td style="padding: 10px 6px">Sam</td><td style="padding: 10px 6px; text-align: right">$210,000</td><td style="padding: 10px 6px; text-align: right">$6,000</td><td style="padding: 10px 6px">Becomes a RRIF at 71</td><td style="padding: 10px 6px"><a href="#">Edit</a></td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 10px 6px">LIRA</td><td style="padding: 10px 6px">Alex</td><td style="padding: 10px 6px; text-align: right">$95,000</td><td style="padding: 10px 6px; text-align: right">$0</td><td style="padding: 10px 6px">Becomes a LIF at 65 · unlock 50%: yes</td><td style="padding: 10px 6px"><a href="#">Edit</a></td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 10px 6px">TFSA</td><td style="padding: 10px 6px">Alex</td><td style="padding: 10px 6px; text-align: right">$102,000</td><td style="padding: 10px 6px; text-align: right">$7,000</td><td style="padding: 10px 6px">Unused room today $0</td><td style="padding: 10px 6px"><a href="#">Edit</a></td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 10px 6px">TFSA</td><td style="padding: 10px 6px">Sam</td><td style="padding: 10px 6px; text-align: right">$88,000</td><td style="padding: 10px 6px; text-align: right">$7,000</td><td style="padding: 10px 6px">Unused room today $14,500</td><td style="padding: 10px 6px"><a href="#">Edit</a></td></tr>
+<tr><td style="padding: 10px 6px">Non-registered</td><td style="padding: 10px 6px">Sam</td><td style="padding: 10px 6px; text-align: right">$160,000</td><td style="padding: 10px 6px; text-align: right">$0</td><td style="padding: 10px 6px">Original cost $121,000 (by asset class)</td><td style="padding: 10px 6px"><a href="#">Edit</a></td></tr>
+</tbody>
+</table>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #F3F2EE; border-radius: 8px; padding: 10px 12px; font-size: 13px; margin-top: 14px">
+<span>New TFSA room each year: <b style="font-weight: 600">$7,000</b> (2026)</span>
+<a href="Settings.dc.html" style="margin-left: auto">Edit</a>
+</div>
+</div>
+</sc-if>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; overflow: hidden">
+<button onClick="{{ t_pen }}" aria-expanded="{{ o_pen }}" style="font: inherit; color: inherit; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 16px 20px; border: none; background: #FFFFFF; text-align: left; min-height: 60px; cursor: pointer">
+<span aria-hidden="true" style="width: 16px; color: #5C5A55">{{ c_pen }}</span>
+<span style="font-size: 17px; font-weight: 600; margin-right: 8px">Workplace pensions</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1 1 300px"><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">Sam: <b style="font-weight: 600">$24,000</b> a year from 64</span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">Bridge $4,200 to 65</span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">60% to survivor</span></span>
+<span style="font-size: 13px; color: #1D4ED8">{{ l_pen }}</span>
+</button>
+<sc-if value="{{ o_pen }}" hint-placeholder-val="{{ false }}">
+<div style="padding: 4px 24px 24px 48px; display: flex; flex-direction: column; gap: 20px; border-top: 1px solid #EFEDE8">
+<div style="height: 0"></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; justify-content: flex-end">
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Add pension</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="dbo">Owner</label><select id="dbo" style="font: inherit; width: 100%; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px; background: #FFFFFF"><option>Sam</option></select></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="dba">Yearly pension</label><input id="dba" value="$24,000" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="dbs">Starts at age</label><input id="dbs" value="64" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="dbb">Bridge until 65</label><input id="dbb" value="$4,200" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="dbi">Indexing</label><select id="dbi" style="font: inherit; width: 100%; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px; background: #FFFFFF"><option>Fixed 2% a year</option></select></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="dbsv">Survivor gets</label><input id="dbsv" value="60%" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+</div>
+</div>
+</sc-if>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; overflow: hidden">
+<button onClick="{{ t_mix }}" aria-expanded="{{ o_mix }}" style="font: inherit; color: inherit; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 16px 20px; border: none; background: #FFFFFF; text-align: left; min-height: 60px; cursor: pointer">
+<span aria-hidden="true" style="width: 16px; color: #5C5A55">{{ c_mix }}</span>
+<span style="font-size: 17px; font-weight: 600; margin-right: 8px">Your investment mix</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1 1 300px"><span aria-hidden="true" style="display: inline-flex; width: 96px; height: 10px; border-radius: 4px; overflow: hidden; background: #EFEDE8"><sc-for list="{{ segments }}" as="seg" hint-placeholder-count="6"><span style="display: block; width: {{ seg.width }}; background: {{ seg.color }}"></span></sc-for></span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">Stocks {{ stocksPct }} · Bonds {{ bondsPct }} · Cash {{ cashPct }}</span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #EAF0FB; color: #1E3A8A; white-space: nowrap"><b style="font-weight: 600">{{ expected }}</b> a year before fees</span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">Fees [fee]</span></span>
+<span style="font-size: 13px; color: #1D4ED8">{{ l_mix }}</span>
+</button>
+<sc-if value="{{ o_mix }}" hint-placeholder-val="{{ true }}">
+<div style="padding: 4px 24px 24px 48px; display: flex; flex-direction: column; gap: 20px; border-top: 1px solid #EFEDE8">
+<div style="height: 0"></div>
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+<div style="flex: 999 1 320px">
+<p style="margin: 0; font-size: 13px; color: #5C5A55">How your savings are invested today, across all the accounts above. Move one slider and the others adjust to keep the total at 100%. Anything set to 0% stays at 0%.</p>
+</div>
+<div role="radiogroup" aria-label="Start from" style="display: flex; flex-wrap: wrap; gap: 4px; background: #F3F2EE; border-radius: 999px; padding: 4px">
+<label style="font-size: 13px; padding: 6px 12px; border-radius: 999px; display: flex; gap: 6px; align-items: center"><input type="radio" name="tpl"> Conservative</label>
+<label style="font-size: 13px; padding: 6px 12px; border-radius: 999px; background: #FFFFFF; display: flex; gap: 6px; align-items: center; font-weight: 600"><input type="radio" name="tpl" checked> Balanced</label>
+<label style="font-size: 13px; padding: 6px 12px; border-radius: 999px; display: flex; gap: 6px; align-items: center"><input type="radio" name="tpl"> Growth</label>
+<label style="font-size: 13px; padding: 6px 12px; border-radius: 999px; display: flex; gap: 6px; align-items: center"><input type="radio" name="tpl"> Custom</label>
+</div>
+</div>
+
+<div>
+<div role="img" aria-label="{{ barLabel }}" style="display: flex; height: 40px; border-radius: 10px; overflow: hidden; background: #EFEDE8">
+<sc-for list="{{ segments }}" as="seg" hint-placeholder-count="6">
+<div style="width: {{ seg.width }}; background: {{ seg.color }}; transition: width 120ms ease-out"></div>
+</sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: #3F3D39; margin-top: 6px">
+<span>Stocks {{ stocksPct }}</span><span>Bonds {{ bondsPct }}</span><span>Cash {{ cashPct }}</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 2fr) 120px; gap: 12px; padding: 0 6px 8px; font-size: 12px; color: #5C5A55; border-bottom: 1px solid #E3E1DC">
+<span>Asset class</span><span>Share</span><span>Expected return</span>
+</div>
+<p style="margin: 12px 6px 4px; font-size: 12px; font-weight: 600; color: #1E40AF">Stocks</p>
+<sc-for list="{{ stockRows }}" as="row" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 2fr) 120px; gap: 12px; align-items: center; padding: 6px; border-bottom: 1px solid #EFEDE8">
+<span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{ row.color }}"></span>{{ row.name }}</span>
+<div style="display: flex; align-items: center; gap: 10px">
+<input type="range" min="0" max="100" step="1" value="{{ row.share }}" onChange="{{ row.onShare }}" aria-label="{{ row.sliderLabel }}" style="flex: 1; min-width: 100px; accent-color: {{ row.accent }}">
+<span style="display: inline-flex; align-items: center; gap: 4px"><input type="number" min="0" max="100" step="1" value="{{ row.share }}" onChange="{{ row.onShare }}" aria-label="{{ row.fieldLabel }}" style="font: inherit; width: 60px; padding: 6px 8px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 36px; text-align: right"><span style="color: #5C5A55">%</span></span>
+</div>
+<span style="display: inline-flex; align-items: center; gap: 4px"><input type="number" min="0" max="20" step="0.1" value="{{ row.ret }}" onChange="{{ row.onRet }}" aria-label="{{ row.retLabel }}" style="font: inherit; width: 64px; padding: 6px 8px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 36px; text-align: right"><span style="color: #5C5A55">%</span></span>
+</div>
+</sc-for>
+<p style="margin: 14px 6px 4px; font-size: 12px; font-weight: 600; color: #0F766E">Bonds and cash</p>
+<sc-for list="{{ otherRows }}" as="row" hint-placeholder-count="2">
+<div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 2fr) 120px; gap: 12px; align-items: center; padding: 6px; border-bottom: 1px solid #EFEDE8">
+<span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{ row.color }}"></span>{{ row.name }}</span>
+<div style="display: flex; align-items: center; gap: 10px">
+<input type="range" min="0" max="100" step="1" value="{{ row.share }}" onChange="{{ row.onShare }}" aria-label="{{ row.sliderLabel }}" style="flex: 1; min-width: 100px; accent-color: {{ row.accent }}">
+<span style="display: inline-flex; align-items: center; gap: 4px"><input type="number" min="0" max="100" step="1" value="{{ row.share }}" onChange="{{ row.onShare }}" aria-label="{{ row.fieldLabel }}" style="font: inherit; width: 60px; padding: 6px 8px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 36px; text-align: right"><span style="color: #5C5A55">%</span></span>
+</div>
+<span style="display: inline-flex; align-items: center; gap: 4px"><input type="number" min="0" max="20" step="0.1" value="{{ row.ret }}" onChange="{{ row.onRet }}" aria-label="{{ row.retLabel }}" style="font: inherit; width: 64px; padding: 6px 8px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 36px; text-align: right"><span style="color: #5C5A55">%</span></span>
+</div>
+</sc-for>
+<p style="margin: 8px 6px 0; font-size: 12px; color: #6B6964">Expected returns default to FP Canada's 2026 long-term averages, before fees.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px">
+<div style="background: #F3F2EE; border-radius: 10px; padding: 14px"><p style="margin: 0; font-size: 12px; color: #5C5A55">Total</p><p style="margin: 2px 0 0; font-size: 20px; font-weight: 600">{{ totalPct }}</p></div>
+<div style="background: #F3F2EE; border-radius: 10px; padding: 14px"><p style="margin: 0; font-size: 12px; color: #5C5A55">Expected return, before fees</p><p style="margin: 2px 0 0; font-size: 20px; font-weight: 600">{{ expected }} a year</p></div>
+<div style="background: #F3F2EE; border-radius: 10px; padding: 14px"><p style="margin: 0; font-size: 12px; color: #5C5A55">After fees</p><p style="margin: 2px 0 0; font-size: 20px; font-weight: 600">{{ expected }} − [fee]</p></div>
+<div style="background: #F3F2EE; border-radius: 10px; padding: 14px"><p style="margin: 0; font-size: 12px; color: #5C5A55">Inflation</p><p style="margin: 2px 0 0; font-size: 20px; font-weight: 600">2.1% <a href="Settings.dc.html" style="font-size: 13px; font-weight: 400">Edit</a></p></div>
+</div>
+
+<div style="border: 1px solid #E3E1DC; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px"><p style="margin: 0; font-weight: 600">Yearly fees</p><p style="margin: 0; font-size: 13px; color: #5C5A55">What you pay in fund fees and advice, as a share of your savings. Fees compound like returns, so this matters.</p></div>
+<div role="radiogroup" aria-label="Yearly fees" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<label style="font-size: 13px; padding: 8px 12px; border: 2px solid #1C1C1A; border-radius: 999px; display: flex; gap: 6px; align-items: center; font-weight: 600"><input type="radio" name="fee" checked> Index ETFs · [fee]</label>
+<label style="font-size: 13px; padding: 8px 12px; border: 1px solid #CFCCC5; border-radius: 999px; display: flex; gap: 6px; align-items: center"><input type="radio" name="fee"> Robo-advisor · [fee]</label>
+<label style="font-size: 13px; padding: 8px 12px; border: 1px solid #CFCCC5; border-radius: 999px; display: flex; gap: 6px; align-items: center"><input type="radio" name="fee"> Mutual funds with an advisor · [fee]</label>
+<label style="font-size: 13px; padding: 8px 12px; border: 1px solid #CFCCC5; border-radius: 999px; display: flex; gap: 6px; align-items: center"><input type="radio" name="fee"> Custom</label>
+</div>
+<p style="margin: 0; font-size: 12px; color: #6B6964">Applied to all your investments. The values behind each choice are set in <a href="Settings.dc.html">Settings</a>.</p>
+</div>
+
+<label style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: #3F3D39"><input type="checkbox" checked style="margin-top: 2px"><span><b style="font-weight: 600">Rebalance once a year</b> back to this mix. Without it, the mix drifts toward whatever grew fastest.</span></label>
+</div>
+</sc-if>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; overflow: hidden">
+<button onClick="{{ t_age }}" aria-expanded="{{ o_age }}" style="font: inherit; color: inherit; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 16px 20px; border: none; background: #FFFFFF; text-align: left; min-height: 60px; cursor: pointer">
+<span aria-hidden="true" style="width: 16px; color: #5C5A55">{{ c_age }}</span>
+<span style="font-size: 17px; font-weight: 600; margin-right: 8px">As you get older</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1 1 300px"><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap"><b style="font-weight: 600">Keep my mix</b></span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap">Same stock share every year</span></span>
+<span style="font-size: 13px; color: #1D4ED8">{{ l_age }}</span>
+</button>
+<sc-if value="{{ o_age }}" hint-placeholder-val="{{ false }}">
+<div style="padding: 4px 24px 24px 48px; display: flex; flex-direction: column; gap: 20px; border-top: 1px solid #EFEDE8">
+<div style="height: 0"></div>
+<p style="margin: 0 0 16px; font-size: 13px; color: #5C5A55">Whether your stock share stays the same or shifts toward bonds over time.</p>
+<div role="radiogroup" aria-label="Mix over time" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+<label style="border: 2px solid #1C1C1A; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+<svg viewBox="0 0 160 48" width="100%" height="48" role="img" aria-label="Flat line"><line x1="0" y1="44" x2="160" y2="44" stroke="#E3E1DC" stroke-width="1"></line><line x1="70" y1="0" x2="70" y2="48" stroke="#CFCCC5" stroke-dasharray="3 3" stroke-width="1"></line><polyline points="0,18 160,18" fill="none" stroke="#1E40AF" stroke-width="3" stroke-linecap="round"></polyline></svg>
+<span style="display: flex; gap: 8px; align-items: center; font-weight: 600"><input type="radio" name="shape" checked> Keep my mix</span>
+<span style="font-size: 13px; color: #5C5A55">Same stock share every year.</span>
+</label>
+<label style="border: 1px solid #CFCCC5; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+<svg viewBox="0 0 160 48" width="100%" height="48" role="img" aria-label="Line sloping down"><line x1="0" y1="44" x2="160" y2="44" stroke="#E3E1DC" stroke-width="1"></line><line x1="70" y1="0" x2="70" y2="48" stroke="#CFCCC5" stroke-dasharray="3 3" stroke-width="1"></line><polyline points="0,10 70,22 140,30 160,30" fill="none" stroke="#1E40AF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+<span style="display: flex; gap: 8px; align-items: center; font-weight: 600"><input type="radio" name="shape"> Get safer gradually</span>
+<span style="font-size: 13px; color: #5C5A55">Less in stocks each year, leveling off 15 years after retiring.</span>
+</label>
+<label style="border: 1px solid #CFCCC5; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+<svg viewBox="0 0 160 48" width="100%" height="48" role="img" aria-label="Line dipping then rising"><line x1="0" y1="44" x2="160" y2="44" stroke="#E3E1DC" stroke-width="1"></line><line x1="70" y1="0" x2="70" y2="48" stroke="#CFCCC5" stroke-dasharray="3 3" stroke-width="1"></line><polyline points="0,18 40,18 70,30 140,18 160,18" fill="none" stroke="#1E40AF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+<span style="display: flex; gap: 8px; align-items: center; font-weight: 600"><input type="radio" name="shape"> Safer around retirement</span>
+<span style="font-size: 13px; color: #5C5A55">Dip toward bonds near retirement, then back to your mix.</span>
+</label>
+</div>
+<p style="margin: 12px 0 0; font-size: 12px; color: #6B6964">Dashed line: your first retirement. Returns are steady averages, so a safer path shows its lower return but not its protection in a bad market.</p>
+</div>
+</sc-if>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; overflow: hidden">
+<button onClick="{{ t_plc }}" aria-expanded="{{ o_plc }}" style="font: inherit; color: inherit; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 16px 20px; border: none; background: #FFFFFF; text-align: left; min-height: 60px; cursor: pointer">
+<span aria-hidden="true" style="width: 16px; color: #5C5A55">{{ c_plc }}</span>
+<span style="font-size: 17px; font-weight: 600; margin-right: 8px">Which account holds what</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1 1 300px"><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #F3F2EE; color: #3F3D39; white-space: nowrap"><b style="font-weight: 600">Bonds sheltered first</b></span><span style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #ECF6F3; color: #0B4F49; white-space: nowrap">$58,000 more left after tax</span></span>
+<span style="font-size: 13px; color: #1D4ED8">{{ l_plc }}</span>
+</button>
+<sc-if value="{{ o_plc }}" hint-placeholder-val="{{ false }}">
+<div style="padding: 4px 24px 24px 48px; display: flex; flex-direction: column; gap: 20px; border-top: 1px solid #EFEDE8">
+<div style="height: 0"></div>
+<p style="margin: 0 0 16px; font-size: 13px; color: #5C5A55">Same mix overall, placed where it's taxed least.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch">
+<div role="radiogroup" aria-label="Placement" style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 8px">
+<label style="border: 2px solid #1C1C1A; border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start"><input type="radio" name="preset" checked style="margin-top: 3px"><span><b style="font-weight: 600">Bonds sheltered first</b><br><span style="font-size: 13px; color: #5C5A55">Bonds in RRSP/RRIF, global stocks in TFSA, Canadian stocks outside.</span></span></label>
+<label style="border: 1px solid #CFCCC5; border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start"><input type="radio" name="preset" style="margin-top: 3px"><span><b style="font-weight: 600">Growth tax-free first</b><br><span style="font-size: 13px; color: #5C5A55">Fastest growers in TFSA, bonds in RRSP/RRIF.</span></span></label>
+</div>
+<div style="flex: 1 1 260px; background: #ECF6F3; border-radius: 10px; padding: 16px; color: #0B4F49; display: flex; flex-direction: column; gap: 6px">
+<p style="margin: 0; font-size: 12px">Compared with the same mix in every account</p>
+<p style="margin: 0; font-size: 20px; font-weight: 600">$58,000 more left after tax</p>
+<p style="margin: 0; font-size: 13px">$41,000 less lifetime tax · stock share after tax 64% vs 60%</p>
+<a href="#" style="font-size: 13px; color: #0B4F49">Why</a>
+</div>
+</div>
+</div>
+</sc-if>
+</section>
+
+</main>
+</div>
+
+<footer style="padding: 16px 24px; color: #6B6964; font-size: 12px; border-top: 1px solid #E3E1DC; background: #FFFFFF">This tool shows projections under the assumptions you enter. It is not financial, tax or legal advice. [Final wording pending]</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+var ASSETS = [
+  { id: 'cad', name: 'Canadian', group: 'stocks', color: '#1E40AF', accent: '#1E40AF', ret: 6.3, share: 20 },
+  { id: 'us', name: 'U.S.', group: 'stocks', color: '#3B6FD8', accent: '#3B6FD8', ret: 6.4, share: 25 },
+  { id: 'intl', name: 'International developed', group: 'stocks', color: '#7FA3EA', accent: '#5B86E0', ret: 6.6, share: 10 },
+  { id: 'em', name: 'Emerging markets', group: 'stocks', color: '#B9CDF4', accent: '#7FA3EA', ret: 7.5, share: 5 },
+  { id: 'bonds', name: 'Bonds', group: 'bonds', color: '#0F766E', accent: '#0F766E', ret: 3.2, share: 35 },
+  { id: 'cash', name: 'Cash and GICs', group: 'cash', color: '#A8A59C', accent: '#8A877E', ret: 2.4, share: 5 }
+];
+
+function defaults(key) {
+  var o = {};
+  ASSETS.forEach(function (a) { o[a.id] = a[key]; });
+  return o;
+}
+
+class Component extends DCLogic {
+  put(p) { this.setState(Object.assign({}, this.state || {}, p)); }
+  opens() { return (this.state && this.state.open) || { mix: true }; }
+  toggle(k) { var o = Object.assign({}, this.opens()); o[k] = !o[k]; this.put({ open: o }); }
+  shares() { return (this.state && this.state.shares) || defaults('share'); }
+  rets() { return (this.state && this.state.rets) || defaults('ret'); }
+
+  setShare(id, raw) {
+    var v = Math.round(Number(raw));
+    if (!isFinite(v)) return;
+    v = Math.max(0, Math.min(100, v));
+    var s = Object.assign({}, this.shares());
+    var old = s[id];
+    if (v === old) return;
+    var others = ASSETS.map(function (a) { return a.id; }).filter(function (k) { return k !== id && s[k] > 0; });
+    if (others.length === 0) return;
+    var room = others.reduce(function (t, k) { return t + s[k]; }, 0);
+    if (v - old > room) v = old + room;
+    var delta = v - old;
+    var target = room - delta;
+    var parts = others.map(function (k) {
+      var exact = s[k] * target / room;
+      return { k: k, floor: Math.floor(exact), frac: exact - Math.floor(exact) };
+    });
+    var left = target - parts.reduce(function (t, p) { return t + p.floor; }, 0);
+    parts.sort(function (a, b) { return b.frac - a.frac; });
+    parts.forEach(function (p, i) { s[p.k] = p.floor + (i < left ? 1 : 0); });
+    s[id] = v;
+    this.put({ shares: s });
+  }
+
+  setRet(id, raw) {
+    var r = Object.assign({}, this.rets());
+    r[id] = raw;
+    this.put({ rets: r });
+  }
+
+  renderVals() {
+    var self = this;
+    var s = this.shares();
+    var r = this.rets();
+    var rows = ASSETS.map(function (a) {
+      return {
+        name: a.name, color: a.color, accent: a.accent, group: a.group,
+        share: s[a.id], ret: r[a.id],
+        sliderLabel: a.name + ' share slider', fieldLabel: a.name + ' share, percent', retLabel: a.name + ' expected return, percent',
+        onShare: function (e) { self.setShare(a.id, e.target.value); },
+        onRet: function (e) { self.setRet(a.id, e.target.value); }
+      };
+    });
+    var sum = function (g) { return ASSETS.filter(function (a) { return a.group === g; }).reduce(function (t, a) { return t + s[a.id]; }, 0); };
+    var total = ASSETS.reduce(function (t, a) { return t + s[a.id]; }, 0);
+    var exp = ASSETS.reduce(function (t, a) { var x = parseFloat(r[a.id]); return t + (isFinite(x) ? x : 0) * s[a.id] / 100; }, 0);
+    var op = this.opens(), tog = {};
+    ['acc', 'pen', 'mix', 'age', 'plc'].forEach(function (k) {
+      tog['o_' + k] = !!op[k];
+      tog['c_' + k] = op[k] ? '▾' : '▸';
+      tog['l_' + k] = op[k] ? 'Close' : 'Open';
+      tog['t_' + k] = function () { self.toggle(k); };
+    });
+    return Object.assign(tog, {
+      stockRows: rows.filter(function (x) { return x.group === 'stocks'; }),
+      otherRows: rows.filter(function (x) { return x.group !== 'stocks'; }),
+      segments: ASSETS.map(function (a) { return { width: s[a.id] + '%', color: a.color }; }),
+      stocksPct: sum('stocks') + '%', bondsPct: sum('bonds') + '%', cashPct: sum('cash') + '%',
+      barLabel: 'Mix: stocks ' + sum('stocks') + ' percent, bonds ' + sum('bonds') + ' percent, cash ' + sum('cash') + ' percent',
+      totalPct: total + '%',
+      expected: exp.toFixed(1) + '%'
+    });
+  }
+}
+</script>
+</body>
+</html>

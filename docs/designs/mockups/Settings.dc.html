@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings: tax and benefit rules</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F2}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #1C1C1A; font-size: 14px; background: #F6F5F2; min-height: 1500px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<span style="font-family: 'Space Grotesk', Inter, sans-serif; font-weight: 600; font-size: 18px">Retirement planner</span>
+<span style="font-size: 13px; color: #5C5A55">Settings</span>
+<span style="flex-grow: 1"></span>
+<a href="Main.dc.html" style="font-size: 13px; padding: 9px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; color: #1C1C1A; text-decoration: none">Back to plan</a>
+</header>
+
+<div style="max-width: 1100px; margin: 0 auto; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px">
+<div style="flex: 999 1 420px; min-width: 0">
+<h1 style="margin: 0 0 6px; font-size: 22px; font-weight: 600">Tax and benefit rules</h1>
+<p style="margin: 0; font-size: 13px; color: #5C5A55">These start at 2026 values from CRA, Service Canada and Ontario. Change any of them to try a different assumption; your changes are saved with your plan. In later years, amounts marked "grows with inflation" rise at your inflation rate.</p>
+</div>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Reset all to 2026 defaults</button>
+</div>
+
+<p style="margin: 0; background: #FDF3E1; color: #5B3300; border-radius: 10px; padding: 12px 14px; font-size: 13px">You've changed 1 value from its default: OAS clawback threshold. <a href="#" style="color: #5B3300">Reset it</a></p>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 20px">
+<h2 style="margin: 0 0 12px; font-size: 16px; font-weight: 600">Income tax</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px">
+<div>
+<p style="margin: 0 0 6px; font-weight: 600; font-size: 13px">Federal brackets</p>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<thead><tr style="color: #5C5A55; text-align: left; border-bottom: 1px solid #E3E1DC"><th style="padding: 6px; font-weight: 500">Income from</th><th style="padding: 6px; font-weight: 500">Rate</th></tr></thead>
+<tbody>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">$0</td><td style="padding: 6px">14%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">$58,523</td><td style="padding: 6px">20.5%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">$117,045</td><td style="padding: 6px">26%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">$181,440</td><td style="padding: 6px">29%</td></tr>
+<tr><td style="padding: 6px">$258,482</td><td style="padding: 6px">33%</td></tr>
+</tbody>
+</table>
+</div>
+<div>
+<p style="margin: 0 0 6px; font-weight: 600; font-size: 13px">Ontario brackets</p>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<thead><tr style="color: #5C5A55; text-align: left; border-bottom: 1px solid #E3E1DC"><th style="padding: 6px; font-weight: 500">Income from</th><th style="padding: 6px; font-weight: 500">Rate</th></tr></thead>
+<tbody>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">$0</td><td style="padding: 6px">5.05%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">$53,891</td><td style="padding: 6px">9.15%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">$107,785</td><td style="padding: 6px">11.16%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">$150,000</td><td style="padding: 6px">12.16%</td></tr>
+<tr><td style="padding: 6px">$220,000</td><td style="padding: 6px">13.16%</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<p style="margin: 8px 0 0; font-size: 12px; color: #6B6964">Bracket starts grow with inflation. Click any value to edit it.</p>
+
+<table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 16px">
+<thead><tr style="color: #5C5A55; text-align: left; border-bottom: 1px solid #E3E1DC"><th style="padding: 6px; font-weight: 500">Credit or rule</th><th style="padding: 6px; font-weight: 500">Federal</th><th style="padding: 6px; font-weight: 500">Ontario</th></tr></thead>
+<tbody>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 8px 6px">Basic personal amount</td><td style="padding: 8px 6px">$16,452 <span style="color: #6B6964">(lower at high incomes)</span></td><td style="padding: 8px 6px">$12,989</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 8px 6px">Age amount, from 65</td><td style="padding: 8px 6px">$9,208</td><td style="padding: 8px 6px">$6,342</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 8px 6px">Age amount shrinks above</td><td style="padding: 8px 6px">$46,432, by 15%</td><td style="padding: 8px 6px">$47,210, by 15%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 8px 6px">Pension income amount</td><td style="padding: 8px 6px">$2,000</td><td style="padding: 8px 6px">$1,796</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 8px 6px">Eligible dividends</td><td style="padding: 8px 6px">Grossed up 38%, credit 15.0198%</td><td style="padding: 8px 6px">Credit 10%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 8px 6px">Capital gains taxed</td><td style="padding: 8px 6px">50% of the gain</td><td style="padding: 8px 6px">Same</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 8px 6px">Ontario surtax</td><td style="padding: 8px 6px">—</td><td style="padding: 8px 6px">20% of Ontario tax above $5,818, plus 36% above $7,446</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 8px 6px">Ontario tax reduction</td><td style="padding: 8px 6px">—</td><td style="padding: 8px 6px">Basic amount $300</td></tr>
+<tr><td style="padding: 8px 6px">Ontario Health Premium</td><td style="padding: 8px 6px">—</td><td style="padding: 8px 6px">$0 up to $20,000 income, rising to $900 above $200,600</td></tr>
+</tbody>
+</table>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 20px">
+<h2 style="margin: 0 0 12px; font-size: 16px; font-weight: 600">Old Age Security</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="oasmax">Full pension at 65, per month</label><input id="oasmax" value="$742.31" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"><p style="margin: 4px 0 0; font-size: 12px; color: #6B6964">January 2026 · grows with inflation</p></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="claw">Clawback starts above</label><input id="claw" value="$100,000" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 2px solid #B45309; border-radius: 8px; min-height: 40px"><p style="margin: 4px 0 0; font-size: 12px; color: #8A4B00">Changed · default $95,323</p></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="clr">Clawback rate</label><input id="clr" value="15%" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="def">Increase per month of delay</label><input id="def" value="0.6%, up to 70" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="o75">Increase from age 75</label><input id="o75" value="10%" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="res">Years in Canada for full / any pension</label><input id="res" value="40 / 10" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 20px">
+<h2 style="margin: 0 0 12px; font-size: 16px; font-weight: 600">Canada Pension Plan</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="cppmax">Maximum at 65, per month</label><input id="cppmax" value="$1,507.65" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"><p style="margin: 4px 0 0; font-size: 12px; color: #6B6964">For pensions starting January 2026</p></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="cppe">Earlier start: per month before 65</label><input id="cppe" value="−0.6%, from 60" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="cppl">Later start: per month after 65</label><input id="cppl" value="+0.7%, to 70" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="s65">Survivor 65 or older</label><input id="s65" value="60% of the deceased's CPP" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="su65">Survivor under 65</label><input id="su65" value="$238.17/month + 37.5%" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="scap">Own plus survivor pension capped at</label><input id="scap" value="$1,531.56/month" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 20px">
+<h2 style="margin: 0 0 4px; font-size: 16px; font-weight: 600">Savings assumptions</h2>
+<p style="margin: 0 0 12px; font-size: 13px; color: #5C5A55">Starting values for the Savings tab. Changing them here changes the default; your own entries on the tab still win.</p>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px">
+<div>
+<p style="margin: 0 0 6px; font-weight: 600; font-size: 13px">Expected returns, before fees (FP Canada 2026)</p>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<tbody>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">Canadian stocks</td><td style="padding: 6px">6.3%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">U.S. stocks</td><td style="padding: 6px">6.4%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">International developed stocks</td><td style="padding: 6px">6.6%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">Emerging markets stocks</td><td style="padding: 6px">7.5%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">Bonds</td><td style="padding: 6px">3.2%</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">Cash and GICs</td><td style="padding: 6px">2.4%</td></tr>
+<tr><td style="padding: 6px">Inflation</td><td style="padding: 6px">2.1%</td></tr>
+</tbody>
+</table>
+</div>
+<div>
+<p style="margin: 0 0 6px; font-weight: 600; font-size: 13px">Yearly fee choices</p>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<tbody>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">Index ETFs <span style="color: #6B6964">(default)</span></td><td style="padding: 6px">[fee]</td></tr>
+<tr style="border-bottom: 1px solid #EFEDE8"><td style="padding: 6px">Robo-advisor</td><td style="padding: 6px">[fee]</td></tr>
+<tr><td style="padding: 6px">Mutual funds with an advisor</td><td style="padding: 6px">[fee]</td></tr>
+</tbody>
+</table>
+<p style="margin: 6px 0 0; font-size: 12px; color: #6B6964">Values not chosen yet.</p>
+</div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 20px">
+<h2 style="margin: 0 0 12px; font-size: 16px; font-weight: 600">Accounts and pensions</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="tfsa">New TFSA room each year</label><input id="tfsa" value="$7,000" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="rrif71">RRSP must convert by age</label><input id="rrif71" value="71" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="split">Pension splitting</label><input id="split" value="Up to 50%, RRIF from 65" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+<div><label style="display: block; font-size: 12px; color: #5C5A55; margin-bottom: 4px" for="prob">Ontario probate</label><input id="prob" value="1.5% above $50,000" style="font: inherit; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 40px"></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 16px">
+<div>
+<p style="margin: 0 0 6px; font-weight: 600; font-size: 13px">RRIF and LIF minimum withdrawal</p>
+<p style="margin: 0 0 6px; font-size: 12px; color: #6B6964">Under 71: 1 ÷ (90 − age). From 71:</p>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px 12px; font-size: 13px">
+<span>71 · 5.28%</span><span>72 · 5.40%</span><span>73 · 5.53%</span><span>74 · 5.67%</span><span>75 · 5.82%</span>
+<span>76 · 5.98%</span><span>77 · 6.17%</span><span>78 · 6.36%</span><span>79 · 6.58%</span><span>80 · 6.82%</span>
+<span>81 · 7.08%</span><span>82 · 7.38%</span><span>83 · 7.71%</span><span>84 · 8.08%</span><span>85 · 8.51%</span>
+<span>86 · 8.99%</span><span>87 · 9.55%</span><span>88 · 10.21%</span><span>89 · 10.99%</span><span>90 · 11.92%</span>
+<span>91 · 13.06%</span><span>92 · 14.49%</span><span>93 · 16.34%</span><span>94 · 18.79%</span><span>95+ · 20%</span>
+</div>
+</div>
+<div>
+<p style="margin: 0 0 6px; font-weight: 600; font-size: 13px">LIF maximum withdrawal (Ontario)</p>
+<p style="margin: 0; font-size: 13px; color: #5C5A55">[FSRA table not yet chosen] · 50% one-time unlock when a LIRA becomes a LIF</p>
+</div>
+</div>
+</section>
+</div>
+
+<footer style="padding: 16px 24px; color: #6B6964; font-size: 12px; border-top: 1px solid #E3E1DC; background: #FFFFFF">This tool shows projections under the assumptions you enter. It is not financial, tax or legal advice. [Final wording pending]</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

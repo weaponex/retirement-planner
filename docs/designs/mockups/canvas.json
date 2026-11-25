@@ -1,0 +1,116 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-19T15:00:00Z"
+  },
+  "title": "Retirement planner screens",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 1000,
+      "title": "1. Household tab",
+      "expand": "fill"
+    },
+    "Spending.dc.html": {
+      "x": 2720,
+      "y": 0,
+      "w": 1280,
+      "h": 2100,
+      "title": "3. Spending tab",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Investing.dc.html": {
+      "x": 1360,
+      "y": 0,
+      "w": 1280,
+      "h": 1500,
+      "title": "2. Savings tab",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Estate.dc.html": {
+      "x": 5440,
+      "y": 0,
+      "w": 1280,
+      "h": 1300,
+      "title": "5. Estate tab (survivor and legacy)",
+      "expand": "fill"
+    },
+    "Withdrawals.dc.html": {
+      "x": 4080,
+      "y": 0,
+      "w": 1280,
+      "h": 1500,
+      "title": "4. Withdrawals tab",
+      "expand": "fill"
+    },
+    "Results.dc.html": {
+      "x": 6800,
+      "y": 0,
+      "w": 1280,
+      "h": 1500,
+      "title": "6. Results tab",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Settings.dc.html": {
+      "x": 0,
+      "y": 2220,
+      "w": 1280,
+      "h": 1500,
+      "title": "7. Settings: tax and benefit rules",
+      "expand": "fill"
+    },
+    "FirstRun.dc.html": {
+      "x": 1360,
+      "y": 2220,
+      "w": 1280,
+      "h": 900,
+      "title": "8. First run: empty plan and disclaimer",
+      "expand": "fill"
+    },
+    "States.dc.html": {
+      "x": 2720,
+      "y": 2220,
+      "w": 1280,
+      "h": 900,
+      "title": "9. Updating and error states",
+      "expand": "fill"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Investing.dc.html",
+    "Spending.dc.html",
+    "Withdrawals.dc.html",
+    "Estate.dc.html",
+    "Results.dc.html",
+    "Settings.dc.html",
+    "FirstRun.dc.html",
+    "States.dc.html"
+  ],
+  "notes": {
+    "title": {
+      "x": 0,
+      "y": -300,
+      "text": "Retirement planner: every screen, version 1",
+      "kind": "title1",
+      "maxW": 8080
+    },
+    "about": {
+      "x": 4080,
+      "y": 2220,
+      "w": 520,
+      "fill": "orange",
+      "text": "How to read these\n\n- Sample couple Alex and Sam is made up. Result numbers are illustrative, not engine output.\n- Rule values shown are the 2026 defaults read from official pages on 2026-11-17. Each can be edited where it is shown or in Settings.\n- [Brackets] mark values not yet chosen.\n- Results are their own tab, last in the row. The badge on it counts warnings.\n- Everything recalculates as you edit; there is no Recalculate button.\n\nComment anywhere to correct or ask."
+    }
+  }
+}

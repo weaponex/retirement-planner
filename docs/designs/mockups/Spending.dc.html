@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spending tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F2}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #1C1C1A; font-size: 14px; background: #F6F5F2; min-height: 2100px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<span style="font-family: 'Space Grotesk', Inter, sans-serif; font-weight: 600; font-size: 18px">Retirement planner</span>
+<span style="font-size: 13px; color: #5C5A55">Sample couple: Alex and Sam</span>
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 999px; background: #EAF0FB; color: #1E3A8A">Tax year 2026 · default values</span>
+<span style="flex-grow: 1"></span>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Import</button>
+<button style="font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; min-height: 40px">Export</button>
+<a href="Settings.dc.html" style="font-size: 13px; padding: 9px 14px; border: 1px solid #CFCCC5; border-radius: 8px; background: #FFFFFF; color: #1C1C1A; text-decoration: none">Settings</a>
+</header>
+
+<nav aria-label="Plan sections" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0 24px; background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<a href="Main.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Household</a>
+<a href="Investing.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Savings</a>
+<a href="Spending.dc.html" style="padding: 12px 14px; color: #1C1C1A; text-decoration: none; border-bottom: 2px solid #1C1C1A; font-weight: 600">Spending</a>
+<a href="Withdrawals.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Withdrawals</a>
+<a href="Estate.dc.html" style="padding: 12px 14px; color: #55534E; text-decoration: none">Estate</a>
+<a href="Results.dc.html" aria-label="Results, 2 warnings" style="padding: 12px 14px; color: #55534E; text-decoration: none; display: inline-flex; align-items: center; gap: 6px">Results<span style="font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: #FDF3E1; color: #7A4100">2</span></a>
+</nav>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; max-width: 1280px; margin: 0 auto; box-sizing: border-box">
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+<section style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+<div style="flex: 999 1 320px">
+<h2 style="margin: 0 0 4px; font-size: 18px; font-weight: 600">Monthly spending, after tax</h2>
+<p style="margin: 0; font-size: 13px; color: #5C5A55">What you'd spend in a typical month early in retirement, in today's dollars. Later stages are worked out from this.</p>
+</div>
+<div role="radiogroup" aria-label="How to enter spending" style="display: flex; gap: 4px; background: #F3F2EE; border-radius: 999px; padding: 4px">
+<button role="radio" aria-checked="{{ isCat }}" onClick="{{ setCat }}" style="font: inherit; font-size: 13px; padding: 6px 14px; border: none; border-radius: 999px; background: {{ catBg }}; font-weight: {{ catWeight }}; min-height: 32px">By category</button>
+<button role="radio" aria-checked="{{ isTotal }}" onClick="{{ setTotal }}" style="font: inherit; font-size: 13px; padding: 6px 14px; border: none; border-radius: 999px; background: {{ totalBg }}; font-weight: {{ totalWeight }}; min-height: 32px">One total</button>
+</div>
+</div>
+
+<sc-if value="{{ isTotal }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 360px">
+<label for="qt" style="font-size: 13px; color: #5C5A55">Monthly spending in the active years</label>
+<span style="display: flex; align-items: center; gap: 6px"><span style="font-size: 20px; color: #6B6964">$</span><input id="qt" type="number" min="0" step="100" value="{{ quick }}" onChange="{{ onQuick }}" style="font: inherit; font-size: 20px; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 48px"></span>
+<p style="margin: 0; font-size: 12px; color: #6B6964">Not sure? Switch to "By category" to add it up.</p>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCat }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="5">
+<div style="border: 1px solid #E3E1DC; border-radius: 10px; overflow: hidden">
+<button onClick="{{ g.toggle }}" aria-expanded="{{ g.isOpen }}" style="font: inherit; width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: none; background: {{ g.headBg }}; text-align: left; min-height: 52px; cursor: pointer">
+<span style="font-weight: 600">{{ g.name }}</span>
+<sc-if value="{{ g.hasOv }}" hint-placeholder-val="{{ false }}"><span title="{{ g.ovNames }}" style="font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #EAF0FB; color: #1E3A8A">{{ g.ovText }}</span></sc-if>
+<span style="flex-grow: 1"></span>
+<span style="font-size: 13px; color: #5C5A55">{{ g.count }}</span>
+<span style="font-weight: 600; min-width: 80px; text-align: right">{{ g.total }}</span>
+<span style="font-size: 13px; color: #1D4ED8; min-width: 40px; text-align: right">{{ g.action }}</span>
+</button>
+<sc-if value="{{ g.isOpen }}" hint-placeholder-val="{{ false }}">
+<div style="padding: 4px 16px 12px; display: flex; flex-direction: column">
+<sc-for list="{{ g.rows }}" as="row" hint-placeholder-count="4">
+<div style="padding: 10px 0; border-bottom: 1px solid #EFEDE8; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<label for="{{ row.id }}" style="flex: 1 1 180px">{{ row.name }}</label>
+<span style="display: flex; align-items: center; gap: 4px"><span style="color: #6B6964">$</span><input id="{{ row.id }}" type="number" min="0" step="10" value="{{ row.val }}" onChange="{{ row.onVal }}" placeholder="0" style="font: inherit; width: 110px; padding: 6px 8px; border: 1px solid #CFCCC5; border-radius: 8px; min-height: 38px; text-align: right"><span style="font-size: 12px; color: #6B6964">/mo</span></span>
+</div>
+<sc-if value="{{ row.noOv }}" hint-placeholder-val="{{ true }}">
+<p style="margin: 0; font-size: 12px; color: #6B6964">{{ row.laterText }} · <button onClick="{{ row.toggleOv }}" style="font: inherit; font-size: 12px; padding: 0; border: none; background: none; color: #1D4ED8; cursor: pointer">Different later?</button></p>
+</sc-if>
+<sc-if value="{{ row.hasOv }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 12px; color: #5C5A55; background: #F7F6F3; border-radius: 8px; padding: 8px 10px">
+<span style="display: flex; align-items: center; gap: 4px">Slower years $<input type="number" min="0" step="10" value="{{ row.s }}" onChange="{{ row.onS }}" aria-label="{{ row.sLabel }}" style="font: inherit; font-size: 13px; width: 80px; padding: 4px 6px; border: 1px solid #CFCCC5; border-radius: 6px; min-height: 30px; text-align: right"></span>
+<span style="display: flex; align-items: center; gap: 4px">Later years $<input type="number" min="0" step="10" value="{{ row.l }}" onChange="{{ row.onL }}" aria-label="{{ row.lLabel }}" style="font: inherit; font-size: 13px; width: 80px; padding: 4px 6px; border: 1px solid #CFCCC5; border-radius: 6px; min-height: 30px; text-align: right"></span>
+<button onClick="{{ row.toggleOv }}" style="font: inherit; font-size: 12px; padding: 0; border: none; background: none; color: #1D4ED8; cursor: pointer">Use the usual change</button>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+<div style="border: 2px solid #1C1C1A; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-weight: 600">Active years</span>
+<span style="font-size: 12px; color: #5C5A55">From first retirement</span>
+<span style="font-size: 24px; font-weight: 600">{{ t0 }}<span style="font-size: 13px; font-weight: 400; color: #5C5A55"> /mo</span></span>
+<span style="font-size: 12px; color: #6B6964">{{ y0 }} a year</span>
+</div>
+<div style="border: 1px solid #E3E1DC; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-weight: 600">Slower years</span>
+<span style="font-size: 12px; color: #5C5A55; display: flex; align-items: center; gap: 4px">From year <input type="number" min="1" max="40" value="{{ start1 }}" onChange="{{ onStart1 }}" aria-label="Slower years start, years after retiring" style="font: inherit; font-size: 12px; width: 44px; padding: 2px 4px; border: 1px solid #CFCCC5; border-radius: 6px"></span>
+<label style="font-size: 12px; color: #3F3D39; display: flex; flex-direction: column; gap: 2px">{{ keepText1 }}
+<input type="range" min="0" max="100" step="5" value="{{ keep1 }}" onChange="{{ onKeep1 }}" aria-label="Slower years: percent of active-years spending" style="accent-color: #1C1C1A">
+<span style="display: flex; justify-content: space-between; font-size: 11px; color: #6B6964"><span>0%</span><span>50%</span><span>100%</span></span></label>
+<span style="font-size: 24px; font-weight: 600">{{ t1 }}<span style="font-size: 13px; font-weight: 400; color: #5C5A55"> /mo</span></span>
+<span style="font-size: 12px; color: #6B6964">{{ y1 }} a year</span>
+</div>
+<div style="border: 1px solid #E3E1DC; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-weight: 600">Later years</span>
+<span style="font-size: 12px; color: #5C5A55; display: flex; align-items: center; gap: 4px">From year <input type="number" min="1" max="40" value="{{ start2 }}" onChange="{{ onStart2 }}" aria-label="Later years start, years after retiring" style="font: inherit; font-size: 12px; width: 44px; padding: 2px 4px; border: 1px solid #CFCCC5; border-radius: 6px"></span>
+<label style="font-size: 12px; color: #3F3D39; display: flex; flex-direction: column; gap: 2px">{{ keepText2 }}
+<input type="range" min="0" max="100" step="5" value="{{ keep2 }}" onChange="{{ onKeep2 }}" aria-label="Later years: percent of active-years spending" style="accent-color: #1C1C1A">
+<span style="display: flex; justify-content: space-between; font-size: 11px; color: #6B6964"><span>0%</span><span>50%</span><span>100%</span></span></label>
+<span style="font-size: 24px; font-weight: 600">{{ t2 }}<span style="font-size: 13px; font-weight: 400; color: #5C5A55"> /mo</span></span>
+<span style="font-size: 12px; color: #6B6964">{{ y2 }} a year</span>
+</div>
+</div>
+<p style="margin: -6px 0 0; font-size: 12px; color: #6B6964">Slide left to spend less than in the active years. Categories you set differently for later years keep your amounts.</p>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #F3F2EE; border-radius: 8px; padding: 10px 12px; font-size: 13px">
+<span>Spending grows with inflation of <b style="font-weight: 600">2.1%</b> a year (FP Canada 2026)</span>
+<a href="Settings.dc.html" style="margin-left: auto">Edit</a>
+</div>
+</section>
+
+</main>
+</div>
+
+<footer style="padding: 16px 24px; color: #6B6964; font-size: 12px; border-top: 1px solid #E3E1DC; background: #FFFFFF">This tool shows projections under the assumptions you enter. It is not financial, tax or legal advice. [Final wording pending]</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2100}}'>
+var GROUPS = [
+  { name: 'Home and utilities', cats: [['Mortgage and Rent', 0], ['Property Tax', 450], ['Hydro', 150], ['Gas & Fuel', 120], ['Internet', 90], ['Mobile Phone', 120]] },
+  { name: 'Getting around', cats: [['Auto Payment', 600], ['Auto Gas', 300], ['Public Transportation', 40]] },
+  { name: 'Insurance and banking', cats: [['Home and Auto Insurance', 250], ['Life Insurance', 120], ['Disability Insurance', 0], ['Bank Fees', 20]] },
+  { name: 'Food and drink', cats: [['Groceries', 1200], ['Restaurants', 600], ['Fast Food', 120], ['Alcohol and Bars', 150]] },
+  { name: 'Travel', cats: [['Transportation', 400, 'Travel: Transportation'], ['Accommodations', 300, 'Travel: Accommodations'], ['Food and Drink', 200, 'Travel: Food and Drink'], ['Activities', 120, 'Travel: Activities'], ['Travel Insurance', 60, 'Travel: Insurance'], ['Gear', 40, 'Travel: Gear'], ['Shopping', 80, 'Travel: Shopping']] },
+  { name: 'Everyday and other', cats: [['Shopping', 700], ['Pharmacy', 80], ['Gifts and Donations', 400], ['Cash', 200], ['Other', 800]] }
+];
+var START_OV = { 'Auto Payment': [0, 0], 'Life Insurance': [120, 0], 'Pharmacy': [120, 200] };
+
+function money(n) { return '$' + Math.round(n).toLocaleString('en-CA'); }
+function num(x) { var n = parseFloat(x); return isFinite(n) && n > 0 ? n : 0; }
+function initialVals() { var v = {}; GROUPS.forEach(function (g) { g.cats.forEach(function (c) { v[c[2] || c[0]] = c[1]; }); }); return v; }
+
+class Component extends DCLogic {
+  st() {
+    var s = this.state || {};
+    return {
+      mode: s.mode || 'cat',
+      open: s.open === undefined ? 'Home and utilities' : s.open,
+      vals: s.vals || initialVals(),
+      ov: s.ov || START_OV,
+      pct1: s.pct1 === undefined ? 10 : s.pct1,
+      pct2: s.pct2 === undefined ? 20 : s.pct2,
+      start1: s.start1 === undefined ? 10 : s.start1,
+      start2: s.start2 === undefined ? 20 : s.start2,
+      quick: s.quick === undefined ? 7700 : s.quick
+    };
+  }
+  put(patch) { this.setState(Object.assign({}, this.st(), patch)); }
+
+  renderVals() {
+    var self = this;
+    var s = this.st();
+    var f1 = 1 - s.pct1 / 100, f2 = 1 - s.pct2 / 100;
+    var t = [0, 0, 0];
+    var groups = GROUPS.map(function (g, gi) {
+      var gt = 0;
+      var rows = g.cats.map(function (c, ci) {
+        var name = c[0], key = c[2] || c[0];
+        var val = s.vals[key];
+        var a = num(val);
+        var o = s.ov[key];
+        var p1 = o ? num(o[0]) : a * f1;
+        var p2 = o ? num(o[1]) : a * f2;
+        t[0] += a; t[1] += p1; t[2] += p2; gt += a;
+        return {
+          id: 'cat-' + gi + '-' + ci, name: name, val: val,
+          onVal: function (e) { var v = Object.assign({}, self.st().vals); v[key] = e.target.value; self.put({ vals: v }); },
+          hasOv: !!o, noOv: !o,
+          laterText: a > 0 ? 'Slower ' + money(p1) + ' · Later ' + money(p2) : 'Not used',
+          s: o ? o[0] : '', l: o ? o[1] : '',
+          sLabel: key + ', slower years, per month', lLabel: key + ', later years, per month',
+          onS: function (e) { var ov = Object.assign({}, self.st().ov); ov[key] = [e.target.value, ov[key][1]]; self.put({ ov: ov }); },
+          onL: function (e) { var ov = Object.assign({}, self.st().ov); ov[key] = [ov[key][0], e.target.value]; self.put({ ov: ov }); },
+          toggleOv: function () {
+            var ov = Object.assign({}, self.st().ov);
+            if (ov[key]) { delete ov[key]; } else { ov[key] = [Math.round(a * f1), Math.round(a * f2)]; }
+            self.put({ ov: ov });
+          }
+        };
+      });
+      var isOpen = s.open === g.name;
+      var used = g.cats.filter(function (c) { return num(s.vals[c[2] || c[0]]) > 0; }).length;
+      var ovs = g.cats.filter(function (c) { return !!s.ov[c[2] || c[0]]; }).map(function (c) { return c[0]; });
+      return {
+        name: g.name, rows: rows, isOpen: isOpen, total: money(gt) + '/mo',
+        hasOv: ovs.length > 0,
+        ovText: ovs.length === 1 ? ovs[0] + ' differs later' : ovs.length + ' differ later',
+        ovNames: 'Set differently for later years: ' + ovs.join(', '),
+        count: used + ' of ' + g.cats.length + ' used', action: isOpen ? 'Done' : 'Edit',
+        headBg: isOpen ? '#F3F2EE' : '#FFFFFF',
+        toggle: function () { self.put({ open: isOpen ? null : g.name }); }
+      };
+    });
+    if (s.mode === 'total') {
+      var q = num(s.quick);
+      t = [q, q * f1, q * f2];
+    }
+    var isCat = s.mode === 'cat';
+    return {
+      groups: groups, isCat: isCat, isTotal: !isCat,
+      catBg: isCat ? '#FFFFFF' : 'transparent', totalBg: isCat ? 'transparent' : '#FFFFFF',
+      catWeight: isCat ? '600' : '400', totalWeight: isCat ? '400' : '600',
+      setCat: function () { self.put({ mode: 'cat' }); },
+      setTotal: function () { self.put({ mode: 'total' }); },
+      quick: s.quick, onQuick: function (e) { self.put({ quick: e.target.value }); },
+      pct1: s.pct1, pct2: s.pct2, start1: s.start1, start2: s.start2,
+      keep1: 100 - s.pct1, keep2: 100 - s.pct2,
+      keepText1: s.pct1 === 0 ? 'Same as active years' : (100 - s.pct1) + '% of active years',
+      keepText2: s.pct2 === 0 ? 'Same as active years' : (100 - s.pct2) + '% of active years',
+      onKeep1: function (e) { self.put({ pct1: 100 - Number(e.target.value) }); },
+      onKeep2: function (e) { self.put({ pct2: 100 - Number(e.target.value) }); },
+      onStart1: function (e) { self.put({ start1: e.target.value }); },
+      onStart2: function (e) { self.put({ start2: e.target.value }); },
+      t0: money(t[0]), t1: money(t[1]), t2: money(t[2]),
+      y0: money(t[0] * 12), y1: money(t[1] * 12), y2: money(t[2] * 12)
+    };
+  }
+}
+</script>
+</body>
+</html>
