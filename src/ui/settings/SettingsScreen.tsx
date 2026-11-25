@@ -282,7 +282,11 @@ const CREDITS: { label: string; fed: Cell; ont: Cell }[] = [
     ont: 'Same',
   },
   { label: 'Ontario surtax', fed: '—', ont: 'surtax' },
-  { label: 'Ontario tax reduction', fed: '—', ont: [['ontario.tax_reduction.basic', 'Basic amount']] },
+  {
+    label: 'Ontario tax reduction',
+    fed: '—',
+    ont: [['ontario.tax_reduction.basic', 'Basic amount']],
+  },
   { label: 'Ontario Health Premium', fed: '—', ont: 'health' },
 ];
 

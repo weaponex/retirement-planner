@@ -58,7 +58,9 @@ describe('the app shell', () => {
     expect(store.getState().view).toBe('settings');
     expect(screen.queryByRole('button', { name: 'Load sample plan' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Back to plan' }));
-    expect((screen.getByRole('button', { name: 'Load sample plan' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (screen.getByRole('button', { name: 'Load sample plan' }) as HTMLButtonElement).disabled,
+    ).toBe(true);
   });
 });
 
@@ -110,7 +112,11 @@ describe('Household', () => {
     fireEvent.change(s.getByLabelText('Birth month'), { target: { value: '' } });
     fireEvent.change(s.getByLabelText('Birth year'), { target: { value: '' } });
     fireEvent.change(s.getByLabelText('Sex at birth'), { target: { value: '' } });
-    expect(store.getState().inputs.spouses[0]).toMatchObject({ birthMonth: null, birthYear: null, sexAtBirth: null });
+    expect(store.getState().inputs.spouses[0]).toMatchObject({
+      birthMonth: null,
+      birthYear: null,
+      sexAtBirth: null,
+    });
     expect(s.getByText(/Filled in from FP Canada/)).toBeTruthy();
   });
 });
@@ -134,14 +140,20 @@ describe('Savings', () => {
     expect(screen.getByText(/Unused room today \$0/)).toBeTruthy();
     add('nonreg', '0');
     fireEvent.change(screen.getByLabelText('Canadian value'), { target: { value: '90,000' } });
-    fireEvent.change(screen.getByLabelText('Canadian original cost'), { target: { value: '60000' } });
+    fireEvent.change(screen.getByLabelText('Canadian original cost'), {
+      target: { value: '60000' },
+    });
     fireEvent.change(screen.getByLabelText('Bonds value'), { target: { value: '' } });
     const nonreg = store.getState().inputs.accounts[3]!;
     expect(nonreg.positions!.cad_equity).toEqual({ valueToday: 90_000, originalCostToday: 60_000 });
     expect(nonreg.balanceToday).toBe(90_000);
     expect(screen.getByText(/Original cost \$60,000/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Remove this account' }));
-    expect(store.getState().inputs.accounts.map((a) => a.id)).toEqual(['rrsp-0-1', 'lira-0-1', 'tfsa-1-1']);
+    expect(store.getState().inputs.accounts.map((a) => a.id)).toEqual([
+      'rrsp-0-1',
+      'lira-0-1',
+      'tfsa-1-1',
+    ]);
     fireEvent.click(screen.getByRole('button', { name: "Edit Alex's RRSP" }));
     expect(screen.getByLabelText(/Becomes a RRIF at age/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: "Close Alex's RRSP" }));
@@ -172,7 +184,9 @@ describe('Savings', () => {
     let inv = store.getState().inputs.investing;
     expect(inv.mixId).toBe('custom');
     expect(inv.mix.bonds).toBe(45);
-    fireEvent.change(screen.getByLabelText('Cash and GICs share, percent'), { target: { value: 'x' } });
+    fireEvent.change(screen.getByLabelText('Cash and GICs share, percent'), {
+      target: { value: 'x' },
+    });
     fireEvent.click(screen.getByLabelText('Growth'));
     expect(store.getState().inputs.investing.mixId).toBe('growth');
     const ret = screen.getByLabelText('Bonds expected return, percent');
@@ -183,7 +197,9 @@ describe('Savings', () => {
     fireEvent.change(ret, { target: { value: '' } });
     fireEvent.blur(ret);
     expect(store.getState().inputs.investing.returnOverride).toEqual({});
-    fireEvent.click(within(screen.getByRole('group', { name: 'Yearly fees' })).getByLabelText('Custom'));
+    fireEvent.click(
+      within(screen.getByRole('group', { name: 'Yearly fees' })).getByLabelText('Custom'),
+    );
     expect(store.getState().inputs.investing.feeLevel).toBe('custom');
     expect(screen.getByLabelText('Yearly fee')).toBeTruthy();
     fireEvent.click(screen.getByLabelText(/Rebalance once a year/));
@@ -249,22 +265,32 @@ describe('Spending', () => {
     expect(screen.getByText('1 of 4 used')).toBeTruthy();
     const row = screen.getByLabelText('Groceries').closest('.category') as HTMLElement;
     fireEvent.click(within(row).getByRole('button', { name: 'Different later?' }));
-    expect(store.getState().inputs.spending.categories.groceries!.laterOverrideToday).toEqual([630, 540]);
+    expect(store.getState().inputs.spending.categories.groceries!.laterOverrideToday).toEqual([
+      630, 540,
+    ]);
     fireEvent.change(within(row).getByLabelText('Groceries, later years, per month'), {
       target: { value: '2000' },
     });
     expect(screen.getByText(/Later-years spending is above slower-years spending/)).toBeTruthy();
     expect(screen.getByText('Groceries differs later')).toBeTruthy();
     fireEvent.click(within(row).getByRole('button', { name: 'Use the usual change' }));
-    expect(store.getState().inputs.spending.categories.groceries!.laterOverrideToday).toBeUndefined();
-    fireEvent.change(screen.getByLabelText('Slower years share of active years'), { target: { value: '100' } });
+    expect(
+      store.getState().inputs.spending.categories.groceries!.laterOverrideToday,
+    ).toBeUndefined();
+    fireEvent.change(screen.getByLabelText('Slower years share of active years'), {
+      target: { value: '100' },
+    });
     expect(screen.getAllByText('Same as active years').length).toBeGreaterThan(0);
-    fireEvent.change(screen.getByLabelText('Later years start, years after retiring'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Later years start, years after retiring'), {
+      target: { value: '' },
+    });
     expect(store.getState().inputs.spending.phases[1].fromYear).toBeNull();
     open('Food and drink');
     expect(screen.queryByLabelText('Groceries')).toBeNull();
     fireEvent.click(screen.getByLabelText('One total'));
-    fireEvent.change(screen.getByLabelText('Monthly spending in the active years'), { target: { value: '4,000' } });
+    fireEvent.change(screen.getByLabelText('Monthly spending in the active years'), {
+      target: { value: '4,000' },
+    });
     expect(store.getState().inputs.spending.monthlyTotalToday).toBe(4000);
   });
 });
@@ -293,17 +319,23 @@ describe('Withdrawals', () => {
     expect(store.getState().inputs.withdrawal.bracketLevel).toBe('oas_threshold');
     fireEvent.click(cards[2]!);
     expect(screen.getByText(/Draw-down years|No draw-down years/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Learn more about Fill lower brackets first' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Learn more about Fill lower brackets first' }),
+    );
     expect(screen.getByRole('dialog')).toBeTruthy();
     expect(screen.getByText(/Choosing the level: the top of the first bracket \(\$/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Use this strategy' }));
     expect(store.getState().inputs.withdrawal.strategyId).toBe('fill_brackets');
     settle();
-    fireEvent.click(screen.getByRole('button', { name: 'Learn more about Fill lower brackets first' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Learn more about Fill lower brackets first' }),
+    );
     expect(screen.getByRole('button', { name: 'Keep this strategy' })).toBeTruthy();
     expect(screen.getByText(/In your plan:/)).toBeTruthy();
     const closeDialog = () =>
-      fireEvent.click(within(screen.getByRole('dialog')).getAllByRole('button', { name: 'Close' })[0]!);
+      fireEvent.click(
+        within(screen.getByRole('dialog')).getAllByRole('button', { name: 'Close' })[0]!,
+      );
     closeDialog();
     fireEvent.click(screen.getByRole('button', { name: 'Learn more about Registered last' }));
     expect(screen.getByText(/The other strategies are compared with it/)).toBeTruthy();
@@ -411,7 +443,9 @@ describe('Settings', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(store.getState().inputs.ruleOverrides![key]!.value).toBe(50_000);
     expect(within(row).getByText('Changed')).toBeTruthy();
-    expect(screen.getByText(/You’ve changed 1 value from its default: Clawback starts above/)).toBeTruthy();
+    expect(
+      screen.getByText(/You’ve changed 1 value from its default: Clawback starts above/),
+    ).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Back to plan' }));
     expect(screen.getByRole('button', { name: /1 value changed/ })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
@@ -444,7 +478,9 @@ describe('Settings', () => {
     fireEvent.blur(probateInput);
     expect(store.getState().inputs.ruleOverrides).toEqual({});
     const inflation = document.querySelector('[data-key="market.inflation"]') as HTMLElement;
-    fireEvent.change(within(inflation).getByLabelText('Inflation, percent'), { target: { value: '3' } });
+    fireEvent.change(within(inflation).getByLabelText('Inflation, percent'), {
+      target: { value: '3' },
+    });
     fireEvent.keyDown(within(inflation).getByLabelText('Inflation, percent'), { key: 'Enter' });
     expect(store.getState().inputs.ruleOverrides!['market.inflation']!.value).toBe(0.03);
     expect(screen.getAllByText('Federal brackets').length).toBeGreaterThan(0);
