@@ -47,7 +47,7 @@ export type StrategyId = 'registered_last' | 'fill_brackets' | 'early_rrsp';
 export type BracketLevel = 'first_bracket' | 'oas_threshold';
 export type MixId = 'conservative' | 'balanced' | 'growth' | 'custom';
 export type ShapeId = 'steady' | 'gradual_shift' | 'safety_first_regrow';
-export type PresetId = 'bonds_sheltered_first' | 'growth_tax_free_first';
+export type PresetId = 'bonds_sheltered_first' | 'growth_tax_free_first' | 'own_mix';
 export type FeeLevel = 'index_etf' | 'robo' | 'advisor' | 'custom';
 export type AccountType = 'rrsp' | 'lira' | 'tfsa' | 'nonreg';
 /** Account types inside the engine: an RRSP converts to a RRIF and a LIRA to a LIF. */
@@ -68,13 +68,20 @@ export interface SpouseInput {
   retirementYear: number;
   lifeExpectancyTarget: number;
   /** Monthly estimate at 65, as My Service Canada shows it. */
-  cppAt65Today: number;
+  cppAt65Today?: number;
+  /** Monthly estimate at `cppStartAge` (AR-H2); replaces `cppAt65Today` when given. */
+  cppAtStartToday?: number;
   cppStartAge: number;
   oasStartAge: number;
-  yearsInCanadaAt65: number;
-  workingMarginalRate: number;
+  /** Years in Canada after 18 by 65. */
+  yearsInCanadaAt65?: number;
+  /** Year of arrival in Canada (AR-H4); with neither field, born in Canada. */
+  arrivedInCanadaYear?: number;
+  workingMarginalRate?: number;
   /** Used while still working after the first retirement. */
-  afterTaxPayToday: number;
+  afterTaxPayToday?: number;
+  /** Gross yearly pay (AR-H5); replaces the two fields above when given. */
+  grossPayToday?: number;
 }
 
 export interface PositionInput {
@@ -91,12 +98,19 @@ export interface AccountInput {
   annualContributionToday: number;
   /** Non-registered only: the first rebalance sells positions and realizes gains. */
   positions?: Partial<Record<AssetClass, PositionInput>>;
+  /** Non-registered without positions: the original cost of the whole balance (AR-S2). */
+  originalCostToday?: number;
   /** TFSA only. */
   tfsaRoomToday?: number;
   /** RRSP to RRIF, LIRA to LIF. */
   conversionAge?: number;
   /** LIRA only. */
   lifUnlock50?: boolean;
+  /** The account's own mix (AR-S3), used with the `own_mix` preset; whole percents. */
+  mixId?: MixId;
+  mix?: Record<AssetClass, number>;
+  /** A LIRA that holds a defined contribution pension (AR-S6); shown as a pension. */
+  dcPension?: boolean;
 }
 
 export interface DbPensionInput {
@@ -151,6 +165,8 @@ export interface PlanInputs {
     mode: 'by_category' | 'one_total';
     monthlyTotalToday: number;
     categories: Record<string, SpendingCategoryInput>;
+    /** A group's own monthly amount, used instead of its categories (AR-P1). */
+    groupsMonthlyToday?: Record<string, number>;
     /** Slower, later. */
     phases: [SpendingPhase, SpendingPhase];
   };
@@ -192,9 +208,12 @@ export interface NormalizedAccount {
   balanceNom: number;
   annualContributionNom: number;
   positions?: Partial<Record<AssetClass, NormalizedPosition>>;
+  originalCostNom?: number;
   tfsaRoomNom?: number;
   conversionAge?: number;
   lifUnlock50?: boolean;
+  mixId?: MixId;
+  mix?: Record<AssetClass, number>;
 }
 
 export interface NormalizedDbPension {
@@ -220,6 +239,8 @@ export interface NormalizedInputs {
       string,
       { monthlyNom: number; laterOverrideNom?: [number | null, number | null] }
     >;
+    /** Group amounts, which follow the phases' usual change. */
+    groupsMonthlyNom: number[];
     phases: [SpendingPhase, SpendingPhase];
   };
   estate: { survivorPct: number; legacyGoalNom: number; homeValueNom?: number };
@@ -247,6 +268,9 @@ export interface AccountState {
   openedYear?: number;
   /** LIF: last year's investment earnings (yield plus price return, after fees). */
   lifPrevEarningsNom?: number;
+  /** The account's own mix, carried through conversions (AR-S3). */
+  mixId?: MixId;
+  mix?: Record<AssetClass, number>;
 }
 
 export interface SpouseYearState {

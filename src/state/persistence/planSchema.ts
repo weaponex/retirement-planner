@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import { ASSET_CLASSES } from '../../engine/config/keys';
 import { MAX_FEE } from '../../engine/constants';
-import { CATEGORY_IDS } from '../categories';
+import { CATEGORY_IDS, GROUP_IDS } from '../categories';
 
 /** At most this many accounts, and DB pensions, per spouse (design: Data contracts). */
 export const MAX_ACCOUNTS_PER_SPOUSE = 8;
@@ -22,12 +22,15 @@ const spouse = z
     sexAtBirth: z.enum(['F', 'M']),
     retirementYear: int(1980, 2100),
     lifeExpectancyTarget: int(60, 105),
-    cppAt65Today: money,
+    cppAt65Today: money.optional(),
+    cppAtStartToday: money.optional(),
     cppStartAge: int(60, 70),
     oasStartAge: int(65, 70),
-    yearsInCanadaAt65: int(0, 47),
-    workingMarginalRate: z.number().min(0).max(0.6),
-    afterTaxPayToday: money,
+    yearsInCanadaAt65: int(0, 47).optional(),
+    arrivedInCanadaYear: int(1930, 2100).optional(),
+    workingMarginalRate: z.number().min(0).max(0.6).optional(),
+    afterTaxPayToday: money.optional(),
+    grossPayToday: money.optional(),
   })
   .strict();
 
@@ -44,6 +47,13 @@ const account = z
     tfsaRoomToday: money.optional(),
     conversionAge: int(55, 71).optional(),
     lifUnlock50: z.boolean().optional(),
+    originalCostToday: money.optional(),
+    mixId: z.enum(['conservative', 'balanced', 'growth', 'custom']).optional(),
+    mix: z
+      .object(Object.fromEntries(ASSET_CLASSES.map((c) => [c, int(0, 100)])))
+      .strict()
+      .optional(),
+    dcPension: z.boolean().optional(),
   })
   .strict()
   .refine((a) => a.id.startsWith(`${a.type}-${a.owner}-`), {
@@ -86,6 +96,7 @@ export const planSchema = z
         mode: z.enum(['by_category', 'one_total']),
         monthlyTotalToday: money,
         categories: z.record(z.enum(CATEGORY_IDS as [string, ...string[]]), category),
+        groupsMonthlyToday: z.record(z.enum(GROUP_IDS as [string, ...string[]]), money).optional(),
         phases: z.tuple([phase, phase]),
       })
       .strict(),
@@ -101,7 +112,7 @@ export const planSchema = z
         mixId: z.enum(['conservative', 'balanced', 'growth', 'custom']),
         mix: z.object(Object.fromEntries(ASSET_CLASSES.map((c) => [c, mixShare]))).strict(),
         shapeId: z.enum(['steady', 'gradual_shift', 'safety_first_regrow']),
-        presetId: z.enum(['bonds_sheltered_first', 'growth_tax_free_first']),
+        presetId: z.enum(['bonds_sheltered_first', 'growth_tax_free_first', 'own_mix']),
         rebalance: z.boolean(),
         returnOverride: z.record(z.enum(ASSET_CLASSES), z.number().min(-0.5).max(0.5)).optional(),
         feeLevel: z.enum(['index_etf', 'robo', 'advisor', 'custom']),
@@ -136,7 +147,33 @@ export const planSchema = z
         message: 'The later years must start after the slower years',
       });
     }
+    plan.accounts.forEach((a, i) => {
+      if (!a.mix) return;
+      const total = Object.values(a.mix).reduce((x, y) => x + y, 0);
+      if (total !== 100) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['accounts', i, 'mix'],
+          message: `The mix adds up to ${total}%; it must add up to 100%`,
+        });
+      }
+    });
     plan.spouses.forEach((s, i) => {
+      if (s.cppAt65Today === undefined && s.cppAtStartToday === undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['spouses', i, 'cppAtStartToday'],
+          message: 'Enter the CPP estimate',
+        });
+      }
+      const working = s.retirementYear > plan.planStartYear;
+      if (working && s.grossPayToday === undefined && s.workingMarginalRate === undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['spouses', i, 'grossPayToday'],
+          message: 'Enter the gross yearly pay while working',
+        });
+      }
       if (s.birthYear + s.lifeExpectancyTarget <= plan.planStartYear) {
         ctx.addIssue({
           code: 'custom',

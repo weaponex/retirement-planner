@@ -231,3 +231,61 @@ describe('defaults', () => {
     expect(Object.keys(d.spending.categories)).toHaveLength(29);
   });
 });
+
+describe('the stage 5 review actions', () => {
+  it('starts with four $0 accounts per spouse, Balanced, CPP and OAS at 70', () => {
+    const { store } = setup();
+    const { accounts, spouses, investing } = store.getState().inputs;
+    expect(accounts.map((a) => a.id)).toEqual([
+      'rrsp-0-1',
+      'tfsa-0-1',
+      'lira-0-1',
+      'nonreg-0-1',
+      'rrsp-1-1',
+      'tfsa-1-1',
+      'lira-1-1',
+      'nonreg-1-1',
+    ]);
+    expect(accounts[0]).toMatchObject({ balanceToday: 0, mixId: 'balanced', conversionAge: 71 });
+    expect(spouses[0]).toMatchObject({ cppStartAge: 70, oasStartAge: 70 });
+    expect(investing.presetId).toBe('own_mix');
+  });
+
+  it('adds a DC pension as a LIRA and sets an account mix', () => {
+    const { store } = setup();
+    store.getState().addDcPension(1);
+    const dc = store.getState().inputs.accounts.at(-1)!;
+    expect(dc).toMatchObject({ id: 'lira-1-2', type: 'lira', dcPension: true });
+    store.getState().chooseAccountMix('rrsp-0-1', 'growth');
+    expect(store.getState().inputs.accounts[0]!.mix).toEqual(startingMix('growth', cfg));
+    store.getState().chooseAccountMix('rrsp-0-1', 'custom');
+    expect(store.getState().inputs.accounts[0]!).toMatchObject({
+      mixId: 'custom',
+      mix: startingMix('growth', cfg),
+    });
+    store.getState().chooseAccountMix('nope', 'growth');
+  });
+
+  it('keeps the retirement age when the birth year changes', () => {
+    const { store } = setup();
+    store.getState().setInput('spouses.0.birthYear', 1960);
+    store.getState().setInput('spouses.0.retirementYear', 2025);
+    store.getState().setInput('spouses.0.birthYear', 1962);
+    expect(store.getState().inputs.spouses[0].retirementYear).toBe(2027);
+  });
+
+  it('lets a group amount replace its items, and an item replace the group amount', () => {
+    const { store } = setup();
+    store.getState().setInput('spending.categories.hydro.monthlyToday', 150);
+    store.getState().setGroupAmount('home', ['hydro', 'internet'], 2000);
+    let sp = store.getState().inputs.spending;
+    expect(sp.groupsMonthlyToday).toEqual({ home: 2000 });
+    expect(sp.categories.hydro!.monthlyToday).toBe(0);
+    store.getState().setInput('spending.categories.internet.monthlyToday', 80);
+    sp = store.getState().inputs.spending;
+    expect(sp.groupsMonthlyToday).toEqual({});
+    store.getState().setGroupAmount('food', [], 500);
+    store.getState().setGroupAmount('food', [], null);
+    expect(store.getState().inputs.spending.groupsMonthlyToday).toEqual({});
+  });
+});

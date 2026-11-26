@@ -8,7 +8,8 @@ import type { Config } from '../engine/config/load';
 import type { AccountType, EngineError, Owner, Result, Tips } from '../engine/types';
 import type { EngineCallbacks, EngineClient } from '../worker/client';
 import { changeSummary, type ChangeSummary } from './changeSummary';
-import { defaultLifeExpectancy, emptyPlan, startingMix } from './defaults';
+import { groupOf } from './categories';
+import { defaultLifeExpectancy, emptyPlan, newAccount, startingMix } from './defaults';
 import { deleteAt, getAt, setAt, type PlanDraft } from './draft';
 import { readyToRun, type Missing } from './readiness';
 
@@ -46,6 +47,12 @@ export interface PlanState {
   chooseMix(mixId: 'conservative' | 'balanced' | 'growth' | 'custom'): void;
   setSpendingMode(mode: 'by_category' | 'one_total'): void;
   addAccount(type: AccountType, owner: Owner): void;
+  /** A defined contribution pension, held as a LIRA (AR-S6). */
+  addDcPension(owner: Owner): void;
+  /** Sets an account's mix to a starting mix, or marks it custom (AR-S3). */
+  chooseAccountMix(id: string, mixId: 'conservative' | 'balanced' | 'growth' | 'custom'): void;
+  /** Sets a group's own monthly amount, clearing its categories; null clears it (AR-P1). */
+  setGroupAmount(groupId: string, categoryIds: readonly string[], value: number | null): void;
   removeAccount(id: string): void;
   addDbPension(owner: Owner): void;
   removeDbPension(index: number): void;
@@ -99,7 +106,7 @@ export function createPlanStore(options: StoreOptions): PlanStore {
     function send() {
       timer = undefined;
       const s = get();
-      const r = readyToRun(s.inputs);
+      const r = readyToRun(s.inputs, cfg);
       if (!r.ready) {
         set({ missing: r.missing });
         return;
@@ -111,7 +118,7 @@ export function createPlanStore(options: StoreOptions): PlanStore {
     /** Replaces the inputs, raises the revision and schedules a run. */
     function change(inputs: PlanDraft, editPath: string | undefined, loaded = false) {
       const s = get();
-      const r = readyToRun(inputs);
+      const r = readyToRun(inputs, cfg);
       set({
         inputs,
         inputsRevision: s.inputsRevision + 1,
@@ -132,7 +139,7 @@ export function createPlanStore(options: StoreOptions): PlanStore {
     }
 
     const initial = options.initial ?? emptyPlan(cfg, now());
-    const r0 = readyToRun(initial);
+    const r0 = readyToRun(initial, cfg);
     return {
       inputs: initial,
       inputsRevision: 0,
@@ -142,7 +149,28 @@ export function createPlanStore(options: StoreOptions): PlanStore {
       view: 'household',
 
       setInput(path, value) {
-        const inputs = fillLifeExpectancy(setAt(get().inputs, path, value), path);
+        let inputs = get().inputs;
+        // A new birth year keeps the retirement age (AR-H1).
+        const birth = /^spouses\.(\d)\.birthYear$/.exec(path);
+        if (birth) {
+          const sp = inputs.spouses[Number(birth[1])]!;
+          if (sp.birthYear !== null && sp.retirementYear !== null && typeof value === 'number') {
+            inputs = setAt(
+              inputs,
+              `spouses.${birth[1]}.retirementYear`,
+              sp.retirementYear - sp.birthYear + value,
+            );
+          }
+        }
+        // An item's amount replaces its group's own amount (AR-P1).
+        const cat = /^spending\.categories\.([a-z_]+)\.monthlyToday$/.exec(path);
+        if (cat && inputs.spending.groupsMonthlyToday) {
+          const group = groupOf(cat[1]!);
+          if (group && group in inputs.spending.groupsMonthlyToday) {
+            inputs = deleteAt(inputs, `spending.groupsMonthlyToday.${group}`);
+          }
+        }
+        inputs = fillLifeExpectancy(setAt(inputs, path, value), path);
         change(inputs, path);
       },
       clearInput(path) {
@@ -180,17 +208,37 @@ export function createPlanStore(options: StoreOptions): PlanStore {
         change(inputs, 'spending.mode');
       },
       addAccount(type, owner) {
-        const account: PlanDraft['accounts'][number] = {
-          id: nextAccountId(type, owner),
-          owner,
-          type,
-          balanceToday: null,
-          annualContributionToday: 0,
-          ...(type === 'tfsa' && { tfsaRoomToday: 0 }),
-          ...((type === 'rrsp' || type === 'lira') && { conversionAge: 71 }),
-          ...(type === 'lira' && { lifUnlock50: false }),
+        const account = newAccount(type, owner, nextAccountId(type, owner), cfg);
+        change({ ...get().inputs, accounts: [...get().inputs.accounts, account] }, 'accounts');
+      },
+      addDcPension(owner) {
+        const account = {
+          ...newAccount('lira', owner, nextAccountId('lira', owner), cfg),
+          dcPension: true,
         };
         change({ ...get().inputs, accounts: [...get().inputs.accounts, account] }, 'accounts');
+      },
+      chooseAccountMix(id, mixId) {
+        const i = get().inputs.accounts.findIndex((a) => a.id === id);
+        if (i < 0) return;
+        let inputs = setAt(get().inputs, `accounts.${id}.mixId`, mixId);
+        if (mixId !== 'custom')
+          inputs = setAt(inputs, `accounts.${id}.mix`, startingMix(mixId, cfg));
+        change(inputs, `accounts.${id}.mixId`);
+      },
+      setGroupAmount(groupId, categoryIds, value) {
+        let inputs = get().inputs;
+        const groups = { ...(inputs.spending.groupsMonthlyToday ?? {}) };
+        if (value === null) {
+          delete groups[groupId];
+        } else {
+          groups[groupId] = value;
+          for (const id of categoryIds) {
+            inputs = setAt(inputs, `spending.categories.${id}`, { monthlyToday: 0 });
+          }
+        }
+        inputs = setAt(inputs, 'spending.groupsMonthlyToday', groups);
+        change(inputs, `spending.groupsMonthlyToday.${groupId}`);
       },
       removeAccount(id) {
         const accounts = get().inputs.accounts.filter((a) => a.id !== id);
@@ -240,7 +288,7 @@ export function createPlanStore(options: StoreOptions): PlanStore {
   };
   const client: EngineClient = options.connect(callbacks);
   // A plan that is ready from the start (a loaded plan) runs at once.
-  const first = readyToRun(store.getState().inputs);
+  const first = readyToRun(store.getState().inputs, cfg);
   if (first.ready) client.run(first.inputs, 0);
   return store;
 }

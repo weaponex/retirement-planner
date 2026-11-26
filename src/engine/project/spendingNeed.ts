@@ -20,10 +20,11 @@ export function monthlyNeed(inputs: NormalizedInputs, phase: 0 | 1 | 2): number 
   const s = inputs.spending;
   const keep = phase === 0 ? 1 : s.phases[phase - 1]!.keepPct / 100;
   if (s.mode === 'one_total') return s.monthlyTotalNom * keep;
+  const groups = s.groupsMonthlyNom.reduce((sum, g) => sum + g * keep, 0);
   return Object.values(s.categories).reduce((sum, c) => {
     const own = phase === 0 ? null : (c.laterOverrideNom?.[phase - 1] ?? null);
     return sum + (own ?? c.monthlyNom * keep);
-  }, 0);
+  }, groups);
 }
 
 export function spendingNeed(inputs: NormalizedInputs, state: PlanState, ctx: YearContext): number {

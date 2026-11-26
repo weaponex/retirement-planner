@@ -25,7 +25,7 @@ import {
 } from '../invest/rebalance';
 import { classReturns, type ClassReturns } from '../invest/returns';
 import { deaths, firstDeathTransfer } from '../project/death';
-import { yearMix } from '../project/initialState';
+import { mixOfFor, yearMix } from '../project/initialState';
 import { spendingNeed } from '../project/spendingNeed';
 import {
   applySplit,
@@ -85,6 +85,8 @@ export interface PreparedYear {
   tfsaRoomStart: [number, number];
   /** This year's overall mix. */
   mix: Weights;
+  /** Each account's mix this year (the overall mix unless it has its own, AR-S3). */
+  mixOf: (a: AccountState) => Weights;
 }
 
 /** Steps 0 to 2 and the sheltered-yield reinvestment. */
@@ -109,9 +111,13 @@ export function prepareYear(
     }
   }
   const mix = yearMix(inputs, s.year, ctx);
+  const mixOf = mixOfFor(inputs, s.year, ctx);
   let rebalanceGains: [number, number] = [0, 0];
   if (inputs.investing.rebalance || state.yearIndex === 0) {
-    const r = rebalance(s.accounts, targetHoldings(s.accounts, mix, variant.presetId, ctx.cfg));
+    const r = rebalance(
+      s.accounts,
+      targetHoldings(s.accounts, mix, variant.presetId, ctx.cfg, mixOf),
+    );
     s = { ...s, accounts: r.accounts };
     rebalanceGains = r.realizedGains;
   }
@@ -139,6 +145,7 @@ export function prepareYear(
     limits,
     tfsaRoomStart: [s.spouses[0].tfsaRoomNom, s.spouses[1].tfsaRoomNom],
     mix,
+    mixOf,
   };
 }
 
@@ -333,7 +340,7 @@ function settle(
   state: PlanState,
   draws: Draw[],
   deposits: Deposit[],
-  mix: Weights,
+  mixOf: (a: AccountState) => Weights,
   yieldCredit: PreparedYear['yieldCredit'],
 ): { state: PlanState; drawnBy: Record<string, number>; depositedBy: Record<string, number> } {
   const drawnBy: Record<string, number> = {};
@@ -358,7 +365,7 @@ function settle(
     holdings = creditYields([{ ...a, holdings }], yieldCredit)[0]!.holdings;
     const into = depositedBy[a.id] ?? 0;
     if (into > 0) {
-      holdings = buy(holdings, into, currentWeights(holdings, mix));
+      holdings = buy(holdings, into, currentWeights(holdings, mixOf(a)));
       if (a.type === 'tfsa') {
         spouses = spouses.map((s, i) =>
           i === a.owner ? useRoom(s, into) : s,
@@ -522,7 +529,7 @@ export function solveYear(
     afterDraws,
     surplusShares(afterDraws, forcedBy, [fixedTotal(setup.fixed[0]), fixedTotal(setup.fixed[1])]),
   );
-  const settled = settle(s, result.draws, deposits, p.mix, p.yieldCredit);
+  const settled = settle(s, result.draws, deposits, p.mixOf, p.yieldCredit);
 
   // Step 7: price returns, LIF earnings, carried losses.
   const priced = applyPriceReturns(settled.state.accounts, returns);

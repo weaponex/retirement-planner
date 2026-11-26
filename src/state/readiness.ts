@@ -1,6 +1,8 @@
 // Whether a draft plan can run (design file 42, Readiness): it must pass the
 // plan schema and its mix must sum to 100. While it fails, the store sends
 // nothing to the Worker and the Results tab lists what is missing.
+import type { Config } from '../engine/config/load';
+import { planValue } from '../engine/config/read';
 import type { PlanInputs } from '../engine/types';
 import { getAt, setAt, type PlanDraft } from './draft';
 import { fieldLabel } from './labels';
@@ -14,15 +16,47 @@ export interface Missing {
 
 export type Readiness = { ready: true; inputs: PlanInputs } | { ready: false; missing: Missing[] };
 
+/** Optional fields left empty, which mean "not used" rather than "missing". */
+const EMPTY_MEANS_NONE = ['arrivedInCanadaYear', 'grossPayToday'] as const;
+
 /** Fields that only matter in some plans get a neutral value when they are empty and unused. */
-function fillUnused(draft: PlanDraft): PlanDraft {
+function fillUnused(draft: PlanDraft, cfg?: Config): PlanDraft {
   let d = draft;
   draft.spouses.forEach((s, i) => {
     const working = s.retirementYear !== null && s.retirementYear > draft.planStartYear!;
     if (!working && s.workingMarginalRate === null) {
       d = setAt(d, `spouses.${i}.workingMarginalRate`, 0);
     }
+    const spouse = { ...d.spouses[i] } as Record<string, unknown>;
+    let changed = false;
+    for (const k of EMPTY_MEANS_NONE) {
+      // Gross pay is missing, not unused, while the spouse still works.
+      if (k === 'grossPayToday' && working) continue;
+      if (k in spouse && spouse[k] === null) {
+        delete spouse[k];
+        changed = true;
+      }
+    }
+    // An empty CPP estimate uses the default: the average at 65 (AR-H2).
+    if (cfg && 'cppAtStartToday' in spouse && spouse.cppAtStartToday === null) {
+      delete spouse.cppAtStartToday;
+      spouse.cppAt65Today = planValue(cfg, 'federal.cpp.average_at_65');
+      changed = true;
+    }
+    if (changed) {
+      const spouses = [...d.spouses] as PlanDraft['spouses'];
+      spouses[i] = spouse as PlanDraft['spouses'][number];
+      d = { ...d, spouses };
+    }
   });
+  const groups = draft.spending.groupsMonthlyToday;
+  if (groups && Object.values(groups).some((v) => v === null)) {
+    d = setAt(
+      d,
+      'spending.groupsMonthlyToday',
+      Object.fromEntries(Object.entries(groups).filter(([, v]) => v !== null)),
+    );
+  }
   if (draft.spending.mode === 'by_category' && draft.spending.monthlyTotalToday === null) {
     d = setAt(d, 'spending.monthlyTotalToday', 0);
   }
@@ -38,8 +72,8 @@ function inputPath(draft: PlanDraft, path: (string | number)[]): string {
   return path.join('.');
 }
 
-export function readyToRun(draft: PlanDraft): Readiness {
-  const filled = fillUnused(draft);
+export function readyToRun(draft: PlanDraft, cfg?: Config): Readiness {
+  const filled = fillUnused(draft, cfg);
   const parsed = planSchema.safeParse(filled);
   if (parsed.success) return { ready: true, inputs: parsed.data as PlanInputs };
   const seen = new Set<string>();

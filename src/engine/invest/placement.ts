@@ -61,17 +61,22 @@ export function targetHoldings(
   overallMix: Weights,
   presetId: PresetId | 'same_mix',
   cfg: Config,
+  mixOf: (a: AccountState) => Weights = () => overallMix,
 ): Targets {
   const targets: Targets = {};
   for (const a of accounts) targets[a.id] = emptyTarget();
-  if (presetId === 'same_mix') {
+  if (presetId === 'same_mix' || presetId === 'own_mix') {
+    // `own_mix` (AR-S3): each account holds its own mix.
     for (const a of accounts) {
       const v = accountValue(a);
-      for (const c of ASSET_CLASSES) targets[a.id]![c] = v * overallMix[c];
+      const m = presetId === 'own_mix' ? mixOf(a) : overallMix;
+      for (const c of ASSET_CLASSES) targets[a.id]![c] = v * m[c];
     }
     return targets;
   }
-  const preset = planObject<Record<PresetId, Preset>>(cfg, 'planning.presets')[presetId];
+  const preset = planObject<Record<Exclude<PresetId, 'own_mix'>, Preset>>(cfg, 'planning.presets')[
+    presetId
+  ];
   const room = new Map(accounts.map((a) => [a.id, accountValue(a)]));
   const total = [...room.values()].reduce((s, v) => s + v, 0);
   for (const cls of FILL_ORDER) {

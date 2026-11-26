@@ -43,13 +43,41 @@ const emptySpouse = (name: string): PlanDraft['spouses'][number] => ({
   sexAtBirth: null,
   retirementYear: null,
   lifeExpectancyTarget: null,
-  cppAt65Today: null,
-  cppStartAge: 65,
-  oasStartAge: 65,
-  yearsInCanadaAt65: null,
-  workingMarginalRate: null,
-  afterTaxPayToday: 0,
+  // Empty means the default: the average CPP at 65, moved to the start age (AR-H2).
+  cppAtStartToday: null,
+  // 70 for both (AR-W2).
+  cppStartAge: 70,
+  oasStartAge: 70,
+  // Empty means born in Canada (AR-H4).
+  arrivedInCanadaYear: null,
+  grossPayToday: null,
 });
+
+/** The account types every new plan starts with, for each spouse (AR-S2). */
+export const STARTING_ACCOUNT_TYPES = ['rrsp', 'tfsa', 'lira', 'nonreg'] as const;
+
+/** A new account: no balance yet, Balanced, converting at the latest age (AR-S4). */
+export function newAccount(
+  type: 'rrsp' | 'lira' | 'tfsa' | 'nonreg',
+  owner: 0 | 1,
+  id: string,
+  cfg: Config,
+): PlanDraft['accounts'][number] {
+  return {
+    id,
+    owner,
+    type,
+    balanceToday: 0,
+    annualContributionToday: 0,
+    mixId: 'balanced',
+    mix: startingMix('balanced', cfg),
+    ...(type === 'tfsa' && { tfsaRoomToday: 0 }),
+    ...((type === 'rrsp' || type === 'lira') && {
+      conversionAge: planValue(cfg, 'federal.rrif.latest_conversion_age'),
+    }),
+    ...(type === 'lira' && { lifUnlock50: false }),
+  };
+}
 
 /** A new plan: nothing about the household yet, and the defaults for everything else. */
 export function emptyPlan(cfg: Config, today: Date = new Date()): PlanDraft {
@@ -58,7 +86,9 @@ export function emptyPlan(cfg: Config, today: Date = new Date()): PlanDraft {
     schemaVersion: 1,
     planStartYear: today.getFullYear(),
     spouses: [emptySpouse('Spouse 1'), emptySpouse('Spouse 2')],
-    accounts: [],
+    accounts: ([0, 1] as const).flatMap((o) =>
+      STARTING_ACCOUNT_TYPES.map((t) => newAccount(t, o, `${t}-${o}-1`, cfg)),
+    ),
     dbPensions: [],
     spending: {
       mode: 'by_category',
@@ -74,7 +104,7 @@ export function emptyPlan(cfg: Config, today: Date = new Date()): PlanDraft {
       mixId: 'balanced',
       mix: startingMix('balanced', cfg),
       shapeId: 'steady',
-      presetId: 'bonds_sheltered_first',
+      presetId: 'own_mix',
       rebalance: true,
       feeLevel: 'index_etf',
     },

@@ -77,6 +77,9 @@ export function simulate(
     const run = variant === v.user ? plan : runPath(inputs, cfg, jurisdiction, variant, 'full');
     return { strategyId: variant.strategyId, summary: run.summary, rows: chartRows(run.rows) };
   });
-  const baseline = runPath(inputs, cfg, jurisdiction, v.baseline, 'summary').summary;
+  const baseline =
+    v.baseline === v.user
+      ? plan.summary
+      : runPath(inputs, cfg, jurisdiction, v.baseline, 'summary').summary;
   return { plan: { ...plan, variantId: v.user.id }, strategies, baseline };
 }

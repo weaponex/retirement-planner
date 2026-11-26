@@ -28,6 +28,11 @@ export function completePlan(): PlanDraft {
   set('spouses.0.yearsInCanadaAt65', 40);
   set('spouses.1.yearsInCanadaAt65', 40);
   set('spending.mode', 'one_total');
+  // The older inputs the engine still takes: the estimate at 65 and years in Canada.
+  d = {
+    ...d,
+    spouses: d.spouses.map(({ cppAtStartToday: _c, ...s }) => s) as unknown as PlanDraft['spouses'],
+  };
   set('spending.monthlyTotalToday', 5000);
   d = {
     ...d,

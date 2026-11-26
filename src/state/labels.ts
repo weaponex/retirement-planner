@@ -8,9 +8,12 @@ const SPOUSE_FIELDS: Record<string, string> = {
   birthYear: 'Birth year',
   birthMonth: 'Birth month',
   sexAtBirth: 'Sex at birth',
-  retirementYear: 'Retirement year',
+  retirementYear: 'Retirement age',
   lifeExpectancyTarget: 'Life expectancy target',
   cppAt65Today: 'CPP estimate at 65',
+  cppAtStartToday: 'CPP estimate',
+  arrivedInCanadaYear: 'Year arrived in Canada',
+  grossPayToday: 'Gross yearly pay',
   cppStartAge: 'CPP start age',
   oasStartAge: 'OAS start age',
   yearsInCanadaAt65: 'Years in Canada at 65',
@@ -25,6 +28,9 @@ const ACCOUNT_FIELDS: Record<string, string> = {
   conversionAge: 'conversion age',
   lifUnlock50: '50% unlock',
   positions: 'holdings',
+  originalCostToday: 'original cost',
+  mixId: 'mix',
+  mix: 'mix',
 };
 
 const ACCOUNT_TYPES: Record<string, string> = {
@@ -49,6 +55,7 @@ const OTHER: Record<string, string> = {
   'investing.mix': 'Investment mix',
   'investing.shapeId': 'As you get older',
   'investing.presetId': 'Which account holds what',
+  'investing.returnOverride': 'Expected returns',
   'investing.rebalance': 'Rebalance once a year',
   'investing.feeLevel': 'Fee level',
   'investing.customFee': 'Custom fee',

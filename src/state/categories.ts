@@ -86,3 +86,11 @@ export function categoryName(id: string): string {
   }
   return id;
 }
+
+/** The persisted group ids, for a group's own monthly amount (AR-P1). */
+export const GROUP_IDS = CATEGORY_GROUPS.map((g) => g.id);
+
+/** The group a category belongs to. */
+export function groupOf(categoryId: string): string | undefined {
+  return CATEGORY_GROUPS.find((g) => g.categories.some((c) => c.id === categoryId))?.id;
+}

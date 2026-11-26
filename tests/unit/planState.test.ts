@@ -1,3 +1,4 @@
+import { planValue } from '../../src/engine/config/read';
 import { describe, expect, it } from 'vitest';
 import { loadConfig } from '../../src/engine/config/load';
 import type { Result } from '../../src/engine/types';
@@ -43,11 +44,40 @@ describe('readyToRun', () => {
     const r = readyToRun(completePlan());
     expect(r.ready).toBe(true);
     if (r.ready) {
-      expect(r.inputs.spouses[0].workingMarginalRate).toBe(0);
+      expect(r.inputs.spouses[0].grossPayToday).toBeUndefined();
+      expect(r.inputs.spouses[0].arrivedInCanadaYear).toBeUndefined();
     }
     const byCategory = setAt(completePlan(), 'spending.mode', 'by_category');
     const r2 = readyToRun(setAt(byCategory, 'spending.monthlyTotalToday', null));
     expect(r2.ready).toBe(true);
+  });
+
+  it('uses the average CPP at 65 for an empty estimate, and drops empty group amounts', () => {
+    let d = setAt(completePlan(), 'spouses.0.cppAtStartToday', null);
+    d = setAt(d, 'spending.groupsMonthlyToday', { home: 1200, food: null });
+    const r = readyToRun(d, cfg);
+    expect(r.ready).toBe(true);
+    if (r.ready) {
+      expect(r.inputs.spouses[0].cppAtStartToday).toBeUndefined();
+      expect(r.inputs.spouses[0].cppAt65Today).toBe(planValue(cfg, 'federal.cpp.average_at_65'));
+      expect(r.inputs.spending.groupsMonthlyToday).toEqual({ home: 1200 });
+    }
+    const both = readyToRun(setAt(completePlan(), 'spouses.0.cppAt65Today', undefined));
+    expect(both.ready).toBe(false);
+  });
+
+  it('checks each account mix adds up to 100', () => {
+    const d = setAt(completePlan(), 'accounts.rrsp-0-1.mix', {
+      cad_equity: 50,
+      us_equity: 0,
+      intl_equity: 0,
+      em_equity: 0,
+      bonds: 0,
+      cash: 0,
+    });
+    const r = readyToRun(d);
+    expect(r.ready).toBe(false);
+    if (!r.ready) expect(r.missing[0]!.path).toBe('accounts.rrsp-0-1.mix');
   });
 
   it('lists empty fields as not entered yet, with labels', () => {
@@ -65,7 +95,7 @@ describe('readyToRun', () => {
     const d = setAt(completePlan(), 'spouses.1.retirementYear', 2030);
     const r = readyToRun(d);
     expect(r.ready).toBe(false);
-    if (!r.ready) expect(r.missing.map((m) => m.path)).toEqual(['spouses.1.workingMarginalRate']);
+    if (!r.ready) expect(r.missing.map((m) => m.path)).toEqual(['spouses.1.grossPayToday']);
   });
 
   it('reports rule breaks: mix total, phase order, target, account fields by id', () => {
@@ -118,7 +148,7 @@ describe('readyToRun', () => {
 describe('labels', () => {
   const d = completePlan();
   it('names spouse, account, pension, mix, category and other paths', () => {
-    expect(fieldLabel('spouses.0.retirementYear', d)).toBe('Retirement year, Alex');
+    expect(fieldLabel('spouses.0.retirementYear', d)).toBe('Retirement age, Alex');
     expect(fieldLabel('spouses.0.unknownField', d)).toBe('unknownField, Alex');
     expect(fieldLabel('accounts.rrsp-0-1.balanceToday', d)).toBe("Alex's RRSP balance");
     expect(fieldLabel('accounts.tfsa-1-2.tfsaRoomToday', d)).toBe("Sam's TFSA 2 TFSA room");
@@ -198,10 +228,10 @@ describe('changeSummary', () => {
   it('names one edit, counts several, and says when there were none', () => {
     expect(describeEdits([], d)).toBe('No change');
     expect(describeEdits(['spouses.0.retirementYear', 'spouses.0.retirementYear'], d)).toBe(
-      'Retirement year, Alex',
+      'Retirement age, Alex',
     );
     expect(describeEdits(['spouses.0.retirementYear', 'estate.survivorPct'], d)).toBe(
-      '2 changes: Retirement year, Alex, Survivor spending',
+      '2 changes: Retirement age, Alex, Survivor spending',
     );
   });
 

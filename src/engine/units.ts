@@ -4,6 +4,8 @@
 // as the engine receives them; `toDisplay` converts results back for the screens.
 import type { Config } from './config/load';
 import { planValue } from './config/read';
+import { cppAt65FromStart, residenceYears } from './benefits/residence';
+import { payFromGross } from './tax/payroll';
 import type { NormalizedInputs, PlanInputs, YearRow } from './types';
 
 declare const brand: unique symbol;
@@ -32,24 +34,34 @@ function atPlanStart(today: number): number {
  * `applyRuleOverrides` and `rebaseConfig`; `cfg` is accepted so the conversion
  * stays in one place if the valuation date ever moves.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for the design's signature
 export function normalizeInputs(inputs: PlanInputs, cfg: Config): NormalizedInputs {
   const s = inputs.spending;
   return {
     planStartYear: inputs.planStartYear,
-    spouses: inputs.spouses.map((sp) => ({
-      birthYear: sp.birthYear,
-      birthMonth: sp.birthMonth,
-      sexAtBirth: sp.sexAtBirth,
-      retirementYear: sp.retirementYear,
-      lifeExpectancyTarget: sp.lifeExpectancyTarget,
-      cppAt65Nom: atPlanStart(sp.cppAt65Today),
-      cppStartAge: sp.cppStartAge,
-      oasStartAge: sp.oasStartAge,
-      yearsInCanadaAt65: sp.yearsInCanadaAt65,
-      workingMarginalRate: sp.workingMarginalRate,
-      afterTaxPayNom: atPlanStart(sp.afterTaxPayToday),
-    })) as NormalizedInputs['spouses'],
+    spouses: inputs.spouses.map((sp) => {
+      const pay =
+        sp.grossPayToday !== undefined
+          ? payFromGross(sp.grossPayToday, cfg)
+          : { marginalRate: sp.workingMarginalRate ?? 0, afterTax: sp.afterTaxPayToday ?? 0 };
+      const cppAt65 =
+        sp.cppAtStartToday !== undefined
+          ? cppAt65FromStart(sp.cppAtStartToday, sp.cppStartAge, cfg)
+          : (sp.cppAt65Today ?? 0);
+      return {
+        birthYear: sp.birthYear,
+        birthMonth: sp.birthMonth,
+        sexAtBirth: sp.sexAtBirth,
+        retirementYear: sp.retirementYear,
+        lifeExpectancyTarget: sp.lifeExpectancyTarget,
+        cppAt65Nom: atPlanStart(cppAt65),
+        cppStartAge: sp.cppStartAge,
+        oasStartAge: sp.oasStartAge,
+        yearsInCanadaAt65:
+          sp.yearsInCanadaAt65 ?? residenceYears(sp.birthYear, sp.arrivedInCanadaYear, cfg),
+        workingMarginalRate: pay.marginalRate,
+        afterTaxPayNom: atPlanStart(pay.afterTax),
+      };
+    }) as NormalizedInputs['spouses'],
     accounts: inputs.accounts.map((a) => ({
       id: a.id,
       owner: a.owner,
@@ -64,9 +76,14 @@ export function normalizeInputs(inputs: PlanInputs, cfg: Config): NormalizedInpu
           ]),
         ),
       }),
+      ...(a.originalCostToday !== undefined && {
+        originalCostNom: atPlanStart(a.originalCostToday),
+      }),
       ...(a.tfsaRoomToday !== undefined && { tfsaRoomNom: atPlanStart(a.tfsaRoomToday) }),
       ...(a.conversionAge !== undefined && { conversionAge: a.conversionAge }),
       ...(a.lifUnlock50 !== undefined && { lifUnlock50: a.lifUnlock50 }),
+      ...(a.mixId !== undefined && { mixId: a.mixId }),
+      ...(a.mix !== undefined && { mix: a.mix }),
     })),
     dbPensions: inputs.dbPensions.map((db) => {
       const convert = db.indexing === 'full' ? atPlanStart : (n: number) => n;
@@ -86,6 +103,7 @@ export function normalizeInputs(inputs: PlanInputs, cfg: Config): NormalizedInpu
     spending: {
       mode: s.mode,
       monthlyTotalNom: atPlanStart(s.monthlyTotalToday),
+      groupsMonthlyNom: Object.values(s.groupsMonthlyToday ?? {}).map(atPlanStart),
       categories: Object.fromEntries(
         Object.entries(s.categories).map(([id, c]) => [
           id,

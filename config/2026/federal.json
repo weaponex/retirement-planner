@@ -621,5 +621,145 @@
       "by": "weaponex",
       "on": "2026-11-19"
     }
+  },
+  "federal.payroll.cpp.ympe": {
+    "value": 74600,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/payroll-deductions-contributions/canada-pension-plan-cpp/cpp-contribution-rates-maximums-exemptions.html",
+      "locator": "Table 'CPP contribution rates, maximums and exemptions', row 2026, column 'Maximum annual pensionable earnings'"
+    },
+    "fetchedOn": "2026-11-25",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "federal.payroll.cpp.basic_exemption": {
+    "value": 3500,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/payroll-deductions-contributions/canada-pension-plan-cpp/cpp-contribution-rates-maximums-exemptions.html",
+      "locator": "Same table, row 2026, column 'Basic exemption amount'"
+    },
+    "fetchedOn": "2026-11-25",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "federal.payroll.cpp.rate": {
+    "value": 0.0595,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/payroll-deductions-contributions/canada-pension-plan-cpp/cpp-contribution-rates-maximums-exemptions.html",
+      "locator": "Same table, row 2026, column 'Employee and employer contribution rate (%)'"
+    },
+    "fetchedOn": "2026-11-25",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "federal.payroll.cpp.base_rate": {
+    "value": 0.0495,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/payroll-deductions-contributions/canada-pension-plan-cpp.html",
+      "locator": "Section 'What is the CPP enhancement': 'the base contributions (4.95%) and the first additional contribution to the CPP (1%)'"
+    },
+    "fetchedOn": "2026-11-25",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "federal.payroll.cpp2.ceiling": {
+    "value": 85000,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/calculating-deductions/making-deductions/second-additional-cpp-contribution-rates-maximums.html",
+      "locator": "Table, row 2026, column 'Additional maximum annual pensionable earnings'"
+    },
+    "fetchedOn": "2026-11-25",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "federal.payroll.cpp2.rate": {
+    "value": 0.04,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/calculating-deductions/making-deductions/second-additional-cpp-contribution-rates-maximums.html",
+      "locator": "Same table, row 2026, column 'Employee and employer contribution rate (%)'"
+    },
+    "fetchedOn": "2026-11-25",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "federal.payroll.ei.max_insurable": {
+    "value": 68900,
+    "unit": "CAD_per_year",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/payroll-deductions-contributions/employment-insurance-ei/ei-premium-rates-maximums.html",
+      "locator": "Federal table, row 2026, column 'Maximum annual insurable earnings'"
+    },
+    "fetchedOn": "2026-11-25",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "federal.payroll.ei.rate": {
+    "value": 0.0163,
+    "unit": "rate",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/payroll-deductions-contributions/employment-insurance-ei/ei-premium-rates-maximums.html",
+      "locator": "Federal table, row 2026, column 'Rate (%)'"
+    },
+    "fetchedOn": "2026-11-25",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "federal.cpp.average_at_65": {
+    "value": 858.34,
+    "unit": "CAD_per_month",
+    "taxYear": 2026,
+    "indexed": true,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/cpp-benefit/amount.html",
+      "locator": "Table, row 'Average CPP pension at age 65 (July 2026)'"
+    },
+    "fetchedOn": "2026-11-25",
+    "validation": {
+      "status": "unvalidated"
+    }
+  },
+  "federal.oas.residence.from_age": {
+    "value": 18,
+    "unit": "age",
+    "taxYear": 2026,
+    "indexed": false,
+    "source": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/eligibility.html",
+      "locator": "Eligibility, living in Canada: 'Have resided in Canada for at least 10 years since the age of 18'"
+    },
+    "fetchedOn": "2026-11-25",
+    "validation": {
+      "status": "unvalidated"
+    }
   }
 }

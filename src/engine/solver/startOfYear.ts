@@ -75,6 +75,7 @@ function placeUnlocked(
   unlocked: number,
   weights: Weights,
   year: number,
+  from?: AccountState,
 ): AccountState[] {
   const target = accounts
     .filter((a) => a.owner === owner && (a.type === 'rrsp' || a.type === 'rrif'))
@@ -92,13 +93,15 @@ function placeUnlocked(
     type: 'rrif',
     holdings: buy(emptyHoldings(), unlocked, weights),
     openedYear: year,
+    ...(from?.mixId !== undefined && { mixId: from.mixId }),
+    ...(from?.mix !== undefined && { mix: from.mix }),
   };
   return [...accounts, created];
 }
 
 export function startOfYear(state: PlanState, ctx: YearContext): PlanState {
   let accounts: AccountState[] = [];
-  const unlocks: { owner: Owner; amount: number; weights: Weights }[] = [];
+  const unlocks: { owner: Owner; amount: number; weights: Weights; from: AccountState }[] = [];
   for (const a of state.accounts) {
     const age = state.spouses[a.owner].age;
     if (a.type === 'rrsp') {
@@ -108,13 +111,13 @@ export function startOfYear(state: PlanState, ctx: YearContext): PlanState {
       const weights = currentWeights(a.holdings, ALL_CASH);
       const { account, unlocked } = convertLira(a, age, state.year, ctx);
       accounts.push(account);
-      if (unlocked > 0) unlocks.push({ owner: a.owner, amount: unlocked, weights });
+      if (unlocked > 0) unlocks.push({ owner: a.owner, amount: unlocked, weights, from: a });
     } else {
       accounts.push(a);
     }
   }
   for (const u of unlocks)
-    accounts = placeUnlocked(accounts, u.owner, u.amount, u.weights, state.year);
+    accounts = placeUnlocked(accounts, u.owner, u.amount, u.weights, state.year, u.from);
   const spouses = state.spouses.map((s) =>
     s.alive ? addYearlyRoom(s, ctx) : s,
   ) as PlanState['spouses'];

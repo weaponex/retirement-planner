@@ -164,7 +164,7 @@ export function workingYear(
     // Sheltered yields are credited before deposits, as in retired years.
     holdings = creditYields([{ ...a, holdings }], p.yieldCredit)[0]!.holdings;
     const into = deposits[a.id] ?? 0;
-    if (into > 0) holdings = buy(holdings, into, currentWeights(holdings, p.mix));
+    if (into > 0) holdings = buy(holdings, into, currentWeights(holdings, p.mixOf(a)));
     return { ...a, holdings };
   });
 
@@ -195,7 +195,9 @@ export function workingYear(
   }
   accounts = accounts.map((a) => {
     const c = contributions[a.id] ?? 0;
-    return c > 0 ? { ...a, holdings: buy(a.holdings, c, currentWeights(a.holdings, p.mix)) } : a;
+    return c > 0
+      ? { ...a, holdings: buy(a.holdings, c, currentWeights(a.holdings, p.mixOf(a))) }
+      : a;
   });
 
   spouses = spouses.map((sp, o) => ({

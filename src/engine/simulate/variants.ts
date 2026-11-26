@@ -33,6 +33,10 @@ export function variants(inputs: NormalizedInputs): PlanVariants {
         ? user
         : { id: `strategy:${strategyId}`, strategyId, presetId: user.presetId },
     ),
-    baseline: { id: 'baseline', strategyId: user.strategyId, presetId: 'same_mix' },
+    // With each account's own mix (AR-S3) there is no placement to compare.
+    baseline:
+      user.presetId === 'own_mix'
+        ? user
+        : { id: 'baseline', strategyId: user.strategyId, presetId: 'same_mix' },
   };
 }
