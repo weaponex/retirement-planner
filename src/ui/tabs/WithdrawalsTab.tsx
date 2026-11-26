@@ -14,7 +14,9 @@ import { readyToRun } from '../../state/readiness';
 import { RuleValue, Section, SOURCE_COLOURS, Strip, useSpouseName } from '../common';
 import { bundledConfig, planConfig } from '../config';
 import { firstDeathYear, incomeRows, type IncomeRow } from '../charts/data';
-import { gross, IncomeChart } from '../charts/IncomeChart';
+import { gross, INCOME_INSET, IncomeChart } from '../charts/IncomeChart';
+import { YearSlider } from '../charts/YearSlider';
+import { MissingSections } from '../results/MissingSections';
 import { OPPOSITE_DIRECTIONS, STRATEGIES } from '../content/explanations';
 import { useToday } from '../hooks';
 import { UpdatingState } from '../results/UpdatingState';
@@ -29,7 +31,7 @@ const OAS_FROM = 65;
 function useDrawDownYears(): number[] | undefined {
   const inputs = usePlan((s) => s.inputs);
   return useMemo(() => {
-    const r = readyToRun(inputs);
+    const r = readyToRun(inputs, bundledConfig());
     if (!r.ready) return undefined;
     const cfg = rebaseConfig(planConfig(r.inputs.ruleOverrides), r.inputs.planStartYear);
     const n = normalizeInputs(r.inputs, cfg);
@@ -517,7 +519,8 @@ export function WithdrawalsTab() {
                 <span>No draw-down years with these start ages; same as Registered last.</span>
               ))}
           </div>
-          <div className="chart-and-breakdown">
+          {rows.length === 0 && <MissingSections what="The chart and the comparison appear" />}
+          <div className="chart-and-breakdown" hidden={rows.length === 0}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div className="chart-head">
                 <p style={{ fontWeight: 600 }}>Where each year’s money comes from</p>
@@ -557,21 +560,15 @@ export function WithdrawalsTab() {
                 markers={death ? [{ year: death, label: 'survivor' }] : []}
                 label={`Yearly money by source under ${STRATEGIES[withdrawal.strategyId].title}`}
               />
-              {rows.length > 0 && (
-                <div className="field">
-                  <input
-                    id="year-slider"
-                    type="range"
-                    min={rows[0]!.year}
-                    max={rows.at(-1)!.year}
-                    value={shownYear}
-                    aria-label="Year"
-                    onChange={(e) => setYear(Number(e.target.value))}
-                  />
-                  <label htmlFor="year-slider" className="note">
-                    Drag to look at a year
-                  </label>
-                </div>
+              {rows.length > 0 && shownYear !== undefined && (
+                <YearSlider
+                  id="year-slider"
+                  first={rows[0]!.year}
+                  last={rows.at(-1)!.year}
+                  value={shownYear}
+                  onChange={setYear}
+                  {...INCOME_INSET}
+                />
               )}
             </div>
             <Breakdown row={rows.find((r) => r.year === shownYear)} ages={ages} />

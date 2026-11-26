@@ -31,6 +31,12 @@ const DARK_TEXT: Partial<Record<Source, string>> = { work: '#1C1C1A', oas: '#0B3
 export const gross = (r: IncomeRow) => SOURCES.reduce((t, s) => t + r[s], 0);
 const kfmt = (v: number) => `$${Math.round(v / THOUSAND).toLocaleString('en-CA')}k`;
 
+/** Where the first and last year sit, from the chart's edges (for `YearSlider`). */
+export const INCOME_INSET = {
+  left: `${((W0 / WIDTH) * 100).toFixed(3)}%`,
+  right: `${(((WIDTH - W1) / WIDTH) * 100).toFixed(3)}%`,
+};
+
 export interface IncomeChartProps {
   rows: IncomeRow[];
   /** The year marker. */

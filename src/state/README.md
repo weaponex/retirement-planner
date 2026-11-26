@@ -11,15 +11,17 @@ last change sends a ready plan to the engine Worker. A reply for an older revisi
 
 - `draft.ts`: `PlanDraft` (`PlanInputs` with empty numbers allowed while typing); `getAt`,
   `setAt`, `deleteAt` by input path (accounts are addressed by id: `accounts.rrsp-0-1.balanceToday`).
-- `readiness.ts`: `readyToRun(draft)`: the plan schema plus the mix sum; fills a working tax rate of
+- `readiness.ts`: `readyToRun(draft, cfg?)`: the plan schema plus the mix sum; fills a working tax rate of
   0 for a spouse not working and a one total of 0 in category mode; otherwise the `missing` list.
 - `store.ts`: `createPlanStore({ cfg, connect, now?, initial? })`; `statusOf(state)`
   (`incomplete`, `updating`, `up_to_date`, `error`); `RUN_DELAY_MS`; `inputAt`.
   Actions: `setInput`, `clearInput`, `setRule`, `resetRule`, `resetAllRules`, `loadPlan`, `chooseMix`,
+  `addDcPension`, `chooseAccountMix`, `setGroupAmount`,
   `setSpendingMode`, `addAccount`, `removeAccount`, `addDbPension`, `removeDbPension`, `setView`.
-- `defaults.ts`: `emptyPlan(cfg, today)`, `defaultLifeExpectancy(sex, age, cfg)`, `startingMix`.
+- `defaults.ts`: `emptyPlan(cfg, today)` (eight $0 accounts, CPP and OAS at 70),
+  `newAccount`, `STARTING_ACCOUNT_TYPES`, `defaultLifeExpectancy(sex, age, cfg)`, `startingMix`.
 - `changeSummary.ts`: `changeSummary(previous, current, edits, draft)`, `describeEdits`.
-- `labels.ts`: `fieldLabel(path, draft)`. `categories.ts`: the 29 persisted category ids.
+- `labels.ts`: `fieldLabel(path, draft)`. `categories.ts`: the 29 persisted category ids, the group ids and `groupOf`.
 - `mix.ts`: `setMixShare` (the sliders), `mixTotal`. `format.ts`: money and percent formats.
 - `persistence/planSchema.ts`: the zod schema with the input ranges and the caps.
 - `react.ts`: `PlanStoreContext`, `usePlan(selector)`.

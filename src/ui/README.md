@@ -16,9 +16,11 @@ the app shell, six tabs, Settings, the result views and charts. Screens read the
 - `settings/SettingsScreen.tsx`: every rule value by section, credits and returns as tables;
   single values can be changed (Enter or leaving the field applies). `settings/names.ts`:
   `RULE_NAMES`, `ruleName` (plain names, never config keys).
-- `results/`: `Goals`, `UpdatingState` and `StatusLine`, `ResultsBadge`, `ChangeSummaryLine`,
+- `results/`: `MissingSections` (what is missing, by tab, AR-W4), `Goals`, `UpdatingState` and
+  `StatusLine`, `ResultsBadge`, `ChangeSummaryLine`,
   `WarningsList` (empty until stage 6), `ConfigNotice` and `TaxYearChip`, `IntegrityError`.
-- `charts/`: `charts.tsx` (balances, tax, estate in recharts), `IncomeChart.tsx` (the income
+- `charts/`: `YearSlider` (a slider inset to a chart's x axis, AR-W5; `INCOME_INSET`,
+  `AREA_INSET`), `charts.tsx` (balances, tax, estate in recharts), `IncomeChart.tsx` (the income
   chart in SVG, shared by Withdrawals and Results), `data.ts` (chart rows in today's dollars),
   `ChartTable`.
 - `inputs/`: `Field`, `TextInput`, `CurrencyInput`, `PercentInput`, `AgeInput`, `SegmentedChoice`.

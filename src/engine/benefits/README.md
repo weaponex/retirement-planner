@@ -9,6 +9,9 @@ coefficient comes from config.
 
 ## Interface
 
+- `residence.ts` (AR-H2, AR-H4): `cppAt65FromStart`, `cppAtStartFrom65` (the start-age
+  adjustment both ways) and `residenceYears(birthYear, arrivedYear, cfg)` (years after
+  `federal.oas.residence.from_age` by 65, capped at the full years).
 - `cpp.ts`
   - `yearShare(startAge, age, birthMonth)`: 0 before the start year, (12 − birth month) ÷ 12 in
     it, 1 after. Shared by every benefit.

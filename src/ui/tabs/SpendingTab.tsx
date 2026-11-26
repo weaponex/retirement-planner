@@ -13,20 +13,28 @@ import { SegmentedChoice } from '../inputs/SegmentedChoice';
 const MONTHS = 12;
 type Spending = PlanDraft['spending'];
 
-/** Active-years monthly spending: the category sum, or the one total. */
+/** The groups' own monthly amounts (AR-P1). */
+function groupSum(sp: Spending): number {
+  return Object.values(sp.groupsMonthlyToday ?? {}).reduce<number>((s, v) => s + (v ?? 0), 0);
+}
+
+/** Active-years monthly spending: the category and group sum, or the one total. */
 export function activeMonthly(sp: Spending): number {
   if (sp.mode === 'one_total') return sp.monthlyTotalToday ?? 0;
-  return Object.values(sp.categories).reduce((s, c) => s + (c.monthlyToday ?? 0), 0);
+  return Object.values(sp.categories).reduce((s, c) => s + (c.monthlyToday ?? 0), 0) + groupSum(sp);
 }
 
 /** A phase's monthly spending (phase 0 slower, 1 later), with each category's override if set. */
 export function phaseMonthly(sp: Spending, phase: 0 | 1): number {
   const keep = (sp.phases[phase].keepPct ?? 100) / 100;
   if (sp.mode === 'one_total') return (sp.monthlyTotalToday ?? 0) * keep;
-  return Object.values(sp.categories).reduce((s, c) => {
-    const o = c.laterOverrideToday?.[phase];
-    return s + (o === null || o === undefined ? (c.monthlyToday ?? 0) * keep : o);
-  }, 0);
+  return Object.values(sp.categories).reduce(
+    (s, c) => {
+      const o = c.laterOverrideToday?.[phase];
+      return s + (o === null || o === undefined ? (c.monthlyToday ?? 0) * keep : o);
+    },
+    groupSum(sp) * keep,
+  );
 }
 
 /** True when later-years spending is above slower-years spending (O28): allowed, with a note. */
@@ -125,6 +133,42 @@ function CategoryRow({ id, name }: { id: string; name: string }) {
   );
 }
 
+/** One amount for a whole group (AR-P1): it clears the items; an item clears it. */
+function GroupAmount({
+  id,
+  name,
+  categoryIds,
+}: {
+  id: string;
+  name: string;
+  categoryIds: string[];
+}) {
+  const value = usePlan((s) => s.inputs.spending.groupsMonthlyToday?.[id]);
+  const setGroupAmount = usePlan((s) => s.setGroupAmount);
+  const inputId = `grp-${id}`;
+  return (
+    <div className="category group-amount" data-path={`spending.groupsMonthlyToday.${id}`}>
+      <div className="category-main">
+        <label htmlFor={inputId}>{name}, one amount for the group</label>
+        <span className="with-unit">
+          <span className="unit">$</span>
+          <MoneyBox
+            id={inputId}
+            label={name}
+            value={value}
+            onChange={(v) => setGroupAmount(id, categoryIds, v === null || v === 0 ? null : v)}
+          />
+          <span className="unit">/mo</span>
+        </span>
+      </div>
+      <p className="note">
+        Enter one amount for the whole group, or fill in the items below. Entering one clears the
+        other.
+      </p>
+    </div>
+  );
+}
+
 function Groups({ sp }: { sp: Spending }) {
   const [open, setOpen] = useState<string | null>(CATEGORY_GROUPS[0]!.id);
   return (
@@ -133,7 +177,8 @@ function Groups({ sp }: { sp: Spending }) {
         const isOpen = open === g.id;
         const amounts = g.categories.map((c) => sp.categories[c.id]?.monthlyToday ?? 0);
         const used = amounts.filter((a) => a > 0).length;
-        const total = amounts.reduce((a, b) => a + b, 0);
+        const own = sp.groupsMonthlyToday?.[g.id] ?? null;
+        const total = own ?? amounts.reduce((a, b) => a + b, 0);
         const differ = g.categories.filter((c) => sp.categories[c.id]?.laterOverrideToday);
         return (
           <div key={g.id} className="group">
@@ -153,7 +198,7 @@ function Groups({ sp }: { sp: Spending }) {
               )}
               <span className="spacer" />
               <span className="note">
-                {used} of {g.categories.length} used
+                {own !== null ? 'One amount' : `${used} of ${g.categories.length} used`}
               </span>
               <span className="num" style={{ fontWeight: 600, minWidth: 90, textAlign: 'right' }}>
                 {money(total)}/mo
@@ -167,6 +212,7 @@ function Groups({ sp }: { sp: Spending }) {
             </button>
             {isOpen && (
               <div className="group-body">
+                <GroupAmount id={g.id} name={g.name} categoryIds={g.categories.map((c) => c.id)} />
                 {g.categories.map((c) => (
                   <CategoryRow key={c.id} id={c.id} name={c.name} />
                 ))}

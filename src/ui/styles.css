@@ -1356,3 +1356,77 @@ fieldset:disabled .choice-card {
 .rule.compact input.num {
   width: 110px;
 }
+.mix-row.two {
+  grid-template-columns: 220px 1fr;
+}
+.group-amount {
+  background: var(--quiet);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.year-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.year-slider input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.year-slider input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+}
+.year-slider input[type='range']::-moz-range-track {
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+}
+.year-slider input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--ink);
+}
+.year-slider input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid #fff;
+  box-sizing: border-box;
+}
+.year-slider label {
+  text-align: center;
+}
+.year-readout {
+  font-size: 13px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.missing-sections {
+  background: var(--quiet);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+.missing-sections ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

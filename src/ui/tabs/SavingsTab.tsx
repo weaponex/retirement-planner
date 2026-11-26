@@ -1,17 +1,18 @@
-// Savings (design: Screens, Savings tab; mockup Investing): accounts,
-// workplace pensions, the investment mix, the growth-to-safety shape and the
-// placement preset, each a section with a summary beside its title.
-import { useState } from 'react';
+// Savings (design: Screens, Savings tab; mockup Investing; author review
+// AR-S1 to AR-S6): accounts with their balances and each account's own mix,
+// workplace pensions (DB and DC), returns and fees, and the growth-to-safety
+// shape, each a section with a summary beside its title.
+import { useMemo, useState } from 'react';
 import { ASSET_CLASSES, type AssetClass } from '../../engine/config/keys';
 import { planObject, planValue } from '../../engine/config/read';
-import type { AccountType, FeeLevel, Owner, PresetId, ShapeId } from '../../engine/types';
+import type { AccountType, FeeLevel, MixId, Owner, ShapeId } from '../../engine/types';
 import type { PlanDraft } from '../../state/draft';
 import { money, moneyShort, percent } from '../../state/format';
 import { mixTotal, setMixShare } from '../../state/mix';
 import { usePlan } from '../../state/react';
-import { CLASS_COLOURS, RuleValue, Section, Strip, useSpouseName } from '../common';
+import { CLASS_COLOURS, RuleValue, Section, useSpouseName } from '../common';
 import { bundledConfig, planConfig } from '../config';
-import { FACE_VALUE_NOTE, OPPOSITE_DIRECTIONS, PRESETS, SHAPES } from '../content/explanations';
+import { SHAPES } from '../content/explanations';
 import { AgeInput } from '../inputs/AgeInput';
 import { CurrencyInput, parseMoney } from '../inputs/CurrencyInput';
 import { PercentInput, parsePercent, shownPercent } from '../inputs/PercentInput';
@@ -40,9 +41,20 @@ const FEE_NAMES: Record<Exclude<FeeLevel, 'custom'>, string> = {
 
 type Investing = PlanDraft['investing'];
 type Account = PlanDraft['accounts'][number];
+type Mix = Investing['mix'];
+
+const MIX_NAMES: Record<MixId, string> = {
+  conservative: 'Conservative',
+  balanced: 'Balanced',
+  growth: 'Growth',
+  custom: 'Custom',
+};
 
 /** The weighted expected return before and after the fee, from the rule values in use. */
-export function expectedReturn(investing: Investing, overrides: PlanDraft['ruleOverrides']) {
+export function expectedReturn(
+  investing: Pick<Investing, 'feeLevel' | 'customFee' | 'returnOverride'> & { mix: Mix },
+  overrides: PlanDraft['ruleOverrides'],
+) {
   const cfg = planConfig(overrides);
   const levels = planObject<Record<string, number>>(cfg, 'planning.fee_levels');
   const fee =
@@ -64,28 +76,122 @@ function details(a: Account): string {
     return `Becomes a LIF at ${a.conversionAge ?? '?'} · unlock 50%: ${a.lifUnlock50 ? 'yes' : 'no'}`;
   }
   if (a.type === 'tfsa') return `Unused room today ${money(a.tfsaRoomToday ?? 0)}`;
-  const cost = Object.values(a.positions ?? {}).reduce(
-    (s, p) => s + (p?.originalCostToday ?? 0),
-    0,
+  if (a.positions) {
+    const cost = Object.values(a.positions).reduce((s, p) => s + (p?.originalCostToday ?? 0), 0);
+    return `Original cost ${money(cost)} (by asset class)`;
+  }
+  return a.originalCostToday === undefined || a.originalCostToday === null
+    ? 'Original cost not entered (taken as the balance)'
+    : `Original cost ${money(a.originalCostToday)}`;
+}
+
+/** One account's mix: a starting mix or custom shares (AR-S3). */
+function AccountMix({ a }: { a: Account }) {
+  const chooseAccountMix = usePlan((s) => s.chooseAccountMix);
+  const setInput = usePlan((s) => s.setInput);
+  const mix = (a.mix ?? {}) as Mix;
+  const total = mixTotal(mix);
+  const setShare = (c: AssetClass, v: number) => {
+    setInput(`accounts.${a.id}.mix`, setMixShare(mix as Record<AssetClass, number>, c, v));
+    if (a.mixId !== 'custom') setInput(`accounts.${a.id}.mixId`, 'custom');
+  };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <SegmentedChoice<MixId>
+        legend="Investment mix"
+        options={(Object.keys(MIX_NAMES) as MixId[]).map((k) => ({
+          value: k,
+          label: MIX_NAMES[k],
+        }))}
+        value={a.mixId ?? 'balanced'}
+        onChange={(v) => chooseAccountMix(a.id, v)}
+      />
+      <div>
+        <MixBar mix={mix} />
+        <div className="mix-totals">{mixTotals(mix)}</div>
+      </div>
+      {a.mixId === 'custom' && (
+        <div>
+          {ASSET_CLASSES.map((c) => (
+            <div key={c} className="mix-row two">
+              <span className="class-name">
+                <span className="swatch" style={{ background: CLASS_COLOURS[c] }} />
+                {CLASS_NAMES[c]}
+              </span>
+              <span className="share">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={mix[c] ?? 0}
+                  aria-label={`${CLASS_NAMES[c]} share`}
+                  onChange={(e) => setShare(c, Number(e.target.value))}
+                />
+                <span className="with-unit">
+                  <input
+                    className="num"
+                    inputMode="numeric"
+                    value={mix[c] ?? 0}
+                    aria-label={`${CLASS_NAMES[c]} share, percent`}
+                    onChange={(e) => setShare(c, Number(e.target.value) || 0)}
+                  />
+                  <span className="unit">%</span>
+                </span>
+              </span>
+            </div>
+          ))}
+          {total !== 100 && (
+            <p className="message" role="alert">
+              The mix adds up to {total}%; it must add up to 100%.
+            </p>
+          )}
+          <p className="note">Move one slider and the others adjust to keep the total at 100%.</p>
+        </div>
+      )}
+    </div>
   );
-  return `Original cost ${money(cost)} (by asset class)`;
+}
+
+function mixTotals(mix: Mix): string {
+  const stocks = STOCKS.reduce((s, c) => s + (mix[c] ?? 0), 0);
+  return `Stocks ${stocks}% · Bonds ${mix.bonds ?? 0}% · Cash ${mix.cash ?? 0}%`;
+}
+
+/** A balance typed straight into the accounts table (AR-S2). */
+function BalanceCell({ a, label }: { a: Account; label: string }) {
+  const setInput = usePlan((s) => s.setInput);
+  const [text, setText] = useState<string | null>(null);
+  const value = a.balanceToday;
+  const shown =
+    text ?? (value === null || value === undefined ? '' : money(value).replace('$', ''));
+  return (
+    <span className="with-unit" style={{ justifyContent: 'flex-end' }}>
+      <span className="unit">$</span>
+      <input
+        className="num"
+        inputMode="decimal"
+        aria-label={label}
+        style={{ width: 130 }}
+        value={shown}
+        onFocus={() => setText(value ? String(value) : '')}
+        onBlur={() => setText(null)}
+        onChange={(e) => {
+          setText(e.target.value);
+          setInput(`accounts.${a.id}.balanceToday`, parseMoney(e.target.value) ?? 0);
+        }}
+      />
+    </span>
+  );
 }
 
 function AccountEditor({ a }: { a: Account }) {
   const setInput = usePlan((s) => s.setInput);
   const removeAccount = usePlan((s) => s.removeAccount);
   const p = `accounts.${a.id}`;
-  const setPosition = (cls: AssetClass, field: 'valueToday' | 'originalCostToday', v: number) => {
-    const positions = { ...(a.positions ?? {}) };
-    positions[cls] = { valueToday: 0, originalCostToday: 0, ...positions[cls], [field]: v };
-    setInput(`${p}.positions`, positions);
-    const total = Object.values(positions).reduce((sum, x) => sum + (x?.valueToday ?? 0), 0);
-    setInput(`${p}.balanceToday`, total);
-  };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div className="grid-auto">
-        {a.type !== 'nonreg' && <CurrencyInput path={`${p}.balanceToday`} label="Balance" />}
         <CurrencyInput
           path={`${p}.annualContributionToday`}
           label="Yearly saving, until retiring"
@@ -116,45 +222,16 @@ function AccountEditor({ a }: { a: Account }) {
           Unlock 50% into the RRSP when it becomes a LIF
         </label>
       )}
-      {a.type === 'nonreg' && (
-        <table className="table" style={{ maxWidth: 560 }}>
-          <caption className="label" style={{ textAlign: 'left', paddingBottom: 6 }}>
-            Holdings today, by asset class
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Asset class</th>
-              <th scope="col" className="num">
-                Value
-              </th>
-              <th scope="col" className="num">
-                Original cost
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {ASSET_CLASSES.map((c) => (
-              <tr key={c}>
-                <th scope="row" style={{ fontWeight: 400, color: 'inherit' }}>
-                  {CLASS_NAMES[c]}
-                </th>
-                {(['valueToday', 'originalCostToday'] as const).map((f) => (
-                  <td key={f}>
-                    <input
-                      className="num"
-                      aria-label={`${CLASS_NAMES[c]} ${f === 'valueToday' ? 'value' : 'original cost'}`}
-                      inputMode="decimal"
-                      value={a.positions?.[c]?.[f] || ''}
-                      placeholder="0"
-                      onChange={(e) => setPosition(c, f, parseMoney(e.target.value) ?? 0)}
-                    />
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {a.type === 'nonreg' && !a.positions && (
+        <div style={{ maxWidth: 260 }}>
+          <CurrencyInput
+            path={`${p}.originalCostToday`}
+            label="Original cost"
+            hint="What was paid for the investments, for capital gains. Empty: the balance."
+          />
+        </div>
       )}
+      <AccountMix a={a} />
       <div>
         <button type="button" className="link" onClick={() => removeAccount(a.id)}>
           Remove this account
@@ -212,7 +289,8 @@ function AddAccount({ onDone }: { onDone(id: string): void }) {
 }
 
 function AccountsSection() {
-  const accounts = usePlan((s) => s.inputs.accounts);
+  const all = usePlan((s) => s.inputs.accounts);
+  const accounts = useMemo(() => all.filter((a) => !a.dcPension), [all]);
   const names = [useSpouseName(0), useSpouseName(1)];
   const [editing, setEditing] = useState<string | undefined>();
   const [adding, setAdding] = useState(false);
@@ -232,6 +310,7 @@ function AccountsSection() {
   return (
     <Section
       title="Accounts"
+      defaultOpen
       summary={[
         <>
           <b>{money(total)}</b> in {accounts.length} account{accounts.length === 1 ? '' : 's'}
@@ -245,8 +324,8 @@ function AccountsSection() {
           Add account
         </button>
         <span className="note">
-          Balances in today’s dollars. How the money is invested is set below. Money in a former
-          employer’s DC pension is entered as a LIRA.
+          Enter each balance in today’s dollars. Edit an account to change its mix, yearly saving
+          and the rest. A workplace DC pension goes under Workplace pensions.
         </span>
       </div>
       {adding && (
@@ -266,9 +345,7 @@ function AccountsSection() {
               <th scope="col" className="num">
                 Balance
               </th>
-              <th scope="col" className="num">
-                Yearly saving
-              </th>
+              <th scope="col">Mix</th>
               <th scope="col">Details</th>
               <th scope="col">
                 <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden' }}>
@@ -284,9 +361,23 @@ function AccountsSection() {
                 <tr key={a.id} data-account={a.id}>
                   <td>{TYPE_NAMES[a.type]}</td>
                   <td>{names[a.owner]}</td>
-                  <td className="num">{money(a.balanceToday ?? 0)}</td>
-                  <td className="num">{money(a.annualContributionToday ?? 0)}</td>
-                  <td>{details(a)}</td>
+                  <td className="num">
+                    <BalanceCell
+                      a={a}
+                      label={`${names[a.owner]}'s ${TYPE_NAMES[a.type]} balance`}
+                    />
+                  </td>
+                  <td>
+                    <span className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
+                      <MixBar mix={(a.mix ?? {}) as Mix} small />
+                      {MIX_NAMES[a.mixId ?? 'balanced']}
+                    </span>
+                  </td>
+                  <td>
+                    {details(a)}
+                    {(a.annualContributionToday ?? 0) > 0 &&
+                      ` · saving ${money(a.annualContributionToday ?? 0)} a year`}
+                  </td>
                   <td>
                     <button
                       type="button"
@@ -314,44 +405,130 @@ function AccountsSection() {
           </tbody>
         </table>
       )}
-      <Strip editKey="federal.tfsa.annual_limit">
-        New TFSA room each year: <RuleValue ruleKey="federal.tfsa.annual_limit" /> (
-        {bundledConfig().taxYear})
-      </Strip>
     </Section>
+  );
+}
+
+function DcPension({ a }: { a: Account }) {
+  const removeAccount = usePlan((s) => s.removeAccount);
+  const setInput = usePlan((s) => s.setInput);
+  const names = [useSpouseName(0), useSpouseName(1)];
+  const p = `accounts.${a.id}`;
+  return (
+    <div className="card" style={{ padding: 16, gap: 12 }} data-account={a.id}>
+      <p style={{ fontWeight: 600 }}>{names[a.owner]}: defined contribution pension</p>
+      <div className="grid-auto">
+        <CurrencyInput path={`${p}.balanceToday`} label="Value today" />
+        <CurrencyInput
+          path={`${p}.annualContributionToday`}
+          label="Yearly contributions, until retiring"
+          hint="Yours and your employer’s together."
+        />
+        <AgeInput path={`${p}.conversionAge`} label="Becomes a LIF at age" min={55} max={71} />
+      </div>
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={a.lifUnlock50 ?? false}
+          onChange={(e) => setInput(`${p}.lifUnlock50`, e.target.checked)}
+        />
+        Unlock 50% into the RRSP when it becomes a LIF
+      </label>
+      <AccountMix a={a} />
+      <p className="note">
+        On leaving the employer, a DC pension moves to a LIRA and is drawn as a LIF; the plan holds
+        it that way from the start.{' '}
+        <button type="button" className="link" onClick={() => removeAccount(a.id)}>
+          Remove this pension
+        </button>
+      </p>
+    </div>
+  );
+}
+
+function AddPension() {
+  const addDbPension = usePlan((s) => s.addDbPension);
+  const addDcPension = usePlan((s) => s.addDcPension);
+  const names = [useSpouseName(0), useSpouseName(1)];
+  const [kind, setKind] = useState<'db' | 'dc'>('db');
+  const [owner, setOwner] = useState<Owner>(0);
+  return (
+    <div className="row" style={{ alignItems: 'flex-end' }}>
+      <div className="field" style={{ width: 200 }}>
+        <label htmlFor="new-pension-kind">Pension type</label>
+        <select
+          id="new-pension-kind"
+          value={kind}
+          onChange={(e) => setKind(e.target.value as 'db' | 'dc')}
+        >
+          <option value="db">Defined benefit</option>
+          <option value="dc">Defined contribution</option>
+        </select>
+      </div>
+      <div className="field" style={{ width: 180 }}>
+        <label htmlFor="new-pension-owner">Owner</label>
+        <select
+          id="new-pension-owner"
+          value={owner}
+          onChange={(e) => setOwner(Number(e.target.value) as Owner)}
+        >
+          <option value={0}>{names[0]}</option>
+          <option value={1}>{names[1]}</option>
+        </select>
+      </div>
+      <button
+        type="button"
+        className="btn"
+        onClick={() => (kind === 'db' ? addDbPension(owner) : addDcPension(owner))}
+      >
+        Add pension
+      </button>
+    </div>
   );
 }
 
 function PensionsSection() {
   const dbs = usePlan((s) => s.inputs.dbPensions);
+  const all = usePlan((s) => s.inputs.accounts);
+  const dcs = useMemo(() => all.filter((a) => a.dcPension), [all]);
   const setInput = usePlan((s) => s.setInput);
-  const addDbPension = usePlan((s) => s.addDbPension);
   const removeDbPension = usePlan((s) => s.removeDbPension);
   const names = [useSpouseName(0), useSpouseName(1)];
   const summary =
-    dbs.length === 0
+    dbs.length === 0 && dcs.length === 0
       ? ['None']
-      : dbs.flatMap((d) => [
-          <>
-            {names[d.owner]}: <b>{money(d.lifetimeAnnualToday ?? 0)}</b> a year from{' '}
-            {d.startAge ?? '?'}
-          </>,
-          ...(d.bridgeAnnualToday
-            ? [`Bridge ${money(d.bridgeAnnualToday)} to ${d.bridgeEndAge ?? '?'}`]
-            : []),
-          `${d.survivorPct ?? 0}% to survivor`,
-        ]);
+      : [
+          ...dcs.map((a) => (
+            <>
+              {names[a.owner]}: DC pension <b>{money(a.balanceToday ?? 0)}</b>
+            </>
+          )),
+          ...dbs.flatMap((d) => [
+            <>
+              {names[d.owner]}: <b>{money(d.lifetimeAnnualToday ?? 0)}</b> a year from{' '}
+              {d.startAge ?? '?'}
+            </>,
+            ...(d.bridgeAnnualToday
+              ? [`Bridge ${money(d.bridgeAnnualToday)} to ${d.bridgeEndAge ?? '?'}`]
+              : []),
+            `${d.survivorPct ?? 0}% to survivor`,
+          ]),
+        ];
   return (
     <Section title="Workplace pensions" summary={summary}>
-      <div>
-        <button type="button" className="btn" onClick={() => addDbPension(0)}>
-          Add pension
-        </button>
-      </div>
+      <p className="intro">
+        A defined benefit pension pays a set amount for life; a defined contribution pension is an
+        invested balance.
+      </p>
+      <AddPension />
+      {dcs.map((a) => (
+        <DcPension key={a.id} a={a} />
+      ))}
       {dbs.map((d, i) => {
         const p = `dbPensions.${i}`;
         return (
           <div key={i} className="card" style={{ padding: 16, gap: 12 }}>
+            <p style={{ fontWeight: 600 }}>{names[d.owner]}: defined benefit pension</p>
             <div className="grid-auto">
               <div className="field">
                 <label htmlFor={`db-owner-${i}`}>Owner</label>
@@ -404,7 +581,7 @@ function PensionsSection() {
   );
 }
 
-function MixBar({ mix, small }: { mix: Investing['mix']; small?: boolean | undefined }) {
+function MixBar({ mix, small }: { mix: Mix; small?: boolean | undefined }) {
   return (
     <span className={small ? 'mix-bar small' : 'mix-bar'} aria-hidden="true">
       {ASSET_CLASSES.map((c) => (
@@ -414,130 +591,86 @@ function MixBar({ mix, small }: { mix: Investing['mix']; small?: boolean | undef
   );
 }
 
-function MixRow({ c }: { c: AssetClass }) {
+function ReturnRow({ c }: { c: AssetClass }) {
   const investing = usePlan((s) => s.inputs.investing);
   const overrides = usePlan((s) => s.inputs.ruleOverrides);
   const setInput = usePlan((s) => s.setInput);
   const clearInput = usePlan((s) => s.clearInput);
-  const share = investing.mix[c] ?? 0;
   const dflt = planValue(planConfig(overrides), `market.${c}.geometric_return`);
   const override = investing.returnOverride?.[c];
   const [text, setText] = useState<string | null>(null);
-  const setShare = (v: number) => {
-    setInput('investing.mix', setMixShare(investing.mix as Record<AssetClass, number>, c, v));
-    if (investing.mixId !== 'custom') setInput('investing.mixId', 'custom');
-  };
   return (
-    <div className="mix-row">
+    <div className="mix-row two">
       <span className="class-name">
         <span className="swatch" style={{ background: CLASS_COLOURS[c] }} />
         {CLASS_NAMES[c]}
       </span>
-      <span className="share">
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={1}
-          value={share}
-          aria-label={`${CLASS_NAMES[c]} share`}
-          onChange={(e) => setShare(Number(e.target.value))}
-        />
-        <span className="with-unit">
+      <span className="row" style={{ gap: 12 }}>
+        <span className="with-unit" style={{ width: 120 }}>
           <input
             className="num"
-            inputMode="numeric"
-            value={share}
-            aria-label={`${CLASS_NAMES[c]} share, percent`}
-            onChange={(e) => setShare(Number(e.target.value) || 0)}
+            inputMode="decimal"
+            aria-label={`${CLASS_NAMES[c]} expected return, percent`}
+            value={text ?? shownPercent(override ?? dflt, 'fraction')}
+            onFocus={() => setText(shownPercent(override ?? dflt, 'fraction'))}
+            onBlur={() => setText(null)}
+            onChange={(e) => {
+              setText(e.target.value);
+              const v = parsePercent(e.target.value, 'fraction');
+              if (v === null || Math.abs(v - dflt) < 1e-9)
+                clearInput(`investing.returnOverride.${c}`);
+              else setInput(`investing.returnOverride.${c}`, v);
+            }}
           />
           <span className="unit">%</span>
         </span>
+        {override !== undefined && override !== null && (
+          <span className="note">FP Canada: {percent(dflt, 1)}</span>
+        )}
       </span>
-      <span className="with-unit">
-        <input
-          className="num"
-          inputMode="decimal"
-          aria-label={`${CLASS_NAMES[c]} expected return, percent`}
-          value={text ?? shownPercent(override ?? dflt, 'fraction')}
-          onFocus={() => setText(shownPercent(override ?? dflt, 'fraction'))}
-          onBlur={() => setText(null)}
-          onChange={(e) => {
-            setText(e.target.value);
-            const v = parsePercent(e.target.value, 'fraction');
-            if (v === null || Math.abs(v - dflt) < 1e-9)
-              clearInput(`investing.returnOverride.${c}`);
-            else setInput(`investing.returnOverride.${c}`, v);
-          }}
-        />
-        <span className="unit">%</span>
-      </span>
-      {override !== undefined && override !== null && (
-        <span className="note" style={{ gridColumn: '3' }}>
-          FP Canada: {percent(dflt, 1)}
-        </span>
-      )}
     </div>
   );
 }
 
-function MixSection() {
+/** The balance-weighted mix of every account, for the household's expected return. */
+function useHouseholdMix(): Mix {
+  const accounts = usePlan((s) => s.inputs.accounts);
+  const fallback = usePlan((s) => s.inputs.investing.mix);
+  return useMemo(() => {
+    const total = accounts.reduce((s, a) => s + (a.balanceToday ?? 0), 0);
+    if (total <= 0) return fallback;
+    const mix = {} as Mix;
+    for (const c of ASSET_CLASSES) {
+      mix[c] =
+        accounts.reduce((s, a) => s + (a.balanceToday ?? 0) * ((a.mix ?? fallback)[c] ?? 0), 0) /
+        total;
+    }
+    return mix;
+  }, [accounts, fallback]);
+}
+
+function ReturnsSection() {
   const investing = usePlan((s) => s.inputs.investing);
   const overrides = usePlan((s) => s.inputs.ruleOverrides);
   const setInput = usePlan((s) => s.setInput);
-  const chooseMix = usePlan((s) => s.chooseMix);
   const levels = planObject<Record<string, number>>(planConfig(overrides), 'planning.fee_levels');
-  const total = mixTotal(investing.mix);
-  const stocks = STOCKS.reduce((s, c) => s + (investing.mix[c] ?? 0), 0);
-  const r = expectedReturn(investing, overrides);
-  const totals = `Stocks ${stocks}% · Bonds ${investing.mix.bonds ?? 0}% · Cash ${investing.mix.cash ?? 0}%`;
+  const mix = useHouseholdMix();
+  const r = expectedReturn({ ...investing, mix }, overrides);
   return (
     <Section
-      title="Your investment mix"
-      defaultOpen
+      title="Returns and fees"
       summary={[
-        <MixBar key="bar" mix={investing.mix} small />,
-        totals,
         <>
-          <b>{percent(r.gross, 1)}</b> a year before fees
+          <b>{percent(r.gross, 1)}</b> a year before fees, across all accounts
         </>,
         `Fees ${percent(r.fee, 2)}`,
+        investing.rebalance ? 'Rebalanced yearly' : 'Not rebalanced',
       ]}
     >
-      <div className="row" style={{ alignItems: 'flex-start', gap: 16 }}>
-        <p className="intro" style={{ flex: '1 1 360px' }}>
-          How your savings are invested today, across all the accounts above. Move one slider and
-          the others adjust to keep the total at 100%. Anything set to 0% stays at 0%.
-        </p>
-        <SegmentedChoice
-          legend="Start from"
-          options={[
-            { value: 'conservative', label: 'Conservative' },
-            { value: 'balanced', label: 'Balanced' },
-            { value: 'growth', label: 'Growth' },
-            { value: 'custom', label: 'Custom' },
-          ]}
-          value={investing.mixId}
-          onChange={chooseMix}
-        />
-      </div>
       <div>
-        <MixBar mix={investing.mix} />
-        <div className="mix-totals">{totals}</div>
-      </div>
-      <div>
-        <div className="mix-head">
-          <span>Asset class</span>
-          <span>Share</span>
-          <span>Expected return</span>
-        </div>
-        <p className="mix-group">Stocks</p>
-        {STOCKS.map((c) => (
-          <MixRow key={c} c={c} />
-        ))}
-        <p className="mix-group">Bonds and cash</p>
-        {(['bonds', 'cash'] as const).map((c) => (
-          <MixRow key={c} c={c} />
+        <p className="mix-group">Expected return, before fees</p>
+        {ASSET_CLASSES.map((c) => (
+          <ReturnRow key={c} c={c} />
         ))}
         <p className="note" style={{ marginTop: 8 }}>
           Expected returns default to FP Canada’s {bundledConfig().taxYear} long-term estimates,
@@ -545,10 +678,6 @@ function MixSection() {
         </p>
       </div>
       <div className="tiles">
-        <div className={total === 100 ? 'tile' : 'tile warn'}>
-          <p className="label">Total</p>
-          <p className="value num">{total}%</p>
-        </div>
         <div className="tile">
           <p className="label">Expected return, before fees</p>
           <p className="value num">{percent(r.gross, 2)} a year</p>
@@ -602,8 +731,8 @@ function MixSection() {
           onChange={(e) => setInput('investing.rebalance', e.target.checked)}
         />
         <span>
-          <b>Rebalance once a year</b> back to this mix. Without it, the mix drifts toward whatever
-          grew fastest.
+          <b>Rebalance once a year</b> back to each account’s mix. Without it, the mix drifts toward
+          whatever grew fastest.
         </span>
       </label>
     </Section>
@@ -651,7 +780,7 @@ function ShapeSection() {
       summary={[<b key="t">{SHAPES[shapeId].title}</b>, SHAPES[shapeId].text]}
     >
       <p className="intro">
-        Whether your stock share stays the same or shifts toward bonds over time.
+        Whether each account’s stock share stays the same or shifts toward bonds over time.
       </p>
       <fieldset className="choice-cards" disabled={!rebalance}>
         <legend style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden' }}>
@@ -691,82 +820,6 @@ function ShapeSection() {
   );
 }
 
-function PlacementSection() {
-  const presetId = usePlan((s) => s.inputs.investing.presetId);
-  const setInput = usePlan((s) => s.setInput);
-  const result = usePlan((s) => s.result);
-  const [why, setWhy] = useState(false);
-  const vs = result?.placement.vsBaseline;
-  const left = vs
-    ? `${money(Math.abs(vs.legacyDiffToday))} ${vs.legacyDiffToday >= 0 ? 'more' : 'less'} left after tax`
-    : undefined;
-  return (
-    <Section
-      title="Which account holds what"
-      summary={[<b key="p">{PRESETS[presetId].title}</b>, ...(left ? [left] : [])]}
-    >
-      <p className="intro">Same mix overall, placed where it’s taxed least.</p>
-      <div className="grid-2" style={{ alignItems: 'start' }}>
-        <fieldset className="choice-cards" style={{ gridTemplateColumns: '1fr' }}>
-          <legend style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden' }}>
-            Placement
-          </legend>
-          {(Object.keys(PRESETS) as PresetId[]).map((k) => (
-            <label key={k} className={k === presetId ? 'choice-card selected' : 'choice-card'}>
-              <span className="name">
-                <input
-                  type="radio"
-                  name="preset"
-                  value={k}
-                  checked={k === presetId}
-                  onChange={() => setInput('investing.presetId', k)}
-                />
-                {PRESETS[k].title}
-              </span>
-              <span className="desc">{PRESETS[k].text}</span>
-            </label>
-          ))}
-        </fieldset>
-        {vs && result ? (
-          <div className="comparison-box">
-            <p className="label">Compared with the same mix in every account</p>
-            <p className="big">{left}</p>
-            <p className="note">
-              {money(Math.abs(vs.lifetimeTaxDiffToday))}{' '}
-              {vs.lifetimeTaxDiffToday <= 0 ? 'less' : 'more'} lifetime tax, at the same returns, in
-              today’s dollars
-            </p>
-            <button type="button" className="link" aria-expanded={why} onClick={() => setWhy(!why)}>
-              Why
-            </button>
-            {why && (
-              <div className="note" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <p>
-                  {PRESETS[presetId].text} Interest is taxed fully each year outside registered
-                  accounts, while Canadian dividends and gains are taxed less.
-                </p>
-                <p>{FACE_VALUE_NOTE}</p>
-                {vs.oppositeDirections && <p>{OPPOSITE_DIRECTIONS}</p>}
-              </div>
-            )}
-            {result.yearOneSale.gainsNom !== 0 && (
-              <p className="note">
-                Moving your non-registered holdings into this placement sells{' '}
-                {money(result.yearOneSale.gainsNom)} of gains in the first year, with tax of{' '}
-                {money(result.yearOneSale.taxToday)}. The comparison leaves that one-time tax out.
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="comparison-box">
-            <p className="note">The comparison appears when the plan is complete.</p>
-          </div>
-        )}
-      </div>
-    </Section>
-  );
-}
-
 export function SavingsTab() {
   return (
     <div className="content">
@@ -775,9 +828,8 @@ export function SavingsTab() {
       </p>
       <AccountsSection />
       <PensionsSection />
-      <MixSection />
+      <ReturnsSection />
       <ShapeSection />
-      <PlacementSection />
     </div>
   );
 }

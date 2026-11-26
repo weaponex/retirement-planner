@@ -14,8 +14,8 @@ and [Placement and the growth-to-safety shift](../../../docs/designs/retirement-
   `STOCK_CLASSES`, `SAFE_CLASSES`.
 - `glide.ts`: `shapeAt(points, t)`; `mixForYear(userMix, startingMixId, shapeId,
   yearsFromFirstRetirement, planStartYearsFromRetirement, cfg)`, returning fractions.
-- `placement.ts`: `FILL_ORDER`; `targetHoldings(accounts, overallMix, presetId, cfg)` (or
-  `'same_mix'` for the baseline).
+- `placement.ts`: `FILL_ORDER`; `targetHoldings(accounts, overallMix, presetId, cfg, mixOf?)`
+  (`'same_mix'` for the baseline; `'own_mix'` holds each account at `mixOf(account)`, AR-S3).
 - `rebalance.ts`: holdings arithmetic (`emptyHoldings`, `holdingsValue`, `accountValue`,
   `currentWeights`, `holdingsAt`, `buy`, `sellProRataHoldings`), `rebalanceAccount` and
   `rebalance(accounts, targets)`, which returns the realized gains by owner.

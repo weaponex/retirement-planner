@@ -3,6 +3,7 @@
 // nothing to the Worker and the Results tab lists what is missing.
 import type { Config } from '../engine/config/load';
 import { planValue } from '../engine/config/read';
+import { MONTHS_PER_YEAR } from '../engine/constants';
 import type { PlanInputs } from '../engine/types';
 import { getAt, setAt, type PlanDraft } from './draft';
 import { fieldLabel } from './labels';
@@ -40,7 +41,8 @@ function fillUnused(draft: PlanDraft, cfg?: Config): PlanDraft {
     // An empty CPP estimate uses the default: the average at 65 (AR-H2).
     if (cfg && 'cppAtStartToday' in spouse && spouse.cppAtStartToday === null) {
       delete spouse.cppAtStartToday;
-      spouse.cppAt65Today = planValue(cfg, 'federal.cpp.average_at_65');
+      // The loader keeps monthly amounts as yearly ones.
+      spouse.cppAt65Today = planValue(cfg, 'federal.cpp.average_at_65') / MONTHS_PER_YEAR;
       changed = true;
     }
     if (changed) {

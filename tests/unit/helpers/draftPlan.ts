@@ -31,7 +31,11 @@ export function completePlan(): PlanDraft {
   // The older inputs the engine still takes: the estimate at 65 and years in Canada.
   d = {
     ...d,
-    spouses: d.spouses.map(({ cppAtStartToday: _c, ...s }) => s) as unknown as PlanDraft['spouses'],
+    spouses: d.spouses.map((s) => {
+      const copy = { ...s };
+      delete copy.cppAtStartToday;
+      return copy;
+    }) as unknown as PlanDraft['spouses'],
   };
   set('spending.monthlyTotalToday', 5000);
   d = {

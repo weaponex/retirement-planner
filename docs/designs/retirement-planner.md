@@ -152,11 +152,11 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 *   **When**: The user opens the Withdrawals tab and clicks through the three strategy cards, then picks "Early RRSP drawdown".
 *   **Then**: Each card already shows its lifetime tax, after-tax legacy and difference from "Registered last", so the strategies can be compared without selecting each one. Selecting a card redraws the income chart below it; the cards, chart and year breakdown stay in place, so only the numbers and shapes change. Results on every tab follow within 1 second of the end of the 500 ms pause after the click. The Results tab's "What your last change did" lists the effect on lifetime tax, after-tax legacy, the first shortfall year and clawback years. While a calculation is running, the previous figures stay visible, faded, with "Updating…".
 
-### CUJ 3: Learn what placement is worth
+### CUJ 3: Change one account's mix
 
 *   **Given**: A plan with results.
-*   **When**: The user opens the Savings tab and, under "Which account holds what", chooses a different account placement for bonds and stocks.
-*   **Then**: The app shows lifetime tax and the after-tax legacy for the chosen placement compared with a same-mix-everywhere baseline at the same returns, with a short plain-English explanation of why the difference arises.
+*   **When**: The user opens an account on the Savings tab and chooses a different mix for it (for example Conservative for an RRSP).
+*   **Then**: The account shows its new mix, and the Results tab says the last change was that account's mix and what it did to lifetime tax and the after-tax legacy. (The author's review, AR-S3, replaced the placement comparison this journey used to cover.)
 
 ### CUJ 4: First death
 
@@ -422,7 +422,8 @@ CPP and OAS: the user enters each spouse's CPP estimate at 65 and start age, and
     *   **Reference year:** the change in year *t* is shape(*t*) − shape(*t₀*), where *t₀* is the plan start in years from the first retirement. The first year therefore always uses today's mix exactly.
     *   **Clamping:** the stock share stays between 0% and 100%. Points taken from stocks go to bonds and cash in the user's proportions; if the user holds neither, they go to bonds. Points added to stocks come from bonds and cash in the user's proportions; if the user holds no stocks, they go to the stock classes in the proportions of the named starting mix chosen last, or to Canadian stocks for "Custom".
     *   **Fractions:** the engine works with fractional shares. Whole numbers summing to 100 are a screen rule for what the user types.
-*   **Placement preset:** one of two named presets that say, for each asset class, which account types to fill first. "Same mix everywhere" is the baseline only, not a selectable preset; it holds the overall mix in every account.
+*   **Each account's own mix (AR-S3, the default from the author's stage 5 review):** with the `own_mix` preset, every account holds its own mix (a starting mix or custom shares), moved along the household's growth-to-safety shape. An account the engine opens itself (a non-registered account for a surplus) holds the household mix; a RRIF opened by the LIRA unlock keeps the LIRA's mix. There is no placement baseline in this mode: the baseline run is the plan itself, so the Result's placement comparison is zero.
+*   **Placement preset:** one of two named presets that say, for each asset class, which account types to fill first. "Same mix everywhere" is the baseline only, not a selectable preset; it holds the overall mix in every account. The presets stay in the engine (the reference plan uses one) but are no longer offered on the screens.
 *   **Filling accounts:** asset classes are placed in this order: cash, bonds, then emerging-market, international, U.S. and Canadian stocks. Each class fills accounts in its preset order until its target share is reached. Within a group of accounts (for example both spouses' TFSAs), the amount is split in proportion to each account's room not yet assigned to another class. Balances are counted at face value.
 *   **Yearly rebalance:** a "Rebalance once a year" choice on the Savings tab, on by default. When on, at the start of each year, after any first-death transfers, the engine rebalances every account to its target holdings. Moves inside registered accounts and the TFSA are tax-free. Sales in non-registered accounts realize gains, which are taxed in the same year inside the withdrawal solve. A full rebalance every year, in both the user's plan and the baseline, is an accepted assumption (see [Risks](#risks--mitigations)).
 *   **Rebalancing off (O29):** holdings are placed by the preset at the plan start only, then drift with returns, withdrawals and deposits. The shape is not applied, because nothing moves money between classes, so the Savings tab disables the shape choice and says why. Withdrawals and surplus deposits within an account follow its current holdings in proportion.
@@ -684,10 +685,17 @@ SpouseInput {
   name: string,               // shown on the Household tab
   birthYear [1930..2000], birthMonth [1..12], sexAtBirth: 'F' | 'M',
   retirementYear, lifeExpectancyTarget [60..105],
-  cppAt65Today,              // monthly estimate at 65, as My Service Canada shows it
-  cppStartAge [60..70], oasStartAge [65..70],
-  yearsInCanadaAt65 [0..47], workingMarginalRate [0..0.6],
-  afterTaxPayToday           // used while still working after the first retirement
+  cppAt65Today?,             // monthly estimate at 65, as My Service Canada shows it
+  cppAtStartToday?,          // or the estimate at cppStartAge (AR-H2); one of the two is required;
+                             // an empty screen field uses federal.cpp.average_at_65
+  cppStartAge [60..70], oasStartAge [65..70],     // both 70 in a new plan (AR-W2)
+  yearsInCanadaAt65? [0..47],
+  arrivedInCanadaYear?,      // or the year of arrival (AR-H4): years after
+                             // federal.oas.residence.from_age by 65; neither means born in Canada
+  workingMarginalRate? [0..0.6], afterTaxPayToday?,
+  grossPayToday?             // or gross pay (AR-H5), which replaces both: the marginal rate on the
+                             // next dollar and pay after income tax, CPP, CPP2 and EI
+                             // (tax/payroll.ts); required while still working
 }
 assetClass = 'cad_equity' | 'us_equity' | 'intl_equity' | 'em_equity' | 'bonds' | 'cash'
 AccountInput {
@@ -698,9 +706,12 @@ AccountInput {
   positions?: { [assetClass]: { valueToday, originalCostToday } },
                              // nonreg only: needed because the first rebalance
                              // sells positions and realizes gains
+  originalCostToday?,        // nonreg without positions: the cost of the whole balance (AR-S2)
   tfsaRoomToday?,            // TFSA only
-  conversionAge?,            // RRSP->RRIF, LIRA->LIF [55..71]
-  lifUnlock50?: boolean      // LIRA only
+  conversionAge?,            // RRSP->RRIF, LIRA->LIF [55..71]; 71 in a new account (AR-S4)
+  lifUnlock50?: boolean,     // LIRA only
+  mixId?, mix?,              // the account's own mix, with the own_mix preset (AR-S3)
+  dcPension?: boolean        // a LIRA holding a defined contribution pension (AR-S6)
 }
 DbPensionInput {
   owner, lifetimeAnnualToday, startAge, bridgeAnnualToday?, bridgeEndAge?,
@@ -912,21 +923,22 @@ Later decisions win over the mockups: "Let the planner pick" (its card and its o
 
 #### Household tab
 
-The profile of each spouse only: name, birth year and month, sex at birth, retirement year, life expectancy target (with the note that a lower target raises the risk of outliving the plan), CPP estimate, years in Canada, working marginal rate and after-tax pay.
+The profile of each spouse only: name, birth year and month, sex at birth, the age they retire at (AR-H1; the plan keeps the year), life expectancy target (with the note that a lower target raises the risk of outliving the plan), the CPP estimate at the start age set on Withdrawals (AR-H2; it starts at Service Canada's average CPP at 65 moved to that age, and the user replaces it with their own), the year they arrived in Canada (AR-H4; empty for someone born here), and gross yearly pay while working (AR-H5), with the marginal rate and take-home pay worked out from it.
 
 #### Savings tab
 
-*   Five sections that open and close, each with a one-line summary beside its title when closed:
-    *   **Accounts:** the account table, "Add account", and the TFSA yearly limit as a strip with an Edit link. Summary: total, by type, yearly saving.
-    *   **Workplace pensions:** DB pensions. Summary: who, how much, from what age, bridge, survivor share.
-    *   **Your investment mix** (open by default): starting-mix choice, the mix bar, one row per class with slider, number box and editable expected return; tiles for total, expected return before and after fees, and inflation; the fee level; "Rebalance once a year". Summary: a small mix bar, stock/bond/cash totals, expected return, fee.
-    *   **As you get older:** the three shapes, each with a small line drawing. With rebalancing off, the choice is disabled with the reason beside it. Summary: the chosen shape.
-    *   **Which account holds what:** the two presets and the placement comparison, with the one-sentence face-value note. Summary: the chosen preset and its effect on the after-tax legacy.
+*   Four sections that open and close, each with a one-line summary beside its title when closed; only Accounts is open at first (AR-S1):
+    *   **Accounts:** a new plan has an RRSP, TFSA, LIRA and non-registered account for each spouse at $0 (AR-S2). The table takes each balance directly and shows each account's mix; Edit opens its yearly saving, conversion age (71 by default), unlock, TFSA room, original cost for a non-registered account, and its mix: Conservative, Balanced (default), Growth or Custom shares (AR-S3). "Add account" adds another. No TFSA-limit strip (AR-S5). Summary: total, by type, yearly saving.
+    *   **Workplace pensions:** "Add pension" with a type, defined benefit or defined contribution (AR-S6), and an owner. A DC pension is a value, yearly contributions until retiring, a LIF conversion age, the unlock and a mix; it is held as a LIRA. Summary: who, how much, from what age, bridge, survivor share.
+    *   **Returns and fees:** each class's expected return (editable), tiles for the expected return across all accounts before and after fees and for inflation, the fee level and "Rebalance once a year". Summary: expected return, fee, rebalancing.
+    *   **As you get older:** the three shapes, each with a small line drawing; the shape moves every account's mix. With rebalancing off, the choice is disabled with the reason beside it. Summary: the chosen shape.
+*   "Which account holds what" and its comparison are removed (AR-S3). A screen that waits for a complete plan names the sections still to fill in, never only "when the plan is complete" (AR-S7, AR-W4).
 *   A note says each class earns the same return every year (FP Canada's long-run estimate), so a shape shows only its effect on returns, not on protection from a bad market; there is no shape comparison.
 
 #### Spending tab
 
 *   **Monthly and after tax:** the user enters what they would spend in a typical month early in retirement, after tax, in today's dollars, because that is how the author expects people to think about spending. Yearly totals are shown beside each phase.
+*   **A group's own amount (AR-P1):** each group takes one monthly amount for the whole group. Entering it clears the group's categories; entering a category clears it, so the group's total is then the sum of its categories. A group amount follows the phases' usual change.
 *   **Two ways to enter it:** "By category" (default) or "One total" (a single monthly amount). Switching keeps both sets of values, so switching back restores them. The first time the user switches to "One total", it starts from the sum of the categories.
 *   **Categories (O17), in six groups that open and close.** The ids are persisted and must not change once plans are saved:
 
@@ -947,11 +959,11 @@ The profile of each spouse only: name, birth year and month, sex at birth, retir
 
 #### Withdrawals tab
 
-*   **Setup sections, closed by default, with summaries:** "When to start CPP and OAS" (each spouse's ages, with the adjustment rates as strips), "Converting RRSP and LIRA" (conversion ages and the 50% unlock), "Pension income splitting" (automatic; up to 50%, RRIF and LIF from 65). They come first because they are set once.
+*   **Setup sections, closed by default (AR-W1), with summaries; CPP and OAS start at 70 and conversions at 71 by default (AR-W2, AR-W3):** "When to start CPP and OAS" (each spouse's ages, with the adjustment rates as strips), "Converting RRSP and LIRA" (conversion ages and the 50% unlock), "Pension income splitting" (automatic; up to 50%, RRIF and LIF from 65). They come first because they are set once.
 *   **"Which accounts pay for your spending"**, laid out to fit one laptop screen:
     *   three strategy cards in one row; the selected card has a dark border (no radio mark). Each card has the title and a "Learn more" button on its first line, a short description, and at the bottom, in bold, lifetime tax and the after-tax legacy (labelled "Money left"), then the difference from "Registered last" and the amount moved to the TFSA and clawback years. Only the after-tax legacy difference is coloured (green for more, red for less); the tax difference is neutral text. When the two move in opposite directions (lower tax but a smaller legacy, or the reverse), both are neutral text with a short note saying so;
     *   one options row of fixed height under the cards: the bracket level for "Fill lower brackets first", the draw-down years for "Early RRSP drawdown", or "No settings" for "Registered last";
-    *   below, two columns: on the left, a stacked area chart of each year's money by source (before tax, today's dollars), with the spending need as a dashed line, spending need plus tax as a red line above it (the band above that is money not needed, saved to the TFSA or non-registered savings), and the source names in a legend below; a line of text under the chart explains how to read it. A year slider under the chart spans exactly the chart's years, so its handle sits under the chart's year marker. On the right, that year's breakdown: always the same 11 rows in the same order (each of the seven sources, tax, OAS clawback, moved to the TFSA, spending need), with a dash for zero, so nothing moves when the strategy or year changes.
+    *   below, two columns: on the left, a stacked area chart of each year's money by source (before tax, today's dollars), with the spending need as a dashed line, spending need plus tax as a red line above it (the band above that is money not needed, saved to the TFSA or non-registered savings), and the source names in a legend below; a line of text under the chart explains how to read it. A year slider under the chart spans exactly the chart's x axis, from its first year to its last, so its handle's centre sits on the chart's year line (AR-W5). Until the plan is complete, the chart area lists the missing details by tab, each a link (AR-W4). On the right, that year's breakdown: always the same 11 rows in the same order (each of the seven sources, tax, OAS clawback, moved to the TFSA, spending need), with a dash for zero, so nothing moves when the strategy or year changes.
 *   **Fixed layout:** switching strategy changes only numbers and chart shapes; nothing below the cards moves, so the user can click between strategies and compare.
 
 #### Estate tab
@@ -969,7 +981,7 @@ Three sections, in this order; there is no year-by-year table.
 
     Below the cards, one line: lifetime tax, OAS clawback years, and what the last change did (for example "switched to 'Fill lower brackets first' · tax 6,000 lower · legacy 1,000 higher").
 *   **Warnings,** each with its computed tips and links to the related input.
-*   **Charts,** one at a time, chosen with buttons: **Balances** (stacked areas by account type: RRSP/RRIF/LIF, non-registered, TFSA), **Income by source** (the Withdrawals chart for the chosen strategy, with the spending need), **Tax by spouse** (a stacked bar per year for each spouse, income tax including any clawback, after splitting), and **Estate** (a waterfall from balances and the home at the second death, less final-return tax as one bar, with the deemed registered income and deemed gains as notes on it, less probate, to the after-tax legacy, with the legacy goal marked). The yearly charts mark the first death. Each chart has a "View as table" option with the same data, for screen readers.
+*   **Charts,** one at a time, chosen with buttons: **Balances** (stacked areas by account type: RRSP/RRIF/LIF, non-registered, TFSA), **Income by source** (the Withdrawals chart for the chosen strategy, with the spending need), **Tax by spouse** (a stacked bar per year for each spouse, income tax including any clawback, after splitting), and **Estate** (a waterfall from balances and the home at the second death, less final-return tax as one bar, with the deemed registered income and deemed gains as notes on it, less probate, to the after-tax legacy, with the legacy goal marked). The yearly charts mark the first death. Balances and Income by source have a year slider under the x axis and a line with that year's values (AR-R1); the Estate chart shows each bar's value on the bar (AR-R2). Each chart has a "View as table" option with the same data, for screen readers.
 
 A status line reads "Up to date · updates as you edit", "Updating…", or, for a plan that is not ready to run, "Enter the missing details to see results" above the list of what is missing. The badge on the tab label shows the warning count, "Incomplete", "Updating", "Short from <year>" or "Error".
 
@@ -1064,7 +1076,7 @@ Each entry is an option that was rejected. "By author" means the document's auth
 
 *   **Pros**: Lets users describe their real holdings or test their own ideas.
 *   **Cons**: Harder screens and testing; drifts toward hand-optimizing. A per-account mix also lets the overall mix drift against the growth-to-safety shift.
-*   **Decision**: Rejected by author in favour of two named presets compared with a baseline: a clear, testable comparison that stays on the "teach, don't advise" side, at the cost of not describing users' real holdings.
+*   **Decision**: First rejected by author in favour of two named presets compared with a baseline. Reversed by the author's stage 5 review (AR-S3, 2026-11-25): each account has its own mix, so the plan describes real holdings; the presets and the placement comparison leave the screens. The growth-to-safety shape moves each account's mix.
 
 #### Alternative N: Count the overall mix after tax
 
@@ -1257,7 +1269,7 @@ The second full review (2026-11-19) was triaged with the author on 2026-11-24; i
 |---|---|---|
 | M1 | `NormalizedInputs`, the engine state, the `YearRow` fields, the reference CSV columns and the `Result` contract are defined in [Data contracts](#data-contracts). Still open: the `warningFacts` content and the `Warning` type | Stage 6 |
 | B5-1 | The Config contract says fee levels can be changed in Settings, but only single-value (`number`) keys can be overridden, and `planning.fee_levels` is one structured value, so Settings shows it read-only. The Custom fee covers other fees. Decide: split it into three number keys, or keep it read-only and change the contract's wording | Stage 7 |
-| B5-3 | The author's stage 5 review (2026-11-25) changes Household, Savings, Spending, Withdrawals and Results, and reopens the stage 4 engine for one mix per account (placement dropped), gross pay with payroll deductions, the CPP estimate at its start age and DC pensions. Every item is in [stage5-review.md](../reviews/2026-11-25/stage5-review.md); this design is updated as each is built | `stage-5` tag |
+| B5-3 | The author's stage 5 review (2026-11-25) is built (every item in [stage5-review.md](../reviews/2026-11-25/stage5-review.md)). Ten new config keys it added are not yet validated: `federal.payroll.cpp.ympe`, `.basic_exemption`, `.rate`, `.base_rate`, `federal.payroll.cpp2.ceiling`, `.rate`, `federal.payroll.ei.max_insurable`, `.rate`, `federal.cpp.average_at_65`, `federal.oas.residence.from_age`. The tax treatment of payroll contributions (base CPP and EI as credits at the lowest rates, the enhanced CPP and CPP2 as a deduction; lines 30800, 31200, 22215) needs the author's check; the line 31200 page was not read | Author validation, before `stage-5` |
 | SR-4 | Open question O20 (O24, O27 and O28 resolved 2026-11-24; O31 withdrawn) | Before the URL is shared beyond testers |
 
 The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`); stages 0 to 3 are done. The working rules for agents (whole-function rewrites, protected files, units) are in [file 13](#13-agentsmd-and-claudemd-exists-stage-0), `AGENTS.md`.

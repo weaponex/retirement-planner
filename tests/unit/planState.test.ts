@@ -59,7 +59,9 @@ describe('readyToRun', () => {
     expect(r.ready).toBe(true);
     if (r.ready) {
       expect(r.inputs.spouses[0].cppAtStartToday).toBeUndefined();
-      expect(r.inputs.spouses[0].cppAt65Today).toBe(planValue(cfg, 'federal.cpp.average_at_65'));
+      expect(r.inputs.spouses[0].cppAt65Today).toBeCloseTo(
+        planValue(cfg, 'federal.cpp.average_at_65') / 12,
+      );
       expect(r.inputs.spending.groupsMonthlyToday).toEqual({ home: 1200 });
     }
     const both = readyToRun(setAt(completePlan(), 'spouses.0.cppAt65Today', undefined));

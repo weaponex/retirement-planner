@@ -161,7 +161,7 @@ export const SHAPES: Record<ShapeId, { title: string; text: string; points: stri
   },
 };
 
-export const PRESETS: Record<PresetId, { title: string; text: string }> = {
+export const PRESETS: Record<Exclude<PresetId, 'own_mix'>, { title: string; text: string }> = {
   bonds_sheltered_first: {
     title: 'Bonds sheltered first',
     text: 'Bonds in RRSP/RRIF, global stocks in TFSA, Canadian stocks outside.',

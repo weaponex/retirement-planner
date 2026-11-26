@@ -89,6 +89,7 @@ describe('Household', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start your plan' }));
     const s = within(spouse(0));
     fireEvent.change(s.getByLabelText('Name'), { target: { value: 'Alex' } });
+    expect((s.getByLabelText('Retires at age') as HTMLInputElement).disabled).toBe(true);
     fireEvent.change(s.getByLabelText('Birth year'), { target: { value: '1961' } });
     fireEvent.change(s.getByLabelText('Birth month'), { target: { value: '4' } });
     expect(s.getByText(/the age a person of 65/)).toBeTruthy();
@@ -97,18 +98,10 @@ describe('Household', () => {
     expect(s.getByText(/the age a man of 65/)).toBeTruthy();
     fireEvent.change(s.getByLabelText('Sex at birth'), { target: { value: 'F' } });
     expect(s.getByText(/the age a woman of 65/)).toBeTruthy();
-    const rate = s.getByLabelText('Tax rate while working');
-    fireEvent.focus(rate);
-    fireEvent.change(rate, { target: { value: '30' } });
-    fireEvent.blur(rate);
-    expect(store.getState().inputs.spouses[0].workingMarginalRate).toBe(0.3);
-    const cpp = s.getByLabelText('CPP at 65 (monthly estimate)');
-    fireEvent.focus(cpp);
-    fireEvent.change(cpp, { target: { value: '1,000' } });
-    fireEvent.blur(cpp);
-    expect((cpp as HTMLInputElement).value).toBe('1,000');
-    fireEvent.change(cpp, { target: { value: '' } });
-    expect(store.getState().inputs.spouses[0].cppAt65Today).toBeNull();
+    fireEvent.change(s.getByLabelText('Retires at age'), { target: { value: '63' } });
+    expect(store.getState().inputs.spouses[0].retirementYear).toBe(2024);
+    fireEvent.change(s.getByLabelText('Retires at age'), { target: { value: '' } });
+    expect(store.getState().inputs.spouses[0].retirementYear).toBeNull();
     fireEvent.change(s.getByLabelText('Birth month'), { target: { value: '' } });
     fireEvent.change(s.getByLabelText('Birth year'), { target: { value: '' } });
     fireEvent.change(s.getByLabelText('Sex at birth'), { target: { value: '' } });
@@ -119,49 +112,97 @@ describe('Household', () => {
     });
     expect(s.getByText(/Filled in from FP Canada/)).toBeTruthy();
   });
+
+  it('shows the CPP default at the start age, takes an estimate, and works out pay from gross', () => {
+    const { store } = renderApp();
+    fireEvent.click(screen.getByRole('button', { name: 'Start your plan' }));
+    const s = within(spouse(1));
+    const cpp = s.getByLabelText('CPP at 70 (monthly estimate)') as HTMLInputElement;
+    expect(cpp.value).not.toBe('');
+    expect(s.getByText(/Default: the average CPP at 65/)).toBeTruthy();
+    fireEvent.focus(cpp);
+    expect(cpp.value).toBe('');
+    fireEvent.change(cpp, { target: { value: '1,250' } });
+    fireEvent.blur(cpp);
+    expect(store.getState().inputs.spouses[1].cppAtStartToday).toBe(1250);
+    expect(s.queryByText(/Default: the average CPP at 65/)).toBeNull();
+    fireEvent.change(s.getByLabelText('Year you arrived in Canada'), { target: { value: '1995' } });
+    expect(store.getState().inputs.spouses[1].arrivedInCanadaYear).toBe(1995);
+    fireEvent.change(s.getByLabelText('Gross yearly pay while working'), {
+      target: { value: '90000' },
+    });
+    expect(store.getState().inputs.spouses[1].grossPayToday).toBe(90_000);
+    expect(s.getByText(/Marginal tax rate \d+\.\d% · take-home pay \$[\d,]+ a year/)).toBeTruthy();
+  });
+
+  it('replaces an estimate entered at 65 with one at the start age', () => {
+    const { store } = renderApp(completePlan());
+    const cpp = within(spouse(0)).getByLabelText(
+      'CPP at 70 (monthly estimate)',
+    ) as HTMLInputElement;
+    // $1,000 at 65, moved to 70 with the config's late-start rate.
+    expect(cpp.value).toMatch(/^1,\d{3}$/);
+    fireEvent.focus(cpp);
+    expect(Number(cpp.value)).toBeGreaterThan(1000);
+    fireEvent.change(cpp, { target: { value: '1100' } });
+    expect(store.getState().inputs.spouses[0]).toMatchObject({ cppAtStartToday: 1100 });
+    expect(store.getState().inputs.spouses[0].cppAt65Today).toBeUndefined();
+  });
 });
 
 describe('Savings', () => {
-  it('adds accounts from the table, edits their details and removes them', () => {
-    const { store } = renderApp(completePlan());
+  it('starts with each account, takes balances in the table, and edits an account', () => {
+    const { store } = renderApp();
+    fireEvent.click(screen.getByRole('button', { name: 'Start your plan' }));
     nav('Savings');
-    open('Accounts');
-    const add = (type: string, owner: string) => {
-      fireEvent.click(screen.getByRole('button', { name: 'Add account' }));
-      fireEvent.change(screen.getByLabelText('Type'), { target: { value: type } });
-      fireEvent.change(screen.getByLabelText('Owner'), { target: { value: owner } });
-      fireEvent.click(screen.getByRole('button', { name: 'Add' }));
-    };
-    add('lira', '0');
+    expect(screen.queryByText(/New TFSA room each year/)).toBeNull();
+    const balance = screen.getByLabelText("Spouse 1's RRSP balance") as HTMLInputElement;
+    fireEvent.focus(balance);
+    fireEvent.change(balance, { target: { value: '400,000' } });
+    fireEvent.blur(balance);
+    expect(store.getState().inputs.accounts[0]!.balanceToday).toBe(400_000);
+    expect(balance.value).toBe('400,000');
+    fireEvent.change(balance, { target: { value: '' } });
+    expect(store.getState().inputs.accounts[0]!.balanceToday).toBe(0);
+    expect(screen.getAllByText('Balanced').length).toBe(8);
+    fireEvent.click(screen.getByRole('button', { name: "Edit Spouse 1's LIRA" }));
     fireEvent.click(screen.getByLabelText('Unlock 50% into the RRSP when it becomes a LIF'));
-    expect(store.getState().inputs.accounts[1]!.lifUnlock50).toBe(true);
+    expect(store.getState().inputs.accounts[2]!.lifUnlock50).toBe(true);
     expect(screen.getByText(/Becomes a LIF at 71 · unlock 50%: yes/)).toBeTruthy();
-    add('tfsa', '1');
-    expect(screen.getByText(/Unused room today \$0/)).toBeTruthy();
-    add('nonreg', '0');
-    fireEvent.change(screen.getByLabelText('Canadian value'), { target: { value: '90,000' } });
-    fireEvent.change(screen.getByLabelText('Canadian original cost'), {
-      target: { value: '60000' },
+    fireEvent.click(screen.getByLabelText('Growth'));
+    expect(store.getState().inputs.accounts[2]!.mixId).toBe('growth');
+    fireEvent.click(screen.getByLabelText('Custom'));
+    fireEvent.change(screen.getByLabelText('Bonds share'), { target: { value: '45' } });
+    expect(store.getState().inputs.accounts[2]!.mix!.bonds).toBe(45);
+    fireEvent.change(screen.getByLabelText('Cash and GICs share, percent'), {
+      target: { value: 'x' },
     });
-    fireEvent.change(screen.getByLabelText('Bonds value'), { target: { value: '' } });
-    const nonreg = store.getState().inputs.accounts[3]!;
-    expect(nonreg.positions!.cad_equity).toEqual({ valueToday: 90_000, originalCostToday: 60_000 });
-    expect(nonreg.balanceToday).toBe(90_000);
+    fireEvent.click(screen.getByRole('button', { name: "Close Spouse 1's LIRA" }));
+    fireEvent.click(screen.getByRole('button', { name: "Edit Spouse 1's Non-registered" }));
+    fireEvent.change(screen.getByLabelText('Original cost'), { target: { value: '60000' } });
+    expect(store.getState().inputs.accounts[3]!.originalCostToday).toBe(60_000);
     expect(screen.getByText(/Original cost \$60,000/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Remove this account' }));
-    expect(store.getState().inputs.accounts.map((a) => a.id)).toEqual([
-      'rrsp-0-1',
-      'lira-0-1',
-      'tfsa-1-1',
-    ]);
-    fireEvent.click(screen.getByRole('button', { name: "Edit Alex's RRSP" }));
-    expect(screen.getByLabelText(/Becomes a RRIF at age/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: "Close Alex's RRSP" }));
-    expect(screen.queryByLabelText(/Becomes a RRIF at age/)).toBeNull();
-    expect(screen.getByText(/New TFSA room each year/)).toBeTruthy();
+    expect(store.getState().inputs.accounts.some((a) => a.id === 'nonreg-0-1')).toBe(false);
   });
 
-  it('adds a DB pension and shows the rate only for fixed indexing', () => {
+  it('adds an account of a chosen type and owner', () => {
+    const { store } = renderApp();
+    fireEvent.click(screen.getByRole('button', { name: 'Start your plan' }));
+    nav('Savings');
+    fireEvent.click(screen.getByRole('button', { name: 'Add account' }));
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'tfsa' } });
+    fireEvent.change(screen.getAllByLabelText('Owner')[0]!, { target: { value: '1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    expect(store.getState().inputs.accounts.at(-1)).toMatchObject({
+      id: 'tfsa-1-2',
+      mixId: 'balanced',
+    });
+    expect(screen.getByLabelText('Unused room today')).toBeTruthy();
+    expect(screen.getAllByText(/Unused room today \$0/).length).toBeGreaterThan(2);
+  });
+
+  it('adds a DB pension with fixed indexing, and a DC pension held as a LIRA', () => {
     const { store } = renderApp(completePlan());
     nav('Savings');
     open('Workplace pensions');
@@ -169,26 +210,27 @@ describe('Savings', () => {
     expect(screen.queryByLabelText('Yearly increase')).toBeNull();
     fireEvent.change(screen.getByLabelText('Indexing'), { target: { value: 'fixed' } });
     expect(screen.getByLabelText('Yearly increase')).toBeTruthy();
-    fireEvent.change(screen.getByLabelText('Owner'), { target: { value: '1' } });
     fireEvent.change(screen.getByLabelText('Indexing'), { target: { value: 'none' } });
-    expect(store.getState().inputs.dbPensions[0]).toMatchObject({ owner: 1, indexing: 'none' });
     expect(screen.getByText(/as on the pension statement/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Remove this pension' }));
     expect(store.getState().inputs.dbPensions).toEqual([]);
+    fireEvent.change(screen.getByLabelText('Pension type'), { target: { value: 'dc' } });
+    fireEvent.change(screen.getByLabelText('Owner'), { target: { value: '1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add pension' }));
+    const dc = store.getState().inputs.accounts.at(-1)!;
+    expect(dc).toMatchObject({ type: 'lira', owner: 1, dcPension: true });
+    expect(screen.getByText('Sam: defined contribution pension')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Value today'), { target: { value: '120000' } });
+    expect(store.getState().inputs.accounts.at(-1)!.balanceToday).toBe(120_000);
+    fireEvent.click(screen.getByLabelText('Unlock 50% into the RRSP when it becomes a LIF'));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove this pension' }));
+    expect(store.getState().inputs.accounts.some((a) => a.dcPension)).toBe(false);
   });
 
-  it('moves the mix, overrides a return, sets a custom fee and turns rebalancing off', () => {
+  it('overrides a return, sets a custom fee, turns rebalancing off and links inflation', () => {
     const { store } = renderApp(completePlan());
     nav('Savings');
-    fireEvent.change(screen.getByLabelText('Bonds share'), { target: { value: '45' } });
-    let inv = store.getState().inputs.investing;
-    expect(inv.mixId).toBe('custom');
-    expect(inv.mix.bonds).toBe(45);
-    fireEvent.change(screen.getByLabelText('Cash and GICs share, percent'), {
-      target: { value: 'x' },
-    });
-    fireEvent.click(screen.getByLabelText('Growth'));
-    expect(store.getState().inputs.investing.mixId).toBe('growth');
+    open('Returns and fees');
     const ret = screen.getByLabelText('Bonds expected return, percent');
     fireEvent.focus(ret);
     fireEvent.change(ret, { target: { value: '4' } });
@@ -203,53 +245,21 @@ describe('Savings', () => {
     expect(store.getState().inputs.investing.feeLevel).toBe('custom');
     expect(screen.getByLabelText('Yearly fee')).toBeTruthy();
     fireEvent.click(screen.getByLabelText(/Rebalance once a year/));
-    inv = store.getState().inputs.investing;
-    expect(inv.rebalance).toBe(false);
+    expect(store.getState().inputs.investing.rebalance).toBe(false);
+    expect(screen.getByText('Not rebalanced')).toBeTruthy();
     open('As you get older');
     expect(screen.getByText(/nothing moves money between classes/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
     expect(store.getState()).toMatchObject({ view: 'settings', focus: 'market.inflation' });
   });
 
-  it('shows the placement comparison, why, and the year-one sale once results exist', () => {
-    let d = completePlan();
-    d = {
-      ...d,
-      accounts: [
-        ...d.accounts,
-        {
-          id: 'nonreg-0-1',
-          owner: 0,
-          type: 'nonreg',
-          balanceToday: 150_000,
-          annualContributionToday: 0,
-          positions: {
-            cad_equity: { valueToday: 100_000, originalCostToday: 40_000 },
-            bonds: { valueToday: 50_000, originalCostToday: 30_000 },
-          },
-        },
-      ],
-    };
-    const { store } = renderApp(d);
+  it('chooses a shape and has no placement section', () => {
+    const { store } = renderApp(completePlan());
     nav('Savings');
-    open('Which account holds what');
-    expect(screen.getByText('Compared with the same mix in every account')).toBeTruthy();
-    expect(screen.getByText(/leaves that one-time tax out/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Why' }));
-    expect(screen.getByText(/counted at face value/)).toBeTruthy();
-    fireEvent.click(screen.getByText('Growth tax-free first', { exact: true }));
-    expect(store.getState().inputs.investing.presetId).toBe('growth_tax_free_first');
+    expect(screen.queryByRole('button', { name: /^Which account holds what/ })).toBeNull();
     open('As you get older');
     fireEvent.click(screen.getByText('Get safer gradually', { exact: true }));
     expect(store.getState().inputs.investing.shapeId).toBe('gradual_shift');
-  });
-
-  it('asks for a complete plan before comparing placements', () => {
-    renderApp();
-    fireEvent.click(screen.getByRole('button', { name: 'Start your plan' }));
-    nav('Savings');
-    open('Which account holds what');
-    expect(screen.getByText('The comparison appears when the plan is complete.')).toBeTruthy();
   });
 });
 
@@ -497,5 +507,47 @@ describe('Settings', () => {
     act(() => store.getState().setView('settings', 'market.inflation'));
     expect(scroll).toHaveBeenCalled();
     expect(document.querySelector('[data-key="market.inflation"]')!.className).toContain('focused');
+  });
+});
+
+describe('the stage 5 review screens', () => {
+  it('takes one amount for a spending group and names it in the change summary', () => {
+    const { store } = renderApp(setAt(completePlan(), 'spending.mode', 'by_category'));
+    nav('Spending');
+    fireEvent.change(screen.getByLabelText('Hydro'), { target: { value: '150' } });
+    fireEvent.change(screen.getByLabelText('Home and utilities, one amount for the group'), {
+      target: { value: '3000' },
+    });
+    expect(store.getState().inputs.spending.groupsMonthlyToday).toEqual({ home: 3000 });
+    expect(store.getState().inputs.spending.categories.hydro!.monthlyToday).toBe(0);
+    expect(screen.getByText('One amount')).toBeTruthy();
+    expect(screen.getByText('$3,000/mo')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Home and utilities, one amount for the group'), {
+      target: { value: '' },
+    });
+    expect(store.getState().inputs.spending.groupsMonthlyToday).toEqual({});
+  });
+
+  it('names what is missing where the Withdrawals chart would be', () => {
+    const { store } = renderApp();
+    fireEvent.click(screen.getByRole('button', { name: 'Start your plan' }));
+    nav('Withdrawals');
+    expect(
+      screen.getByText(/The chart and the comparison appear once these are filled in/),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Birth year, Spouse 1' }));
+    expect(store.getState()).toMatchObject({ view: 'household', focus: 'spouses.0.birthYear' });
+  });
+
+  it('moves the Results year sliders and shows that year', () => {
+    renderApp(completePlan());
+    nav('Results');
+    const slider = screen.getByLabelText('Year', { selector: '#balances-year' });
+    fireEvent.change(slider, { target: { value: '2030' } });
+    expect(screen.getByText(/RRSP \/ RRIF \/ LIF \$[\d,]+ · Non-registered/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('tab', { name: 'Income by source' }));
+    const income = screen.getByLabelText('Year', { selector: '#income-year' });
+    fireEvent.change(income, { target: { value: '2031' } });
+    expect(screen.getByText(/· Tax \$[\d,]+ · Spending need/)).toBeTruthy();
   });
 });

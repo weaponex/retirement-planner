@@ -117,7 +117,9 @@ function View() {
 /** True for a plan with nothing about the household yet. */
 function useEmptyPlan(): boolean {
   return usePlan(
-    (s) => s.inputs.accounts.length === 0 && s.inputs.spouses.every((x) => x.birthYear === null),
+    (s) =>
+      s.inputs.accounts.every((a) => !a.balanceToday) &&
+      s.inputs.spouses.every((x) => x.birthYear === null),
   );
 }
 

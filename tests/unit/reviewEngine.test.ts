@@ -20,6 +20,13 @@ import { normalizeInputs } from '../../src/engine/units';
 import { couplePlan } from './helpers/couplePlan';
 
 const cfg = loadConfig();
+
+/** A copy without the given keys. */
+function without<T extends object, K extends keyof T>(o: T, ...keys: K[]): Omit<T, K> {
+  const copy = { ...o };
+  for (const k of keys) delete copy[k];
+  return copy;
+}
 const v = (k: string) => planValue(cfg, k);
 const options = { revision: 1, appVersion: 't', today: new Date(2026, 10, 24) };
 
@@ -61,13 +68,13 @@ describe('payroll and pay from gross (AR-H5)', () => {
 
   it('replaces the rate and take-home pay in the plan when gross pay is given', () => {
     const p = couplePlan();
-    const { workingMarginalRate: _r, afterTaxPayToday: _a, ...rest } = p.spouses[0];
+    const rest = without(p.spouses[0], 'workingMarginalRate', 'afterTaxPayToday');
     const plan: PlanInputs = { ...p, spouses: [{ ...rest, grossPayToday: 100_000 }, p.spouses[1]] };
     const n = normalizeInputs(plan, cfg).spouses[0];
     const expected = payFromGross(100_000, cfg);
     expect(n.workingMarginalRate).toBeCloseTo(expected.marginalRate);
     expect(n.afterTaxPayNom).toBeCloseTo(expected.afterTax);
-    const { workingMarginalRate: _r2, afterTaxPayToday: _a2, ...bare } = p.spouses[1];
+    const bare = without(p.spouses[1], 'workingMarginalRate', 'afterTaxPayToday');
     const none = normalizeInputs({ ...p, spouses: [p.spouses[0], bare] }, cfg).spouses[1];
     expect(none).toMatchObject({ workingMarginalRate: 0, afterTaxPayNom: 0 });
   });
@@ -80,13 +87,13 @@ describe('CPP at its start age and the year of arrival (AR-H2, AR-H4)', () => {
     expect(cppAtStartFrom65(at65, 70, cfg)).toBeCloseTo(1200);
     expect(cppAt65FromStart(1000, 65, cfg)).toBeCloseTo(1000);
     const p = couplePlan();
-    const { cppAt65Today: _c, ...rest } = p.spouses[0];
+    const rest = without(p.spouses[0], 'cppAt65Today');
     const plan: PlanInputs = {
       ...p,
       spouses: [{ ...rest, cppAtStartToday: 1200, cppStartAge: 70 }, p.spouses[1]],
     };
     expect(normalizeInputs(plan, cfg).spouses[0].cppAt65Nom).toBeCloseTo(at65);
-    const { cppAt65Today: _d, ...none } = p.spouses[1];
+    const none = without(p.spouses[1], 'cppAt65Today');
     expect(
       normalizeInputs({ ...p, spouses: [p.spouses[0], none] }, cfg).spouses[1].cppAt65Nom,
     ).toBe(0);
@@ -98,7 +105,7 @@ describe('CPP at its start age and the year of arrival (AR-H2, AR-H4)', () => {
     expect(residenceYears(1961, 1990, cfg)).toBe(65 - 29);
     expect(residenceYears(1961, 2030, cfg)).toBe(0);
     const p = couplePlan();
-    const { yearsInCanadaAt65: _y, ...rest } = p.spouses[0];
+    const rest = without(p.spouses[0], 'yearsInCanadaAt65');
     const plan: PlanInputs = {
       ...p,
       spouses: [{ ...rest, arrivedInCanadaYear: p.spouses[0].birthYear + 40 }, p.spouses[1]],

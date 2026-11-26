@@ -1,6 +1,6 @@
 // Plain names for input paths, for the missing-details list and the change
 // summary ("Retirement year, Alex").
-import { categoryName } from './categories';
+import { CATEGORY_GROUPS, categoryName } from './categories';
 import { getAt, type PlanDraft } from './draft';
 
 const SPOUSE_FIELDS: Record<string, string> = {
@@ -88,6 +88,10 @@ export function fieldLabel(path: string, draft: PlanDraft): string {
   if (parts[0] === 'investing' && parts[1] === 'returnOverride') return 'Expected return';
   if (parts[0] === 'spending' && parts[1] === 'categories' && parts[2]) {
     return categoryName(parts[2]);
+  }
+  if (parts[0] === 'spending' && parts[1] === 'groupsMonthlyToday' && parts[2]) {
+    const group = CATEGORY_GROUPS.find((g) => g.id === parts[2]);
+    return `${group?.name ?? parts[2]}, one amount`;
   }
   if (parts[0] === 'ruleOverrides') return 'A rule value in Settings';
   return OTHER[path] ?? path;

@@ -19,13 +19,15 @@ import {
 } from '../charts/data';
 import {
   BALANCE_COLOURS,
+  AREA_INSET,
   BalancesChart,
   EstateWaterfall,
   SPOUSE_COLOURS,
   TaxChart,
 } from '../charts/charts';
 import { ChartTable } from '../charts/ChartTable';
-import { IncomeChart, IncomeLegend } from '../charts/IncomeChart';
+import { INCOME_INSET, IncomeChart, IncomeLegend } from '../charts/IncomeChart';
+import { YearSlider } from '../charts/YearSlider';
 import { STRATEGIES } from '../content/explanations';
 import { useStatus, useToday } from '../hooks';
 import { Goals } from '../results/Goals';
@@ -107,6 +109,7 @@ function Charts({ result }: { result: Result }) {
   const toToday = useToday();
   const [chart, setChart] = useState<ChartId>('balances');
   const [table, setTable] = useState(false);
+  const [year, setYear] = useState<number | undefined>();
   const death = firstDeathYear(result.plan.rows);
   const data = useMemo(() => {
     const strategy =
@@ -121,6 +124,11 @@ function Charts({ result }: { result: Result }) {
   const total = (r: { registered: number; nonreg: number; tfsa: number } | undefined) =>
     r ? r.registered + r.nonreg + r.tfsa : 0;
   const incomeTax = data.tax.reduce((s, r) => s + r.spouse0 + r.spouse1, 0);
+  const first = data.balances[0]?.year ?? 0;
+  const last = data.balances.at(-1)?.year ?? first;
+  const shown = year !== undefined && year >= first && year <= last ? year : first;
+  const balanceAt = data.balances.find((r) => r.year === shown);
+  const incomeAt = data.income.find((r) => r.year === shown);
   const lastSurvivor = result.plan.rows.at(-1)?.spouse[0].alive ? names[0] : names[1];
   const incomeColumns = [
     { label: 'Year', value: (r: IncomeRow) => r.year },
@@ -163,7 +171,22 @@ function Charts({ result }: { result: Result }) {
             />
           ) : (
             <>
-              <BalancesChart rows={data.balances} deathYear={death} />
+              <BalancesChart rows={data.balances} deathYear={death} year={shown} />
+              <YearSlider
+                id="balances-year"
+                first={first}
+                last={last}
+                value={shown}
+                onChange={setYear}
+                {...AREA_INSET}
+              />
+              {balanceAt && (
+                <p className="year-readout" aria-live="polite">
+                  <b>{shown}</b> · RRSP / RRIF / LIF {money(balanceAt.registered)} · Non-registered{' '}
+                  {money(balanceAt.nonreg)} · TFSA {money(balanceAt.tfsa)} · Total{' '}
+                  <b>{money(total(balanceAt))}</b>
+                </p>
+              )}
               <Legend
                 items={[
                   ['RRSP / RRIF / LIF', BALANCE_COLOURS.registered],
@@ -189,9 +212,32 @@ function Charts({ result }: { result: Result }) {
             <>
               <IncomeChart
                 rows={data.income}
+                year={incomeAt ? shown : undefined}
                 markers={death ? [{ year: death, label: 'survivor' }] : []}
                 label={`Yearly money by source under ${STRATEGIES[strategyId].title}`}
               />
+              {data.income.length > 0 && (
+                <YearSlider
+                  id="income-year"
+                  first={data.income[0]!.year}
+                  last={data.income.at(-1)!.year}
+                  value={incomeAt ? shown : data.income[0]!.year}
+                  onChange={setYear}
+                  {...INCOME_INSET}
+                />
+              )}
+              {incomeAt && (
+                <p className="year-readout" aria-live="polite">
+                  <b>{shown}</b>
+                  {SOURCES.filter((s) => incomeAt[s] > 0).map((s) => (
+                    <span key={s}>
+                      {' '}
+                      · {SOURCE_NAMES[s]} {money(incomeAt[s])}
+                    </span>
+                  ))}{' '}
+                  · Tax {money(incomeAt.tax)} · Spending need {money(incomeAt.spendNeed)}
+                </p>
+              )}
               <IncomeLegend />
               <p className="note">
                 Before tax. The same chart as on the Withdrawals tab, for the strategy you chose;

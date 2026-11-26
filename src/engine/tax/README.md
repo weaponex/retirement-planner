@@ -29,6 +29,12 @@ income splitting for a couple. No rule values live here: the tables arrive as
     band.
   - `lowestRate(rows: BracketRow[]): number`: the first row's rate, used to
     value non-refundable credits.
+- `payroll.ts` (AR-H5)
+  - `payroll(gross, cfg)`: the employee's CPP, CPP2 and EI, with the enhanced part (deducted,
+    line 22215) and the credited part (base CPP and EI, at the lowest federal and Ontario rates).
+  - `payFromGross(gross, cfg)`: `{ marginalRate, afterTax }`. The marginal rate is on the next
+    dollar of taxable income with payroll held fixed; the credits are taken off after the
+    Ontario surtax, which slightly overstates the surtax for high earners.
 - `split.ts` (M13, C2)
   - `SplitSpouse { income, age, eligible, excluded, flatRate? }`: `eligible` is the pension
     income this spouse could transfer; `excluded` leaves a working or dead spouse out;

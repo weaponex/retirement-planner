@@ -32,7 +32,8 @@ Worker calls.
     `Warning` (a placeholder until stage 6);
   - the id unions, including `EngineAccountType` (adds `rrif` and `lif`).
 - `units.ts`: `TodayDollars` and `FutureDollars` (branded), `makeDeflator(cfg)`,
-  `normalizeInputs(inputs, cfg)`, `toDisplay(rows, deflator)`.
+  `normalizeInputs(inputs, cfg)` (also resolves gross pay, the CPP estimate at its start
+  age, the year of arrival and group spending amounts), `toDisplay(rows, deflator)`.
 - `index.ts`: `runPlan(inputs, { revision, appVersion, today }): Result` (overrides applied,
   config rebased, inputs normalized, then `simulate` and the `results` functions);
   `runTips(inputs, result): Tips` (empty until stage 6); `engineError(error, revision,

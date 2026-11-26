@@ -9,7 +9,8 @@ by the deflator as plain numbers (M5).
 
 ## Interface
 
-- `initialState.ts`: `initialState(inputs, ctx, variant)`; `yearMix(inputs, year, ctx)`.
+- `initialState.ts`: `initialState(inputs, ctx, variant)`; `yearMix(inputs, year, ctx)`;
+  `accountYearMix` and `mixOfFor(inputs, year, ctx)` (each account's mix this year, AR-S3).
 - `spendingNeed.ts`: `phaseIndex`, `monthlyNeed`, `spendingNeed(inputs, state, ctx)`.
 - `workingYear.ts`: `workingYear(state, inputs, ctx, variant, options?)`: a `SolvedYear`, like `solveYear`, with the same `ignoreRebalanceGains` option.
 - `death.ts`: `deaths(inputs)` (first death first); `transferAccounts(state, from, to)`;
