@@ -18,15 +18,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  # Two jobs, as in GitHub's Pages starter: the deploy job starts after the
+  # artifact is finalized, so deploy-pages no longer finds 0 artifacts by asking
+  # in the same second it was uploaded (seen on 2026-11-26).
+  build:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,5 +47,12 @@ jobs:
         with:
           path: dist
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
