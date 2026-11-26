@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assets tab mockup</title>
+<style>
+  :root { --page:#f6f5f2; --card:#fff; --line:#e3e1dc; --soft:#efede8; --input:#cfccc5; --ink:#1c1c1a; --label:#5c5a55; --link:#1d4ed8; --chip:#eaf0fb; --chipink:#1e3a8a; --good:#dcf1e2; --goodink:#166534; --quiet:#f3f2ee; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--page); color:var(--ink); font:14px/1.45 Inter, system-ui, sans-serif; }
+  header { background:var(--card); border-bottom:1px solid var(--line); padding:14px 20px; display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  header b { font-size:17px; }
+  .chipx { background:var(--chip); color:var(--chipink); border-radius:999px; padding:3px 10px; font-size:12px; }
+  nav { background:var(--card); border-bottom:1px solid var(--line); padding:0 20px; display:flex; gap:22px; flex-wrap:wrap; overflow-x:auto; }
+  nav span { padding:11px 0; color:#55534e; white-space:nowrap; }
+  nav .on { color:var(--ink); font-weight:600; border-bottom:2px solid var(--ink); }
+  main { max-width:1100px; margin:0 auto; padding:18px 16px 40px; }
+  .note { font-size:12px; color:var(--label); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-top:12px; }
+  .sum { display:flex; gap:14px; align-items:baseline; flex-wrap:wrap; }
+  .sum .t { font-size:16px; font-weight:600; }
+  .wrap { overflow-x:auto; margin-top:12px; }
+  table { width:100%; min-width:640px; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; font-weight:500; color:var(--label); font-size:12px; padding:7px 6px; border-bottom:1px solid var(--line); }
+  td { padding:9px 6px; border-bottom:1px solid var(--soft); vertical-align:top; }
+  .num { text-align:right; white-space:nowrap; }
+  .lk { color:var(--link); white-space:nowrap; }
+  .kind { color:var(--label); font-size:12px; }
+  .ed { background:var(--quiet); border-radius:10px; padding:14px; margin:4px 0 6px; }
+  .g { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px 14px; }
+  .f label { display:block; font-size:12px; color:var(--label); margin-bottom:3px; }
+  .box { border:1px solid var(--input); border-radius:8px; padding:6px 9px; background:#fff; }
+  .seg { display:inline-flex; border:1px solid var(--input); border-radius:8px; overflow:hidden; flex-wrap:wrap; }
+  .seg span { padding:5px 11px; border-right:1px solid var(--soft); background:#fff; }
+  .seg span:last-child { border-right:0; }
+  .seg .on { background:var(--chip); color:var(--chipink); font-weight:600; }
+  h4 { font-size:13px; margin:14px 0 6px; }
+  .pill { background:var(--good); color:var(--goodink); border-radius:6px; padding:1px 7px; font-size:11px; font-weight:600; }
+  .radios { display:flex; gap:16px; flex-wrap:wrap; }
+  .btn { display:inline-block; border:1px solid var(--input); border-radius:8px; padding:7px 13px; background:#fff; }
+  .caption { max-width:1100px; margin:0 auto; padding:14px 16px 0; color:var(--label); font-size:13px; }
+</style>
+</head>
+<body>
+<p class="caption"><b>Mockup (2026-11-26), Stage A, open question OA6.</b> The Assets tab, desktop layout; numbers are made up. The section is shown open with the home's editor open; in the app it starts closed.</p>
+<header><b>Retirement planner</b><span class="chipx">Tax year 2026 · default values</span></header>
+<nav><span>Household</span><span>Savings</span><span class="on">Assets</span><span>Spending</span><span>Withdrawals</span><span>Estate</span><span>Results</span></nav>
+<main>
+  <p class="note">Open a section to change it. The line beside each title sums up what's inside.</p>
+  <div class="card">
+    <div class="sum">
+      <span class="t">▾ Assets</span>
+      <span><b>$2,685,000</b> in 4 assets</span>
+      <span class="note">Mortgages $400,000 · Rent $2,400 a month · 4 of 6 assets</span>
+    </div>
+    <div class="wrap">
+    <table>
+      <tr><th>Asset</th><th>Owner</th><th class="num">Value today</th><th class="num">Mortgage</th><th>What happens</th><th></th></tr>
+      <tr><td>Family home <span class="kind">· home</span></td><td>Joint</td><td class="num">$1,400,000</td><td class="num">$220,000</td><td>Downsize in 2041 to $600,000</td><td class="lk">Close · Remove</td></tr>
+      <tr><td colspan="6" style="border-bottom:0;padding:0">
+        <div class="ed">
+          <div class="g">
+            <div class="f"><label>Name</label><div class="box">Family home</div></div>
+            <div class="f"><label>Owner</label><div class="seg"><span>Alex</span><span>Sam</span><span class="on">Joint</span></div></div>
+            <div class="f"><label>Value today</label><div class="box">$1,400,000</div></div>
+          </div>
+          <p class="note"><span class="pill">Principal residence</span> No capital gains tax on the home, so no original cost is needed.</p>
+          <h4>Yearly change in value</h4>
+          <div class="seg"><span class="on">With inflation</span><span>Inflation ± %</span><span>Fixed % a year</span></div>
+          <span class="note">&nbsp; Inflation in this plan: 2.1% a year</span>
+          <h4>Yearly costs (they move off Spending)</h4>
+          <div class="g">
+            <div class="f"><label>Property tax</label><div class="box">$7,800</div></div>
+            <div class="f"><label>Insurance</label><div class="box">$2,100</div></div>
+            <div class="f"><label>Upkeep</label><div class="box">$6,000</div></div>
+          </div>
+          <p class="note">These rise with inflation. On Spending, "Property tax" now shows "Counted on Assets".</p>
+          <h4>Mortgage</h4>
+          <div class="g">
+            <div class="f"><label>Balance today</label><div class="box">$220,000</div></div>
+            <div class="f"><label>Rate</label><div class="box">4.6%</div></div>
+            <div class="f"><label>Monthly payment</label><div class="box">$1,950</div></div>
+          </div>
+          <p class="note">Fixed payment, as on your statement · paid off in 2039</p>
+          <h4>Selling</h4>
+          <div class="radios"><span>○ Keep</span><span>○ Sell in year…</span><span>● Downsize</span><span>○ Sell at the first death</span></div>
+          <div class="g" style="margin-top:8px">
+            <div class="f"><label>Downsize in</label><div class="box">2041</div></div>
+            <div class="f"><label>New home's price (today's $)</label><div class="box">$600,000</div></div>
+            <div class="f"><label>New mortgage</label><div class="box">None</div></div>
+          </div>
+          <p class="note">Sold only in the year you set, never to cover a shortfall. The sale first pays that year's needs; the rest goes to the TFSA, then non-registered savings.</p>
+        </div>
+      </td></tr>
+      <tr><td>Muskoka cottage <span class="kind">· cottage</span></td><td>Alex</td><td class="num">$800,000</td><td class="num">—</td><td>Sold in 2045</td><td class="lk">Edit · Remove</td></tr>
+      <tr><td>Duplex <span class="kind">· rental</span></td><td>Joint</td><td class="num">$450,000</td><td class="num">$180,000</td><td>Rent $2,400 a month · kept</td><td class="lk">Edit · Remove</td></tr>
+      <tr><td>Car <span class="kind">· vehicle</span></td><td>Sam</td><td class="num">$35,000</td><td class="num">—</td><td>Replaced every 10 years</td><td class="lk">Edit · Remove</td></tr>
+    </table>
+    </div>
+    <p style="margin-top:12px"><span class="btn">Add asset ▾</span> <span class="note">&nbsp; Home · Cottage or second home · Rental property · Vehicle · Other asset</span></p>
+  </div>
+  <p class="note" style="margin-top:14px">Other kinds use the same editor with their own fields: a cottage adds a required original cost; a rental adds monthly rent and other expenses; a vehicle has a loan instead of a mortgage and "replace every N years"; an "other asset" adds personal-use or investment.</p>
+</main>
+</body>
+</html>

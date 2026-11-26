@@ -17,3 +17,4 @@ styles and wording. Numbers in them are illustrative.
 | `Settings.dc.html` | 7. Settings |
 | `FirstRun.dc.html` | 8. First run: empty plan and disclaimer |
 | `States.dc.html` | 9. Updating and error states |
+| `Assets.html` | 10. Assets tab (Stage A). Drawn 2026-11-26 and approved by the author; a plain HTML page that opens in any browser, not a canvas file |

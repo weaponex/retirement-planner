@@ -187,7 +187,7 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | OA3 | Downsizing shortcut and "sell at the first death" (AR7) | Resolved 2026-11-26 (author): both |
 | OA4 | Cap on the number of assets, for speed (AR6) | Resolved 2026-11-26 (author): 6 |
 | OA5 | Spending group amounts and one-total mode, which can't be held at $0 per category when an asset carries the cost (AD14) | Resolved 2026-11-26 (author): a notice and a confirming tick |
-| OA6 | Screen look: a mockup for the Assets tab, or the Savings layout as stated (AR8) | Resolved 2026-11-26 (author): a mockup first, approved by the author before the screen work (Stage A step 8) |
+| OA6 | Screen look: a mockup for the Assets tab, or the Savings layout as stated (AR8) | Resolved 2026-11-26 (author): the mockup [Assets.html](mockups/Assets.html), approved by the author the same day |
 | OA7 | Working-year living costs: whether the phases and the survivor percentage apply before retirement, and how they meet the retirement spending at the first retirement | Resolved 2026-11-26 (author): one flat amount, switching at the first retirement |
 
 ## Critical User Journeys (CUJs)
@@ -1257,7 +1257,7 @@ A status line reads "Up to date · updates as you edit", "Updating…", or, for 
 
 #### Assets tab and the changes to other tabs (Stage A)
 
-*   **Assets tab** (between Savings and Spending), laid out like the Savings Accounts list, as drawn in the mockup the author approves before the screen work (OA6):
+*   **Assets tab** (between Savings and Spending), laid out like the Savings Accounts list, as drawn in the approved mockup [Assets.html](mockups/Assets.html) (OA6, 2026-11-26):
     *   one section, closed at first (AR2-S6);
     *   a table of assets (name, kind, owner, value, mortgage, and a line saying what happens: "Sold 2041", "Replaced every 10 years");
     *   Edit and Remove on each row, and "Add asset" below, with a kind menu.
@@ -1697,7 +1697,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 | 3 | Deaths and estate (`project/death.ts`); reference plan test | — |
 | 4 | Variants, the strategy runs, comparisons, results, Worker | Speed check of the stage 3 engine on the reference machine (done 2026-11-24; [Performance](#performance)) |
 | 5 | Store, screens (six tabs and Settings), live recalculation, change summary; the plan schema from file 43, which the readiness check uses | O24, O27, O28 (resolved 2026-11-24) |
-| A | Assets (the Assets amendment; [Stage A files](#stage-a-assets-files)) | `stage-5` tagged (done 2026-11-26); the Assets tab mockup approved (OA6) before step 8; BA-7 rule sources read |
+| A | Assets (the Assets amendment; [Stage A files](#stage-a-assets-files)) | `stage-5` tagged (done 2026-11-26); the Assets tab mockup approved (OA6, done 2026-11-26); BA-7 rule sources read |
 | 6 | Warnings and computed tips | — |
 | 7 | Saving, export/import, sample plan | — |
 | 8 | Testing with the author and two friends | Paid-tool comparison done; speed check passed |
