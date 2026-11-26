@@ -405,15 +405,22 @@ Recommendations carried into `/egm-draft`, and how the design settled them (2026
 1. **Amend the design together.** Done: the Assets amendment is merged into [the design](docs/designs/retirement-planner.md), and its Non-Goals, G1, G10 and Known gaps (BA-1 to BA-7) are updated.
 2. **Build the engine part as one function.** Replaced by the author: a stepped module (design decision A2). Asset state lives in the yearly state, and only `src/engine/assets/` changes it.
 3. **Keep the protected reference plan unchanged.** Adopted, with a second reference plan and new tax cases as new fixtures.
-4. **Keep asset costs out of the spending need.** Adopted. Asset costs ignore phases and the survivor percentage, and a purchase shortfall stays out of Goal 1. Changed by the author: Goal 1 counts working years when living costs while working are entered (design decision A9).
+4. **Keep asset costs out of the spending need.** Adopted. Asset costs ignore phases and the survivor percentage, and a purchase shortfall stays out of Goal 1. Changed by the author: Goal 1 counts working years when living costs while working are entered (design decision A6).
 5. **Sale money goes to its owner,** and a joint asset passes to the survivor at the first death. Adopted.
-6. **Cap the number of assets.** Adopted at 6 (design decision A4).
-7. **Two shortcuts.** Adopted: both (design decision A3).
+6. **Cap the number of assets.** Adopted at 6 (design decision A3).
+7. **Two shortcuts.** Adopted: both (design decision A2).
 8. **Settle the screen's look.** Done: the mockup `docs/designs/mockups/Assets.html`, approved by the author on 2026-11-26 (design question OA6).
 9. **Declare out of scope.** Adopted, as Non-Goals and Known gaps.
 
 Also settled while drafting:
 
-- Decision 15 is amended: when "living costs while working" is empty (every migrated version 1 plan), working years keep the old rule (design decision A8).
-- "Home and auto insurance" is held at $0 only once the home and every vehicle carry their insurance on Assets (design decision A10).
 - The second reference plan uses a made-up couple built to exercise every feature once (design question OA1).
+
+Changed at the review of 2026-11-26 (the author accepted every proposed fix that follows Canadian rules and is the simplest option; [docs/reviews/2026-11-26/](docs/reviews/2026-11-26/)):
+
+- **Decision 11 reversed:** no migration and no plan file compatibility before the production release; the plan file stays schema version 1, changed in place, and the home is always an asset (design decision A7). The protected reference plan is rebuilt in Stage A.
+- **Decision 14 reversed:** no Spending category is held at $0; one notice in every spending mode names the asset costs (design decision A4).
+- **Decision 15 completed:** living costs while working are required while anyone works, and working years run through the same year solver (design decision A5); a working spouse's other income is taxed as the difference in tax with and without it, and a rental operating loss larger than other income carries forward (A8).
+- **Decision 20 narrowed:** no cottage-designation comparison (A11).
+- **Decision 21 simplified:** a vehicle keeps a falling value and its replacement is a yearly cost; no vehicle loans (A10).
+- **Purchases:** cash out is the price less any new mortgage, which is entered in today's dollars and can't exceed the price; unfunded money is a debt in the estate (A9).
