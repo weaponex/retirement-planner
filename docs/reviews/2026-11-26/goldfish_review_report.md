@@ -161,3 +161,29 @@
   * "today's dollars" used only as a unit;
   * no new warning.
 * **Decision:** Accepted under the author's rule: every proposed fix that follows Canadian rules and is the simplest option is accepted, and anything else is raised. Nothing was raised.
+
+## Re-check resolution (2026-11-26)
+
+The one permitted re-audit, [implementation_readiness_report_r2.md](implementation_readiness_report_r2.md), found 1 Blocker, 19 Majors and 24 Nits. Of the first report's 24 Majors, 11 were closed and 13 partly closed. The author chose to fix them in the design before building, under the same rule (the simplest option that follows Canadian rules). Applied:
+
+* **B1:** Stage A is built in three pushes, and the whole feature (fixtures, engine, plan file, state, screens and tests) is one push, so each push stays green and nothing half-wired deploys. `AGENTS.md` gains the Stage A fixture exception.
+* **MJ1:** gross pay is the only pay input. The working-spouse tax uses `payroll.ts`'s `incomeTax` at the real age, fills the clawback and includes pay in taxable income (A8).
+* **MJ2:** working-year contributions move into `solveYear` after price returns and are paid from the year's cash.
+* **MJ3, MJ4:** gains enter `setup.rebalanceGains` and `gainsBy`. Operating income is a new `assembleIncome` argument. The non-capital loss is a deduction after net income, with its update, death and final-return rules.
+* **MJ5–MJ10, MJ13, MJ14:** these are now specified:
+  * the normalized types, the event list and the asset-year amounts;
+  * the death path;
+  * the unit rules;
+  * gross estate property and the purchase-debt state;
+  * how a downsize is represented;
+  * the field equations and the mortgage invariant.
+* **MJ11:** the sale-money share has a formula, and `surplus.ts` is unchanged.
+* **MJ12:** the fields where empty means "not used" are listed.
+* **MJ15:** Import refuses a file without `ownedAssets`, or with the old home field, and the message is given.
+* **MJ16:** the missing files are in the list.
+* **MJ17:** the reference-plan sessions' inputs, who starts them and the OAS basis are stated, and the coverage list is exact.
+* **MJ18:** where an SA entry and an earlier file entry differ, the SA entry wins.
+* **MJ19:** the mockup is updated for A4 and A10.
+* **Nits:** declined and recorded in the re-audit report, except the stage status line and the empty-assets rule, which are fixed.
+
+The re-audit cap is reached. Anything still open is accepted as is and handled during the build.
