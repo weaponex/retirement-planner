@@ -16,12 +16,19 @@ import {
   LabelList,
 } from 'recharts';
 import { money, moneyShort } from '../../state/format';
-import { BALANCE_GROUPS, type BalanceRow, type TaxRow, type WaterfallStep } from './data';
+import {
+  BALANCE_GROUPS,
+  type BalanceGroup,
+  type BalanceRow,
+  type TaxRow,
+  type WaterfallStep,
+} from './data';
 
 const HEIGHT = 300;
 export const BALANCE_COLOURS = {
   registered: '#1E40AF',
   locked: '#7C3AED',
+  pension: '#0E7490',
   nonreg: '#D97706',
   tfsa: '#16A34A',
 };
@@ -51,8 +58,11 @@ export function BalancesChart({
   rows,
   deathYear,
   year,
+  groups = BALANCE_GROUPS,
 }: {
   rows: BalanceRow[];
+  /** The bands to draw, bottom to top. */
+  groups?: { id: BalanceGroup; name: string }[];
   deathYear?: number | undefined;
   /** The year the slider points at. */
   year?: number | undefined;
@@ -70,7 +80,7 @@ export function BalancesChart({
           axisLine={false}
         />
         <Tooltip formatter={tip} />
-        {BALANCE_GROUPS.map(({ id: k, name }) => (
+        {groups.map(({ id: k, name }) => (
           <Area
             key={k}
             isAnimationActive={false}

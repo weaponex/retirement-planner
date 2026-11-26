@@ -41,6 +41,10 @@ and overrides the mockups and earlier decisions in the design. `[x]` marks a bui
 - [x] **AR2-R3** Decided (2026-11-26): the Balances chart, its year line and its table show RRSP /
   RRIF and LIRA / LIF as separate bands. The author's plan looked as if its RRSPs were never used:
   they were empty by 67, and the band held the LIRAs, locked until 71.
+- [x] **AR2-R4** Decided (2026-11-26): the Balances chart includes pensions. A workplace DC
+  pension (held as a LIRA, then a LIF) has its own band, "Workplace pension (DC)"; bands with no
+  money in any year are left out. A defined benefit pension has no balance in the plan, so it
+  stays under Income by source.
 
 ## Asked during the review
 

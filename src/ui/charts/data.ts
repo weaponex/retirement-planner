@@ -49,6 +49,8 @@ export interface BalanceRow {
   registered: number;
   /** LIRA and LIF: locked until the LIRA becomes a LIF (AR2-R3). */
   locked: number;
+  /** Workplace DC pensions, held as LIRAs and then LIFs (AR2-R4). */
+  pension: number;
   nonreg: number;
   tfsa: number;
 }
@@ -59,25 +61,43 @@ export type BalanceGroup = Exclude<keyof BalanceRow, 'year'>;
 export const BALANCE_GROUPS: { id: BalanceGroup; name: string }[] = [
   { id: 'registered', name: 'RRSP / RRIF' },
   { id: 'locked', name: 'LIRA / LIF' },
+  { id: 'pension', name: 'Workplace pension (DC)' },
   { id: 'nonreg', name: 'Non-registered' },
   { id: 'tfsa', name: 'TFSA' },
 ];
 
+/** The bands with money in some year; an empty band is left out of the chart. */
+export const usedGroups = (rows: BalanceRow[]) =>
+  BALANCE_GROUPS.filter((g) => rows.some((r) => r[g.id] > 0));
+
 export const balanceTotal = (r: BalanceRow | undefined) =>
-  r ? r.registered + r.locked + r.nonreg + r.tfsa : 0;
+  r ? r.registered + r.locked + r.pension + r.nonreg + r.tfsa : 0;
 
 /**
  * End-of-year balances by account type: the id's type prefix decides the group.
  * A balance at the end of a year is in the dollars of the start of the next
- * one, so it is converted with the next year's deflator (AR2-R1).
+ * one, so it is converted with the next year's deflator (AR2-R1). `pensionIds` are the
+ * accounts that hold a workplace DC pension (AR2-R4).
  */
-export function balanceRows(rows: YearRow[], toToday: ToToday): BalanceRow[] {
+export function balanceRows(
+  rows: YearRow[],
+  toToday: ToToday,
+  pensionIds: ReadonlySet<string> = new Set(),
+): BalanceRow[] {
   return rows.map((r) => {
-    const out: BalanceRow = { year: r.year, registered: 0, locked: 0, nonreg: 0, tfsa: 0 };
+    const out: BalanceRow = {
+      year: r.year,
+      registered: 0,
+      locked: 0,
+      pension: 0,
+      nonreg: 0,
+      tfsa: 0,
+    };
     for (const [id, v] of Object.entries(r.balancesEndNom)) {
       const type = id.split('-')[0];
-      const group: BalanceGroup =
-        type === 'tfsa'
+      const group: BalanceGroup = pensionIds.has(id)
+        ? 'pension'
+        : type === 'tfsa'
           ? 'tfsa'
           : type === 'nonreg'
             ? 'nonreg'

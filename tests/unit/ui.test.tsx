@@ -577,14 +577,31 @@ describe('the stage 5 review screens', () => {
   });
 
   it('moves the Results year sliders and shows that year', () => {
-    renderApp(completePlan());
+    const plan = completePlan();
+    renderApp({
+      ...plan,
+      accounts: [
+        ...plan.accounts,
+        {
+          id: 'lira-0-1',
+          owner: 0,
+          type: 'lira',
+          balanceToday: 100_000,
+          annualContributionToday: 0,
+          conversionAge: 71,
+          lifUnlock50: false,
+          dcPension: true,
+        },
+      ],
+    });
     nav('Results');
     const slider = screen.getByLabelText('Year', { selector: '#balances-year' });
     fireEvent.change(slider, { target: { value: '2030' } });
-    // RRSP and LIRA balances are separate bands (AR2-R3).
+    // RRSP and a DC pension are separate bands; empty bands are left out (AR2-R3, AR2-R4).
     expect(
-      screen.getByText(/RRSP \/ RRIF \$[\d,]+ · LIRA \/ LIF \$[\d,]+ · Non-registered/),
+      screen.getByText(/RRSP \/ RRIF \$[\d,]+ · Workplace pension \(DC\) \$[\d,]+ · /),
     ).toBeTruthy();
+    expect(screen.queryByText(/LIRA \/ LIF \$/)).toBeNull();
     fireEvent.click(screen.getByRole('tab', { name: 'Income by source' }));
     const income = screen.getByLabelText('Year', { selector: '#income-year' });
     fireEvent.change(income, { target: { value: '2031' } });

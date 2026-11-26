@@ -8,7 +8,7 @@ import { usePlan } from '../../state/react';
 import type { TabId } from '../../state/store';
 import { useSpouseName } from '../common';
 import {
-  BALANCE_GROUPS,
+  usedGroups,
   balanceRows,
   balanceTotal,
   estateSteps,
@@ -114,17 +114,23 @@ function Charts({ result }: { result: Result }) {
   const [table, setTable] = useState(false);
   const [year, setYear] = useState<number | undefined>();
   const death = firstDeathYear(result.plan.rows);
+  const accounts = usePlan((s) => s.inputs.accounts);
+  const pensionIds = useMemo(
+    () => new Set(accounts.filter((a) => a.dcPension).map((a) => a.id)),
+    [accounts],
+  );
   const data = useMemo(() => {
     const strategy =
       result.strategies.find((s) => s.strategyId === strategyId) ?? result.strategies[0]!;
     return {
-      balances: balanceRows(result.plan.rows, toToday),
+      balances: balanceRows(result.plan.rows, toToday, pensionIds),
       income: incomeRows(strategy.rows, toToday),
       tax: taxRows(result.plan.rows, toToday),
       estate: estateSteps(result.estate),
     };
-  }, [result, strategyId, toToday]);
+  }, [result, strategyId, toToday, pensionIds]);
   const total = balanceTotal;
+  const groups = usedGroups(data.balances);
   const incomeTax = data.tax.reduce((s, r) => s + r.spouse0 + r.spouse1, 0);
   const first = data.balances[0]?.year ?? 0;
   const last = data.balances.at(-1)?.year ?? first;
@@ -166,7 +172,7 @@ function Charts({ result }: { result: Result }) {
               rows={data.balances}
               columns={[
                 { label: 'Year', value: (r) => r.year },
-                ...BALANCE_GROUPS.map((g) => ({
+                ...groups.map((g) => ({
                   label: g.name,
                   value: (r: BalanceRow) => money(r[g.id]),
                 })),
@@ -174,7 +180,7 @@ function Charts({ result }: { result: Result }) {
             />
           ) : (
             <>
-              <BalancesChart rows={data.balances} deathYear={death} year={shown} />
+              <BalancesChart rows={data.balances} groups={groups} deathYear={death} year={shown} />
               <YearSlider
                 id="balances-year"
                 first={first}
@@ -186,16 +192,17 @@ function Charts({ result }: { result: Result }) {
               {balanceAt && (
                 <p className="year-readout" aria-live="polite">
                   <b>{shown}</b> ·{' '}
-                  {BALANCE_GROUPS.map((g) => `${g.name} ${money(balanceAt[g.id])} · `).join('')}
+                  {groups.map((g) => `${g.name} ${money(balanceAt[g.id])} · `).join('')}
                   Total <b>{money(total(balanceAt))}</b>
                 </p>
               )}
-              <Legend items={BALANCE_GROUPS.map((g) => [g.name, BALANCE_COLOURS[g.id]])} />
+              <Legend items={groups.map((g) => [g.name, BALANCE_COLOURS[g.id]])} />
               <p className="note">
                 Balances at the end of each year. Total {money(total(data.balances[0]))} at the end
                 of {data.balances[0]?.year} and {money(total(data.balances.at(-1)))} at the second
-                death. A LIRA cannot be drawn until it becomes a LIF, so the LIRA / LIF band shows
-                money that is locked until then.
+                death. A LIRA, and a workplace DC pension held as one, cannot be drawn until it
+                becomes a LIF, so those bands show money that is locked until then. A defined
+                benefit pension has no balance; it shows as income under Income by source.
               </p>
             </>
           ))}
