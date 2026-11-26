@@ -27,8 +27,8 @@ described. Author decisions, including the market yields (O30), are not fetched.
   `federal.cpp.average_at_65`, `federal.oas.residence.from_age`, the FP Canada returns and inflation,
   the foreign withholding rate, the XIC and XBB yields, both life-expectancy tables and
   `warnings.nudge_steps`) were re-read against these sources on 2026-11-26 and validated by
-  weaponex. All 86 entries are now validated. Still to decide: `federal.oas.base_at_65` is the
-  January–March 2026 amount ($742.31); Service Canada shows $762.50 for October–December 2026.
+  weaponex. All 86 entries are now validated. The author then set `federal.oas.base_at_65` to the
+  October–December 2026 amount ($762.50, was the January–March $742.31) and validated it.
 - **Revised 2026-11-19 (SR-2):** six asset classes matching FP Canada's published classes
   (`cad_equity`, `us_equity`, `intl_equity`, `em_equity`, `bonds`, `cash`) replace the
   three-class list and the 60/30/10 global blend. Removed: `market.global_equity.components.*`,
@@ -72,7 +72,7 @@ described. Author decisions, including the market yields (O30), are not fetched.
 | `federal.capital_gains.inclusion_rate` | rate | https://www.canada.ca/en/revenue-agency/services/forms-publications/publications/t4037/capital-gains.html | Guide T4037, Capital Gains 2025, Chapter 5 "Inclusion rate" (verify: the Definitions entry says "for 2024"; confirm the rate for 2025 and later) |
 | `federal.dividend.eligible.gross_up` | rate | https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5000-d1/5000-d1-25e.pdf | Federal Worksheet 5000-D1 (2025), "Lines 12000 and 12010", line 12 "Applicable rate" for eligible dividends (138% means a 38% gross-up). Check the 2026 edition when published |
 | `federal.dividend.eligible.credit_rate` | rate | https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5000-d1/5000-d1-25e.pdf | Federal Worksheet 5000-D1 (2025), "Line 40425 – Federal dividend tax credit", rate applied to amount C (line 12000 minus line 12010). Check the 2026 edition when published |
-| `federal.oas.base_at_65` | CAD_per_month | https://www.canada.ca/en/employment-social-development/programs/pensions/pension/statistics/2026-quarterly-january-march.html | Table 5 "OAS amounts – January to March 2026", row "Old Age Security pension (age 65 to 74)", maximum monthly amount |
+| `federal.oas.base_at_65` | CAD_per_month | https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/payments.html | "Maximum payments and income thresholds - October to December 2026", row "I am age 65 to 74", maximum monthly amount. Changed 2026-11-26 by the author from the January–March 2026 amount ($742.31, ESDC quarterly report) |
 | `federal.oas.residence.min_years` | years | https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/eligibility.html | Lived in Canada at least 10 years since age 18 |
 | `federal.oas.residence.full_years` | years | https://laws-lois.justice.gc.ca/eng/acts/O-9/section-3.html | Old Age Security Act s. 3(1)(c)(iii): aggregate residence after age 18 for a full pension |
 | `federal.oas.deferral.per_month` | rate | https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/when-start.html | Increase per month of delay |

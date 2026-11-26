@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadConfig, rebaseConfig } from '../../src/engine/config/load';
+import { applyRuleOverrides } from '../../src/engine/config/overrides';
 import { ontario } from '../../src/engine/jurisdiction/ontario';
 import { runPath } from '../../src/engine/project/runPath';
 import type { PlanInputs, YearRow } from '../../src/engine/types';
@@ -13,6 +14,16 @@ import { normalizeInputs } from '../../src/engine/units';
 
 const DIR = join(import.meta.dirname, '..', 'fixtures', 'reference-plan');
 const MONEY_TOLERANCE = 1;
+
+/**
+ * Config values changed after expected-rows.csv was built, held at the values the
+ * fixture was built with, so the engine and the calculator still see the same rules.
+ * The author moved OAS to the October–December 2026 amount on 2026-11-26 (it was the
+ * January–March amount); the fixture files are not rebuilt without the author.
+ */
+const AS_BUILT = {
+  'federal.oas.base_at_65': { value: 742.31, defaultTaxYear: 2026 },
+};
 const EXACT = new Set(['year', 'age', 'alive', 'splitShare']);
 
 /** Flattens rows into the design's CSV columns (design: Data contracts, Reference file). */
@@ -54,7 +65,7 @@ function readCsv(path: string): { header: string[]; rows: string[][] } {
 
 function engineRows(): YearRow[] {
   const plan = JSON.parse(readFileSync(join(DIR, 'inputs.json'), 'utf8')) as PlanInputs;
-  const cfg = rebaseConfig(loadConfig(), plan.planStartYear);
+  const cfg = rebaseConfig(applyRuleOverrides(loadConfig(), AS_BUILT), plan.planStartYear);
   const inputs = normalizeInputs(plan, cfg);
   const variant = {
     id: 'reference',

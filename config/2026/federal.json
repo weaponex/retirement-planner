@@ -213,19 +213,19 @@
     }
   },
   "federal.oas.base_at_65": {
-    "value": 742.31,
+    "value": 762.5,
     "unit": "CAD_per_month",
     "taxYear": 2026,
     "indexed": true,
     "source": {
-      "url": "https://www.canada.ca/en/employment-social-development/programs/pensions/pension/statistics/2026-quarterly-january-march.html",
-      "locator": "ESDC quarterly report January–March 2026, Table 5 \"OAS amounts – January to March 2026\", row \"Old Age Security pension (age 65 to 74)\", Maximum monthly amount: $742.31"
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/old-age-security/payments.html",
+      "locator": "Section \"Maximum payments and income thresholds - October to December 2026\", table \"Old Age Security pension (65+ years old)\", row \"I am age 65 to 74\": up to $762.50"
     },
-    "fetchedOn": "2026-11-18",
+    "fetchedOn": "2026-11-26",
     "validation": {
       "status": "validated",
       "by": "weaponex",
-      "on": "2026-11-19"
+      "on": "2026-11-26"
     }
   },
   "federal.oas.residence.min_years": {

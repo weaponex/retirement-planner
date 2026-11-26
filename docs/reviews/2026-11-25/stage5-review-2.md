@@ -48,6 +48,9 @@ and overrides the mockups and earlier decisions in the design. `[x]` marks a bui
 
 ## Asked during the review
 
+- [x] **AR2-V1** Decided (2026-11-26): the last 22 config values are validated after a re-read of
+  each source, and OAS at 65 moves to the October–December 2026 amount, $762.50 a month (was
+  $742.31 for January–March), so $9,150 a year at 65 and about $12,444 at 70.
 - [x] **AR2-X1** Decided: Export is built now, ahead of stage 7, so the author can share a plan for
   debugging. It downloads the plan in the stage 7 envelope.
 - [x] **AR2-X2** Decided (2026-11-26): Import works now too, in the header and on the welcome
