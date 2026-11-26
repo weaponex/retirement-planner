@@ -3,7 +3,7 @@
 *   **Author:** weaponex
 *   **Status:** Proposed
 *   **Date:** 2026-11-17
-*   **Last revised:** 2026-11-24 (editorial pass after stage 3)
+*   **Last revised:** 2026-11-26 (the Assets amendment: Stage A, decided with the author; see [Assets](#assets-stage-a) in each section)
 *   **Reviews:** one folder per date under [docs/reviews/](../reviews/). Findings still open are in [Known gaps from review](#known-gaps-from-review), which explains their id prefixes. Decisions the author made while the engine was built are recorded in [docs/history/build-decisions.md](../history/build-decisions.md); this document states the rules that resulted.
 *   **Brief:** [concepts_brief.md](../../concepts_brief.md). Open questions O1–O21 come from it; [Open Questions](#open-questions) lists the rest.
 
@@ -15,11 +15,17 @@ A free retirement planner that runs entirely in a desktop web browser. It helps 
 2.  **Savings and investing with taxes in mind:** the couple's accounts and workplace pensions, their overall investment mix, which kinds of investments to hold in which accounts (RRSP/RRIF, TFSA, non-registered, workplace pension accounts), and whether to shift toward safer investments as retirement goes on.
 3.  **Withdrawals:** which accounts to draw from and in what order, when each spouse starts CPP and OAS, RRIF minimum withdrawals, pension income splitting, the OAS clawback, and the tax due at each death.
 
-The app has five input tabs (Household, Savings, Spending, Withdrawals, Estate) and a Results tab, all over one shared plan, plus a Settings screen where every tax and benefit rule value can be changed from its default. The user can change anything on any tab, and the whole plan recalculates as they edit. Each asset class earns the same compound return every year (FP Canada's long-run estimates by default, editable), so every result can be traced and repeated. The app warns when something is at or near a known threshold and says which inputs affect it. For two choices, account placement and the withdrawal strategy, it shows what the choice is worth: lifetime tax paired with the after-tax legacy, against a same-mix-everywhere baseline for placement, and for all three strategies side by side.
+The app has six input tabs (Household, Savings, Assets, Spending, Withdrawals, Estate) and a Results tab, all over one shared plan, plus a Settings screen where every tax and benefit rule value can be changed from its default. The user can change anything on any tab, and the whole plan recalculates as they edit. Each asset class earns the same compound return every year (FP Canada's long-run estimates by default, editable), so every result can be traced and repeated. The app warns when something is at or near a known threshold and says which inputs affect it. For two choices, account placement and the withdrawal strategy, it shows what the choice is worth: lifetime tax paired with the after-tax legacy, against a same-mix-everywhere baseline for placement, and for all three strategies side by side.
 
 The tool shows the effect of choices the user makes and explains why they differ. It does not give personal advice and never moves money. The app's security policy blocks it from sending network requests, so what the user enters stays in their browser; [Hosting](#hosting-and-repository-author) states the limits of that protection.
 
 Version 1 is for the author and two friends, modelled as Ontario couples. The long-term intent is to release it free to all Canadians.
+
+**Assets (Stage A, 2026-11-26).** A sixth input tab, **Assets**, holds what the couple owns besides savings accounts and workplace pensions: the home, cottages or second homes, rental properties, vehicles, and a generic "other asset". Each asset changes in value every year, may cost money to keep, may carry a mortgage, may earn rent, and may be bought or sold in a chosen year. The plan counts all of that in each year's cash, in each spouse's tax, and in the estate at the second death.
+
+The home moves from the Estate tab to Assets and stays free of capital gains tax as the couple's principal residence. Today the home is one number that grows with inflation and counts only in the estate.
+
+Building this also gives the years before the first retirement a real cash flow (AD15): pay after tax, living costs while working, asset costs and the account savings the user sets. Today the plan assumes pay covers everything until retirement.
 
 ## The Problem
 
@@ -58,11 +64,23 @@ Its tax constants were also wrong or out of date (the lowest federal rate entere
 *   every rule value (tax rates, benefit amounts, RRIF tables) stored in a versioned config file with its source, never written into code or supplied from an AI agent's memory;
 *   tests that run automatically against answers from outside sources, plus accounting checks the engine runs on every recalculation and refuses to show a result that fails them.
 
+### What the plan leaves out today (Assets, Stage A)
+
+For many Ontario couples, the largest things they own are not in an RRSP or a TFSA. The plan currently ignores them, or handles them wrongly:
+
+*   **Property tied up in the estate.** The home is one value counted at the second death. A cottage, a rental or anything else the couple owns can't be entered at all, so the after-tax legacy leaves it out. A cottage bought for $120,000 and worth $800,000 at the second death carries a capital gains tax bill of roughly $150,000, which the plan never shows.
+*   **Downsizing, the most common late-life money move.** Selling the family home at 75 and buying a smaller one frees hundreds of thousands of dollars for spending or the TFSA. The design lists "selling a home" as a non-goal, so the plan can't show it.
+*   **Rental income.** A rental's net rent pays part of each year's spending and is taxed as income. It can also push a spouse into the OAS clawback. None of this is modelled.
+*   **Mortgages in retirement.** A mortgage payment is a fixed amount, not a cost that rises with inflation. The only place to enter it today is a Spending category, which grows with inflation, shrinks in the slower phases and drops to the survivor percentage, all of which is wrong for a mortgage.
+*   **Working years.** Before the first retirement, the plan has no spending need and no cash flow. It can't pay a mortgage or a purchase, or receive rent, and it can't tell whether a still-working couple is saving more or less than the yearly amounts they entered.
+
+The effect: for a couple with a cottage, a rental or a mortgage, both headline results are wrong. Their spending-covered result and their after-tax legacy can't be trusted, which is exactly what the tool is meant to get right.
+
 ## Goals
 
 ### Product goals
 
-*   **G1. Linked planning.** The user can change inputs on any of the five input tabs and see the effect everywhere, without pressing a button: the plan recalculates as they edit. The Results tab lists what the last change did (for example "first shortfall year 2041 → none; after-tax legacy −$62k; clawback years 3 → 7").
+*   **G1. Linked planning.** The user can change inputs on any of the six input tabs (Assets added by Stage A) and see the effect everywhere, without pressing a button: the plan recalculates as they edit. The Results tab lists what the last change did (for example "first shortfall year 2041 → none; after-tax legacy −$62k; clawback years 3 → 7").
 *   **G2. Tax-aware results for an Ontario couple.** Each year of the plan computes federal and Ontario tax for each spouse separately, including credits, the OAS clawback, and pension income splitting, based on actual taxable income by account type.
 *   **G3. Both deaths modelled.** Each spouse has an editable life expectancy target. The plan handles the first death (rollovers, survivor benefits, single-filer tax, survivor spending) and the second death (final-return tax on the RRIF, investments taxed as if sold, Ontario probate) and reports the after-tax legacy.
 *   **G4. Steady, traceable returns.** Each asset class earns one fixed compound return every year, from FP Canada's guidelines by default, and the user can override it. The same inputs and config always give the same results. Year-to-year market swings are not modelled in version 1 (see [Risks](#risks--mitigations)).
@@ -70,11 +88,27 @@ Its tax constants were also wrong or out of date (the lowest federal rate entere
 *   **G6. Threshold warnings.** On every result, the app shows warnings when a defined threshold is near or crossed, each with the inputs that affect it. The list starts with 8 warnings; the author adds more after tester sessions.
 *   **G7. Private, with a file to keep.** The app's page cannot send network requests, so plan data is not sent anywhere (limits in [Hosting](#hosting-and-repository-author)). The plan saves automatically in the browser, but browsers can clear that storage, so the export file is the copy to keep. Exports can be imported again, including into a newer version of the app. Export files are not encrypted.
 *   **G8. Defined-benefit pensions.** Either spouse can enter a DB pension from their pension statement, and the engine includes it in tax, splitting and survivor calculations.
+*   **G11. Assets in the plan.** The user can enter a home, cottages or second homes, rentals, vehicles and "other assets". Each asset's value, costs, mortgage, rent, purchase and sale flow into the right year's cash, the owner's tax, and the estate.
+*   **G12. Correct tax on assets.**
+    *   Net rent is taxed as the owner's income; a rental loss reduces their other income (AD19).
+    *   A sale, and the deemed sale at the second death, are taxed as capital gains on the original cost. The home is exempt as the principal residence (AD20), and a loss on personal-use property counts as zero.
+    *   Ontario probate deducts only mortgages on real property (AD22).
+    *   Every tax figure comes from the config or from a cited rule.
+*   **G13. Downsizing and purchases.** A sale and a purchase in the same year model a downsize; sale money pays that year's needs first, then is saved (AD16). A purchase always happens, and any money missing shows as a labelled purchase shortfall (AD17).
+*   **G14. A cash flow in the working years** (when living costs while working are entered; A8). A short working year counts in Goal 1 (A9). Each year before the first retirement computes:
+    *   pay after tax;
+    *   less living costs while working;
+    *   less asset costs and mortgage payments;
+    *   less the yearly account savings the user set;
+    *   plus net rent and sale money.
+
+    What's left is saved to the TFSA, then non-registered savings; a gap is drawn from non-registered savings, then the TFSA (AD15).
+*   **G15. Saved plans keep working.** A version 1 plan file imports into version 2 with identical results; its home value becomes a home asset (AD11).
 
 ### Correctness goals
 
 *   **G9. Sourced rule values, editable by the user.** Every default rule value lives in a config file, one per tax year, with its unit, inflation indexing, source link, date fetched and validation status. The app shows which tax year its defaults come from and flags any unvalidated default. The user can change any rule value in Settings; a changed value is marked as changed, shows the default next to it, and is saved with the plan. Refreshing the defaults every year is optional, not a required yearly task.
-*   **G10. Verified engine.** Tax results match an outside tax calculator within $1 per return on a fixed set of test cases. The full year-by-year loop matches, within $1 per cell, a reference plan built by a separate AI session from the written design; that session can share the design's misreadings (see [Risks](#risks--mitigations)). The engine's accounting checks pass on every run in production, and a run that fails them shows an error instead of results.
+*   **G10. Verified engine.** Tax results match an outside tax calculator within $1 per return on a fixed set of test cases. The full year-by-year loop matches, within $1 per cell, a reference plan built by a separate AI session from the written design; that session can share the design's misreadings (see [Risks](#risks--mitigations)). (Stage A) A second reference plan with assets, built by a separate session from this amended design, matches the engine within $1 per cell. The existing reference plan keeps passing unchanged (AR3). The engine's accounting checks pass on every run in production, and a run that fails them shows an error instead of results.
 
 ## Non-Goals
 
@@ -84,11 +118,22 @@ Its tax constants were also wrong or out of date (the lowest federal rate entere
 *   **Personal advice or open-ended optimization.** The app shows results of choices the user makes and compares them with simple baselines and with each other. It never says "you should", and it does not search for or pick a strategy.
 *   **Accounts, sync, servers.** No sign-in, no cloud storage, no sharing except by exporting a file.
 *   **Fetching rule values while running.** Default values are fetched at build time and bundled with the app; the user can change them in Settings.
-*   **Mobile layout, colour themes, PDF export.**
+*   **Colour themes, PDF export.** A responsive phone layout for every tab, Assets included, is one of the last stages (AD10); until then the tabs are built for desktop.
 *   **Commuted value of DB pensions** (taking a lump sum instead of the pension).
 *   **Tax features:** alternative minimum tax, GIS, tax-loss harvesting, spousal RRSP attribution rules, CPP pension sharing, the CPP death benefit, using the younger spouse's age for RRIF minimums.
-*   **Employment income detail.** A still-working spouse's pay is entered as one after-tax amount; payroll taxes and RRSP deductions are not modelled.
-*   **Other life events:** annuity purchases, random lifespans, long-term care cost shocks, one-time events such as selling a home or receiving an inheritance.
+*   **Employment income detail.** Payroll deductions are modelled from gross pay (item AR-H5 of the stage 5 review), and working years have a cash flow when living costs while working are entered (G14). RRSP deductions for contributions are not modelled.
+*   **Other life events:** annuity purchases, random lifespans, long-term care cost shocks, an inheritance. (Selling and buying a home or other asset is in scope since Stage A.)
+
+**Added by the Assets amendment (Stage A):**
+
+*   **Asset kinds with their own tax rules:** businesses (shares, the lifetime capital gains exemption), collectibles (listed personal property) and prescribed annuities. The generic "other asset" uses ordinary income and capital gains rules only.
+*   **Capital cost allowance (depreciation) on rentals, and its recapture.** Net rent is taxed without it; Known gaps says so.
+*   **Default growth rates for assets from the config.** The user enters each asset's growth, choosing among "with inflation", "inflation plus or minus X%" and "fixed X% a year" (AD13).
+*   **Choosing which property is the principal residence.** The home is always the principal residence, and a cottage is always taxable. The "plus one" year formula and splitting the exemption across properties are not modelled. The Estate tab only shows, for comparison, the tax if the cottage were designated instead (AD20).
+*   **Probate at the first death,** and probate or tax on property outside Ontario.
+*   **Transaction costs:** land transfer tax, HST on new homes, real estate commissions and legal fees on a sale or purchase.
+*   **Shared ownership other than 50/50,** and owners outside the couple.
+*   **Borrowing against property:** a HELOC, a reverse mortgage, or refinancing; a mortgage keeps its payment until paid off, with no renewal changes (AD18).
 
 ## Success Criteria for Version 1
 
@@ -102,7 +147,7 @@ Separately, the headline results and the withdrawal-strategy comparison update w
 
 ## Open Questions
 
-O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose while drafting; O24–O31 arose from the screen mockups of 2026-11-19. A "mechanical default" is a choice the design made without asking the author, because the design's other rules left little room; the author may override it. "Needed before stage N" refers to the build stages in the [stage order](#detailed-implementation-plan).
+O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose while drafting; O24–O31 arose from the screen mockups of 2026-11-19; OA1–OA7 arose with the Assets amendment (Stage A, 2026-11-26). A "mechanical default" is a choice the design made without asking the author, because the design's other rules left little room; the author may override it. "Needed before stage N" refers to the build stages in the [stage order](#detailed-implementation-plan).
 
 | ID | Topic | Status |
 |---|---|---|
@@ -137,6 +182,13 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | O29 | Rebalancing switched off | Resolved 2026-11-19 (author): holdings drift, no shape, placement at the plan start only ([Placement](#placement-and-the-growth-to-safety-shift-o4-o5)) |
 | O30 | Yields for the asset classes | Resolved 2026-11-19 (author): yields are author decisions, not fetched rule values ([Asset classes and returns](#asset-classes-and-returns-o3)) |
 | O31 | What "Let the planner pick" tries | Withdrawn 2026-11-24: the planner is cut from version 1 ([Future Improvements](#future-improvements)) |
+| OA1 | Which test household has a cottage, a rental, a mortgage in retirement, a planned downsize or a vehicle that matters, for the second reference plan and the tester sessions | **Open**; needed before the Assets stage's reference plan |
+| OA2 | Architecture: how the engine handles assets (AR2) | Resolved 2026-11-26 (author): a stepped module ([Decisions for the Assets stage](#decisions-for-the-assets-stage-2026-11-26)) |
+| OA3 | Downsizing shortcut and "sell at the first death" (AR7) | Resolved 2026-11-26 (author): both |
+| OA4 | Cap on the number of assets, for speed (AR6) | Resolved 2026-11-26 (author): 6 |
+| OA5 | Spending group amounts and one-total mode, which can't be held at $0 per category when an asset carries the cost (AD14) | Resolved 2026-11-26 (author): a notice and a confirming tick |
+| OA6 | Screen look: a mockup for the Assets tab, or the Savings layout as stated (AR8) | **Open**; needed before the Assets stage's screen work |
+| OA7 | Working-year living costs: whether the phases and the survivor percentage apply before retirement, and how they meet the retirement spending at the first retirement | Resolved 2026-11-26 (author): one flat amount, switching at the first retirement |
 
 ## Critical User Journeys (CUJs)
 
@@ -176,6 +228,12 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 *   **When**: The user opens Settings from the header, finds the value (each section lists the rules it holds, with the default and its source), and types a new value. A threshold shown on another screen (for example the TFSA yearly limit under Accounts on the Savings tab) has an Edit link that opens Settings at that value.
 *   **Then**: The value is marked "changed", shows the default next to it with a "Reset" link, and the plan recalculates. The header chip reads "Tax year 2026 · 1 value changed" instead of "default values". The change is saved with the plan and in exports.
 
+### CUJ 7: Downsize and see it everywhere (Stage A)
+
+*   **Given**: A plan with a home on the Assets tab.
+*   **When**: The user sets "downsize in 2041 to $600,000" on the home.
+*   **Then**: The 2041 breakdown on Withdrawals shows the sale, the purchase and the money saved; the Balances chart shows the property band drop; and the after-tax legacy changes on Results.
+
 ## Technical Plan (Architecture)
 
 ### Decisions made for this plan
@@ -211,6 +269,19 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | Everything else in this section | Mechanical defaults listed where they appear | Design; the author may override them |
 
 Decisions of 2026-11-17 are recorded in [concepts_brief.md](../../concepts_brief.md) and the first review ([docs/reviews/2026-11-17/](../reviews/2026-11-17/)); those of 2026-11-18 and 2026-11-19 in the review folders of those dates; those of 2026-11-24 in [build-decisions.md](../history/build-decisions.md).
+
+#### Decisions for the Assets stage (2026-11-26)
+
+| ID | Decision |
+|---|---|
+| A2 | **Stepped asset module.** Asset state is kept in the yearly plan state (for deaths, rollovers and costs), but only `src/engine/assets/` changes it. Both the retired-year solver and the working-year path call it at fixed points each year, and it returns that year's amounts. The solver never reads an asset's fields directly. |
+| A3 | **Two shortcuts:** "downsize in year Y to $X" on the home, and "sell at the first death" on any asset. Both compile to a plain sale and purchase. |
+| A4 | **At most 6 assets** per plan. A vehicle replaced every N years stays one asset. |
+| A5 | **Spending overlap with a group amount or "One total":** Spending shows a notice naming the asset costs that may be inside the amount. The user lowers the amount and ticks "Asset costs are not included" to clear it. |
+| A7 | **Living costs while working:** one monthly amount, rising with inflation every working year. At the first retirement, spending switches to the retirement amounts. Phases apply only from retirement; a death while working applies the survivor percentage to this amount. |
+| A8 | **Mechanical rule:** when "living costs while working" is empty, which it is in every migrated version 1 plan, working years keep the current rule: pay covers living costs and only the account savings the user set are saved. This keeps G15 (identical results) and the protected reference plan unchanged. A new plan shows the field empty with that rule stated beside it. Confirmed by the author at the brief check, amending AD15. |
+| A9 | **Goal 1 includes working years** when living costs while working are entered: a short working year marks the strip, and the years count from the plan start. A purchase shortfall stays apart (AD17). Decided by the author at the brief check. |
+| A10 | **The shared "Home and auto insurance" category** is held at $0 only when the home and every vehicle carry their insurance on Assets; until then it stays editable, with a notice naming the insurance already on Assets. Decided by the author at the brief check. |
 
 ### Components and data flow
 
@@ -266,6 +337,39 @@ The screens are described in [Screens](#screens).
 
 **Worker.** All calculation runs in a Web Worker so the screen stays responsive while the user types. The Worker is created from a `blob:` URL of the bundled Worker code, so it runs under the page's security policy. A run happens in two parts: first the user's plan, the placement baseline and the other two withdrawal strategies (what the screens need), then the warning tips, which follow in a second message. A failure in any of the first part's runs blocks the results and shows the error; a tip rerun that fails is dropped and logged, and the other tips are shown. No shared memory, streamed partial results or cache between runs are used.
 
+#### Assets (Stage A)
+
+```text
+ Assets tab ──► store (state/) ──► readiness ──► PlanInputs v2 ──► Worker ──► engine
+   │                 ▲                                              │
+   │      migrate v1→v2 (persistence/migrate.ts)                    ▼
+   │      on import and on load                          normalizeInputs
+   │                                                     (assets: today → plan start)
+   ▼                                                              │
+ Spending tab: "Counted on Assets" holds,                         ▼
+ overlap notice, living costs while working        initialState: PlanState.realAssets
+                                                                  │
+                    ┌─────────────────── each year ───────────────┘
+                    ▼
+     assets/step.ts (the only code that changes asset state)
+       startOfYear(state, ctx)  → sales, purchases, downsizes, first-death handover
+       income(state, ctx)       → per spouse: net rent (taxable, may be < 0),
+                                  realized gains (taxable), cash in, cash out
+       endOfYear(state, ctx)    → growth, mortgage amortization, vehicle replacement
+       atSecondDeath(state)     → deemed gains, estate value, probate base
+                    │
+        ┌───────────┴────────────┐
+        ▼                        ▼
+  solver/yearSolve.ts      project/workingYear.ts
+  (retired years)          (working years, with the new cash flow)
+        │                        │
+        └──────► YearRow.realAssets (a new record) ──► results/ ──► screens
+```
+
+*   **New engine folder `src/engine/assets/`:** `kinds.ts` (one table of the five kinds and their flags), `mortgage.ts` (amortization), `ownership.ts` (owner shares), `step.ts` (the four calls above) and `tax.ts` (the gain, loss and principal residence rules). No other module changes an asset's state.
+*   **Code name `realAssets`,** so it doesn't clash with the existing "asset class" (stocks, bonds, cash). The tab is still labelled "Assets".
+*   **The ordinary account machinery never sees an asset:** placement, rebalancing, the mix tiles, the variants, `available()` and the Balances account bands all leave assets out.
+
 ### Units and conventions
 
 *   **Engine unit: future (nominal) dollars only.** Every money input is entered in today's dollars. `normalizeInputs(inputs, cfg)` converts all of them once, as the engine receives them, using a deflator built from the config's fixed inflation rate. `toDisplay(rows, deflator)` converts results back for the screens: a year's flows with that year's deflator, and its year-end balances with the next year's, since a balance at the end of a year is in the dollars of the next year's start (AR2-R1; the Balances chart does the same). The estate figures stay in the dollars of the second death year, like the tax rules and the home value they use. The today's-dollar type is never imported inside the engine's year-by-year code (`src/engine/solver`, `project` and, from stage 4, `simulate`; enforced by lint). The only today's-dollar values worked out inside it are the lifetime sums in `PlanSummary` (see [Result definitions](#result-definitions)), which `runPath` adds up as plain numbers.
@@ -281,6 +385,19 @@ The screens are described in [Screens](#screens).
     *   An override is rebased the same way, from the tax year of the default it replaced.
     *   Non-indexed values (for example Ontario's $150k and $220k bracket thresholds, the $50k probate threshold) stay fixed in future dollars. Benefit amounts (OAS, the CPP maximum and the CPP survivor amounts) are indexed to inflation by law and are marked `indexed: true`.
     *   **Bracket thresholds never fall:** after indexing, each bracket row's `from` is at least the previous row's. Ontario's top two thresholds are not indexed, so in later years (from about 2042 with the 2026 values) the indexed third threshold passes $150,000; that row's band then shrinks to nothing, and rates never step down. This applies to every bracket table (`brackets` in `read.ts`).
+
+#### Assets (Stage A) units
+
+*   **Values and prices** (`valueToday`, a purchase's `priceToday`, a downsize's `toPriceToday`, a rental's rent and costs) are in today's dollars and converted at the plan start like every other `…Today` field. A purchase price is grown to its purchase year by the deflator, like any future amount entered in today's dollars. The asset's own growth rate applies only to an asset already owned.
+*   **Original cost** (`originalCostPaid`) is in the dollars actually paid, never adjusted for inflation. It is a new kind of amount: neither `…Today` nor `…Nom`, and never divided by a deflator. A future purchase's cost is its nominal purchase price.
+*   **Mortgages** (`balanceAtStart`, `paymentMonthly`, `ratePct`) are as on the statement at the plan start: nominal amounts that are never indexed and never deflated. They have no `…Today` suffix.
+*   **Growth modes** turn into one nominal rate a year in `normalizeInputs`:
+    *   "with inflation" = `market.inflation` (including a Settings override);
+    *   "inflation plus or minus X%" = (1 + inflation) × (1 + X) − 1;
+    *   "fixed X%" = X.
+
+    X may be negative, and a value never falls below $0.
+*   **Rent and costs** rise with inflation, whatever the asset's growth rate. The help text says so: property tax doesn't follow the assessed value in this plan.
 
 ### Config contract
 
@@ -538,10 +655,61 @@ A working year's row shows `afterTaxCashNom` and `surplusNom` of 0: what is save
 
 **A spouse still working in a retired-household year:** their after-tax pay counts as cash. All their other taxable income (CPP, OAS, DB, registered draws and their share of non-registered income) is taxed at their `workingMarginalRate`, not through `personalTax`. Until they retire, they are left out of pension splitting, the "fill lower brackets first" top-up and Early RRSP draws.
 
+#### Assets in the year (Stage A)
+
+```text
+0.  a. First-death transfers, plus: each asset the deceased owned alone, or
+       jointly, passes to the survivor at its cost (no deemed sale, no probate);
+       ownerShares becomes the survivor's. An asset marked "sell at the first
+       death" is sold on this January 1 by the survivor.
+    c. (new) Asset events on January 1, in this order: sales (including
+       downsizes and vehicle replacements: the old vehicle is sold for its
+       value), then purchases. A sale pays off the mortgage; the gain is
+       value − cost (0 for the home; floored at 0 for personal-use property;
+       a rental's or investment "other" loss carries forward like other
+       capital losses). A purchase sets value = cost = the price grown to that
+       year, and starts any new mortgage.
+3.  Fixed income, plus per owner share: net rent (rent − costs − other
+    expenses − mortgage interest; a negative amount reduces the owner's
+    other income, AD19) as taxable otherOrdinary; the sale gains as
+    realized capital gains. Rent is not pension income: it is never split,
+    and it counts toward the OAS clawback.
+5.  The solve target becomes spending need + asset cash out (costs and
+    mortgage payments for every asset, plus this year's purchases), and
+    after-tax cash includes asset cash in (rent and what the sales leave after
+    paying off mortgages). Sale money therefore pays the sale's tax and the
+    year's needs first (AD16). If everything available is short, the
+    shortfall is put on the purchases first (purchaseShortfallNom, AD17), then
+    on spending (shortfallNom, which Goal 1 reads). Asset costs never shrink
+    with the spending phases or the survivor percentage.
+6.  The surplus is deposited as today. The share of it that came from sale
+    money goes to the selling owner (half each for a joint asset); the rest
+    follows the existing shares. Both use one placeSurplus call, so they share
+    TFSA room.
+7.  (new, after price returns) Each held asset grows at its rate (never below
+    $0), and each mortgage runs 12 monthly payments: interest at the monthly
+    rate equivalent to the yearly rate compounded twice a year (AD18), the last
+    payment capped at the remaining balance. Rent and costs for next year rise
+    with inflation.
+8.  At the second death: each asset the deceased holds is deemed sold at its
+    end-of-year value. The gain follows the step 0c rules and is added to the
+    final return. The estate adds asset values less mortgages. The probate
+    base adds the assets that pass through the estate, less mortgages on real
+    property only (AD22); a vehicle's loan is not deducted.
+```
+
+**Working years** (`project/workingYear.ts`) change only when "living costs while working" is entered (A8):
+
+1.  Steps 0–4 as today, plus the asset events and asset income of steps 0c and 3.
+2.  **Cash in:** pay after tax (from gross pay), asset cash in, and the after-tax yield, minimums and benefits that today go straight to savings.
+3.  **Cash out:** living costs while working × the inflation factor (× the survivor percentage after a death), asset cash out including purchases, and the account savings the user set.
+4.  **What's left** is deposited to the TFSA within room, then non-registered. **A gap** is drawn from non-registered savings, then the TFSA. Anything still short is a shortfall: purchases first, then living costs. A living-cost shortfall is recorded in `shortfallNom` and counts in Goal 1 (A9); a purchase shortfall stays apart, as in retired years.
+5.  Tax on rent and gains uses each owner's working marginal rate, as for other income while working.
+
 ### Death and estate (O12, O23)
 
 *   **Probate defaults:** RRSP/RRIF/LIF and TFSA accounts are assumed to name a beneficiary (the spouse, then the children), so they skip probate. Non-registered accounts pass through the estate and pay probate.
-*   **The home:** an optional home value. If entered, it counts toward the legacy and probate, is exempt from capital gains tax, and grows at the fixed inflation rate.
+*   **The home:** before Stage A, an optional home value that counts toward the legacy and probate, is exempt from capital gains tax, and grows at the fixed inflation rate. A version 1 plan still runs this way through the migration; from Stage A the home is an asset (below).
 *   These defaults were confirmed by the author (O23). Jointly held accounts are not modelled; every account has one owner.
 *   **The final return and the estate.** In the second death year, after step 7, so on end-of-year balances. The spouse who dies last is "the deceased"; if both die in the same year, the first-death rollover moves the other spouse's accounts to them first (spouse 1 counts as dying first on a tie), so the final return covers every account.
     1.  **Deemed income:** every RRSP, RRIF, LIRA and LIF balance, converted or not, as `otherOrdinary` (it gets no pension credit); and the deemed sale of every non-registered position: value − original cost, summed over positions. Deemed gains are reduced by the deceased's carried-forward loss (after this year's update); a net deemed loss is not used. TFSA balances and the home are not income.
@@ -551,6 +719,22 @@ A working year's row shows `afterTaxCashNom` and `surplusNom` of 0: what is save
     5.  **After-tax legacy** = all account balances + the home − final-return tax − probate.
 
     Final-return tax and probate are part of lifetime tax. They are paid from the estate, not from the year's cash, so the year's spending, deposits and the household identity are unchanged. The inputs for this section are on the [Estate tab](#estate-tab).
+
+#### Assets at death (Stage A)
+
+*   **"The home"** bullet is replaced. The home is a `realAssets` entry of kind `home`. It is the principal residence, so its gain is never taxed. At most one home is held at any time, and a sale and purchase in the same year (a downsize) are allowed.
+*   **Joint assets** pass to the survivor at the first death outside the estate. Assets owned alone by the deceased roll over to the survivor at cost. Probate at the first death is not modelled.
+*   **Final return:** deemed gains add every asset except the home. Each gain is floored at 0 for personal-use property; losses on a rental or an investment "other" reduce the gains, then the carried-forward loss applies as today.
+*   **Probate base** = non-registered balances + asset values − mortgages on real property − the final-return tax, not below 0. A vehicle loan is not deducted. Source: the Ontario Estate Administration Tax Act, 1998, s. 1, which deducts only encumbrances on real property. The design states this rule in words; the config values `ontario.probate.*` don't change.
+*   **The cottage comparison (AD20).** If a cottage is held at the second death, the final return is computed again with the cottage exempt and the home taxable. `cottageDesignation.finalReturnTaxDiffToday` is the difference, shown on the Estate tab.
+*   **Sources for the rules without numbers,** to be read from the source pages when this amendment is built and cited in `config/SOURCES.md`'s rules section:
+    *   the principal residence exemption (Income Tax Act s. 40(2)(b));
+    *   the denial of losses on personal-use property (s. 40(2)(g)(iii));
+    *   the deduction of interest on money borrowed to earn rent (s. 20(1)(c));
+    *   rental losses against other income (CRA guide T4036);
+    *   semi-annual compounding on mortgages (the federal Interest Act, s. 6).
+
+    No numeric value comes from memory; the inclusion rate stays `federal.capital_gains.inclusion_rate`.
 
 ### Results and comparisons (O13)
 
@@ -834,13 +1018,71 @@ Death { spouse: 0 | 1, year }
     *   then `cashYieldNom`, `spendNeedNom`, `afterTaxCashNom`, `surplusNom`, `shortfallNom` and `estate.<field>`;
     *   booleans are `true` or `false`; numbers are plain decimals with at least 2 places, no thousands separators. A test matches each money cell within $1, and every other cell exactly.
 
+#### Assets (Stage A) data contracts
+
+```text
+PlanInputs {
+  schemaVersion: 2                              // was 1; v1 files migrate on import and load
+  ...every v1 field, except estate.homeValueToday, which moves to realAssets
+  realAssets: RealAssetInput[]                  // at most 6 (A4)
+  spending: { ...v1 fields,
+    workingMonthlyToday?,                       // living costs while working (A7); empty = A8 rule
+    assetCostsExcluded?: boolean,               // the A5 tick, for group amounts and one total
+    heldForAssets?: { [categoryId]: number } }  // AD14: the amount kept while held at $0
+}
+RealAssetInput {
+  id: string,                                   // '<kind>-<n>', e.g. 'cottage-1'
+  kind: 'home' | 'cottage' | 'rental' | 'vehicle' | 'other',
+  name: string,                                 // shown in lists and results
+  owner: 0 | 1 | 'joint',                       // joint = 50/50 (AD6)
+  owned: 'now' | { purchaseYear, priceToday },  // AD2: owned today, or bought later
+  valueToday?,                                  // required when owned now
+  originalCostPaid?,                            // required except for the home (AD12)
+  growth: { mode: 'inflation' | 'inflation_plus' | 'fixed', pct? },   // AD13
+  costs: { propertyTaxYearToday?, insuranceYearToday?,
+           maintenanceYearToday?, utilitiesYearToday? },   // all optional; rise with inflation
+  mortgage?: { balanceAtStart, ratePct, paymentMonthly },  // AD18; for a purchase: at purchase
+  rent?: { monthlyToday, otherExpensesYearToday? },        // rental only
+  sale?: { year } | { atFirstDeath: true },                // AD2, A3
+  downsize?: { year, toPriceToday, newMortgage? },         // home only (A3)
+  replaceEveryYears?,                                      // vehicle only (AD21)
+  otherUse?: 'personal' | 'investment'                     // 'other' only (AD19)
+}
+PlanState { ...v1 fields, realAssets: RealAssetState[] }
+RealAssetState { id, kind, ownerShares: [number, number],  // [1,0], [0,1] or [0.5,0.5]
+  valueNom, costNom, held: boolean,
+  mortgageBalanceNom, rateMonthly, paymentMonthlyNom,
+  nextReplaceYear? }
+YearRow { ...every v1 field unchanged,
+  realAssets: {                                 // new record; the existing reference test ignores it
+    [assetId]: { startNom, purchaseNom, growthNom, saleNom, endNom,
+      costsNom, mortgageInterestNom, mortgagePrincipalNom, mortgageEndNom,
+      rentNetNom, gainNom, ownerShares } },
+  assetCashInNom, assetCashOutNom, purchaseShortfallNom }
+IncomeBySourceNom { ...v1 fields, rent }        // net rent, for the Withdrawals chart
+Result.estate { ...v1 fields, propertyToday, mortgagesToday,
+  cottageDesignation?: { assetId, finalReturnTaxDiffToday } }   // AD20 comparison
+```
+
+*   **The engine still reads `estate.homeValueNom`** for the protected reference plan. Its normalized input keeps that field, and `estate.homeNom` keeps its meaning (the home value × the year's deflator). A v2 plan never sets it: its home is a `realAssets` entry with mode "with inflation", which produces the same numbers.
+*   **Goal 1 (A9):** `Result.goals.spending` counts from the plan start, not the first retirement, when living costs while working are entered; the master design's "Goal 1 counts only the years from the first retirement" becomes conditional.
+*   **Input paths:** `realAssets.<id>.<field>` (for example `realAssets.cottage-1.sale.year`), used by `setInput`, readiness messages and the change summary.
+
 ### Persistence
 
 *   The plan's inputs (never results) autosave to localStorage under the key `rp.plan.v1`, one second after the last edit. Each save holds the schema version, the inputs, and metadata (saved time, app version). On startup the app loads that key if present.
 *   **Two open tabs:** when another tab saves the plan (the browser's `storage` event), the app offers "Reload it, or keep this version". Otherwise the last save wins (see [Risks](#risks--mitigations)). There are no rolling backups: the export file is the lasting copy.
 *   The app asks the browser to keep the data (persistent storage). If the browser refuses, or saving fails (storage full, private window), the app says so and prompts an export.
 *   Export and import use the same JSON format, saved as `retirement-plan-<date>.json`, with the disclaimer in its metadata. On import, the file is checked against the schema. A file with a newer schema version is refused with a message naming the file's version and the app's version.
-*   Version 1 has one schema version, so there are no migrations yet. When version 2 arrives, it saves under a new key (`rp.plan.v2`) and leaves the version 1 save in place, so rolling back the app never strands a plan.
+*   Version 2 arrives with Stage A. It saves under a new key (`rp.plan.v2`) and leaves the version 1 save in place, so rolling back the app never strands a plan.
+*   **Schema version 2.** `src/state/persistence/migrate.ts` has one pure function, `migrateV1toV2`, run by Import, and by autosave when it arrives (stage 7), before the shape check. It:
+    *   turns a `homeValueToday` above $0 into one home asset: owner joint, growth "with inflation", no costs, mortgage, sale or downsize;
+    *   sets `realAssets` to `[]` otherwise;
+    *   leaves `workingMonthlyToday` empty (A8);
+    *   never fails on an unfinished draft.
+*   **Import** accepts versions 1 and 2 and refuses anything newer, as today.
+*   **Autosave** keys stay as designed: v2 saves under `rp.plan.v2`, and the v1 save is left in place.
+*   **Acceptance test:** for every v1 test plan, the migrated plan gives a `Result` equal to the v1 result, apart from the new zero fields.
 *   A "Load sample plan" button fills a made-up couple's data; the app otherwise starts empty (O15). All test fixtures use made-up households. The author's real numbers never enter the repository (see [Hosting](#hosting-and-repository-author)).
 
 ### Hosting and repository (author)
@@ -901,6 +1143,31 @@ Death { spouse: 0 | 1, year }
         *   the split passes' household tax is never below the full nested search's, and stays within 1% of it (a test setting, not a rule value);
     *   the manual paid-tool comparison before stage 8;
     *   the manual speed check.
+
+#### Assets (Stage A) verification
+
+*   **New invariant checks, every year:**
+    *   for each asset, start + purchase + growth − sale = end;
+    *   for each mortgage, start + interest − payments − payoff = end, and the balance is never below 0;
+    *   a sold asset holds $0;
+    *   the household identity adds asset cash in and out, and the working-year identity uses the new cash flow when A8 doesn't apply.
+*   **New property tests:**
+    *   an asset that is only held (no costs, rent, mortgage or events) changes only the estate;
+    *   swapping the spouses together with their sole-owned assets leaves the totals unchanged;
+    *   the home never adds a taxable gain;
+    *   after-tax cash still rises with W in a sale year (the bisection stays valid);
+    *   a migrated v1 plan gives the v1 result.
+*   **A second reference plan,** `tests/fixtures/reference-plan-assets/`, built by a separate session from this amended design (G10). It covers:
+    *   a rental with a mortgage and one loss year;
+    *   a cottage sold mid-plan;
+    *   a joint asset across the first death;
+    *   a downsize;
+    *   a vehicle replaced twice;
+    *   living costs while working.
+
+    The household comes from open question OA1.
+*   **New tax cases:** a rental loss against pension income, and a sale-year gain that triggers the OAS clawback.
+*   **Timing:** a speed case with 6 assets; the 1-second results and 2-second tips targets still hold.
 
 ### Screens
 
@@ -972,7 +1239,7 @@ The profile of each spouse only: name, birth year and month, sex at birth, the a
 #### Estate tab
 
 *   "When one of you dies": the survivor spending percentage (default 70%, with the reason in one line), the first death assumed at the earlier life expectancy target, and a list of what changes at the first death (accounts roll over, OAS stops, CPP survivor benefit and DB survivor share start, single-person tax).
-*   "What you leave behind": the after-tax legacy goal, the home value, the probate rate as a strip with an Edit link to Settings, the beneficiary assumption from [Death and estate](#death-and-estate-o12-o23), and a note on the final return.
+*   "What you leave behind": the after-tax legacy goal, the home (from Stage A, a pointer to the home on the Assets tab), the probate rate as a strip with an Edit link to Settings, the beneficiary assumption from [Death and estate](#death-and-estate-o12-o23), and a note on the final return.
 
 #### Results tab
 
@@ -987,6 +1254,28 @@ Three sections, in this order; there is no year-by-year table.
 *   **Charts,** one at a time, chosen with buttons: **Balances** (stacked areas by account type: RRSP/RRIF, LIRA/LIF, workplace DC pension, non-registered, TFSA; LIRA and LIF have their own band so money locked until a LIRA becomes a LIF shows apart, AR2-R3; a DC pension, held as a LIRA, has its own band, and a band with no money in any year is left out, AR2-R4; a DB pension has no balance and shows only as income), **Income by source** (the Withdrawals chart for the chosen strategy, with the spending need), **Tax by spouse** (a stacked bar per year for each spouse, income tax including any clawback, after splitting), and **Estate** (a waterfall from balances and the home at the second death, less final-return tax as one bar, with the deemed registered income and deemed gains as notes on it, less probate, to the after-tax legacy, with the legacy goal marked). The yearly charts mark the first death. Balances and Income by source have a year slider under the x axis and a line with that year's values (AR-R1); the Estate chart shows each bar's value on the bar (AR-R2) and has no tooltip (AR2-R2). Each chart has a "View as table" option with the same data, for screen readers.
 
 A status line reads "Up to date · updates as you edit", "Updating…", or, for a plan that is not ready to run, "Enter the missing details to see results" above the list of what is missing. The badge on the tab label shows the warning count, "Incomplete", "Updating", "Short from <year>" or "Error".
+
+#### Assets tab and the changes to other tabs (Stage A)
+
+*   **Assets tab** (between Savings and Spending), laid out like the Savings Accounts list (open question OA6 settles whether a mockup is needed):
+    *   one section, closed at first (AR2-S6);
+    *   a table of assets (name, kind, owner, value, mortgage, and a line saying what happens: "Sold 2041", "Replaced every 10 years");
+    *   Edit and Remove on each row, and "Add asset" below, with a kind menu.
+    *   The editor shows only the fields of the chosen kind, driven by `assets/kinds.ts`, with growth's three modes and the plan's inflation rate beside them.
+    *   Each asset card says it is sold only in the year set, never to cover a shortfall.
+    *   A seventh asset can't be added (A4).
+*   **Spending tab:**
+    *   **Category holds:** a category whose cost an asset now carries shows "Counted on Assets: <asset names>", held at $0, with its old amount kept (AD14). The holds are mortgage and rent (a home mortgage), property tax, and auto payment (a vehicle loan). "Home and auto insurance" is held only when the home and every vehicle carry their insurance on Assets; until then it stays editable, with a notice naming the insurance already on Assets (A10).
+    *   **Overlap notice:** a group amount or "One total" shows the A5 notice and its tick box.
+    *   **New field:** "Living costs while working (monthly)", with the A8 rule stated while it's empty.
+*   **Estate tab:**
+    *   the home field becomes a line pointing to Assets;
+    *   "What you leave behind" adds property and mortgages, and the cottage comparison line.
+*   **Withdrawals breakdown:** grows from 11 to 14 rows (AD23): rent (net), asset costs and mortgage payments, and sales and purchases. The chart gains a "Rent" source.
+*   **Results:**
+    *   Balances gains a "Property less mortgages" band.
+    *   The Estate waterfall gains a property bar and a mortgages bar.
+    *   Goal 1 counts every year with a need: retirement years, and working years when living costs while working are entered (A9). Its strip marks a year short on spending or living costs. A purchase shortfall shows as its own line under the goals.
 
 #### Settings
 
@@ -1157,6 +1446,116 @@ Each entry is an option that was rejected. "By author" means the document's auth
 *   **Cons**: Users rarely know a fee per class; the total fee level matters far more than how it splits.
 *   **Decision**: Rejected by author in favour of one fee from named levels, set in Settings.
 
+### Assets (decided 2026-11-26, Stage A)
+
+#### Alternative Z: Build Assets in three slices
+
+*   **Pros**: Slice 1 (properties counted only at the second death, with value, original cost and growth) needs no change to the withdrawal solve, Spending or the strategies, and only an additive schema change. Slice 2 adds sales and downsizing; slice 3 adds rent, mortgages, purchases, joint ownership and vehicles. Each slice is small enough to test fully before the next.
+*   **Cons**: The schema, the reference plan and the screens change three times, and the plan stays partly wrong (no rent, no mortgage) until the last slice.
+*   **Decision**: Rejected by author: everything is built in one stage (AD8), so the plan file, the second reference plan and the tab are designed once.
+
+#### Alternative AA: Compile assets into yearly amounts before the run
+
+*   **Pros**: One pure function turns every asset into per-year need, money in, taxable income and estate amounts, and the solver reads only those. It is the simplest to test, and asset kinds become presets over a few flags.
+*   **Cons**: It fails as soon as a rule must react to the plan's state, for example a later rule to sell an asset when money runs out. It also works out deaths and their handovers a second time outside the solver; deaths are at fixed ages today, so the two would agree, but only while that stays true.
+*   **Decision**: Rejected by author in favour of a stepped module (A2): asset state lives in the yearly state, and only `src/engine/assets/` changes it.
+
+#### Alternative AB: Assets stepped by the year solver itself
+
+*   **Pros**: Any rule can react to the plan's state; no separate module boundary.
+*   **Cons**: Every solver step learns asset rules, both the working-year and retired-year paths need the same code, and tests have to go through the whole solver.
+*   **Decision**: Rejected by author in favour of a stepped module (A2), which keeps asset rules in one folder that both paths call.
+
+#### Alternative AC: A full tax treatment for every asset kind
+
+*   **Pros**: Businesses (selling shares and the lifetime capital gains exemption), collectibles (the listed personal property rules) and prescribed annuities would each be taxed correctly.
+*   **Cons**: Each kind needs its own rules, its own sourced config values and its own tests, for kinds no test household has named.
+*   **Decision**: Rejected by author in favour of one generic "other asset" with ordinary income and capital gains rules only, and a switch for personal-use or investment (AD19).
+
+#### Alternative AD: Capital cost allowance on rentals
+
+*   **Pros**: It matches what landlords claim on their T776: lower tax each year, with the claimed amount taxed back on a sale or at death.
+*   **Cons**: It needs the building's cost apart from the land, a class rate and a recapture rule, and it moves tax between years rather than changing totals much.
+*   **Decision**: Rejected by author: net rent is taxed without it, and Known gaps says so.
+
+#### Alternative AE: Default growth rates from the config
+
+*   **Pros**: A sensible run with fewer numbers to enter.
+*   **Cons**: Every default must come from a published source (AGENTS.md), and no single source covers homes, cottages, rentals and vehicles in Ontario.
+*   **Decision**: Rejected by author: the user enters each asset's growth, choosing "with inflation", "inflation plus or minus X%" or "fixed X% a year" (AD13).
+
+#### Alternative AF: Pay covers asset costs while working
+
+*   **Pros**: No change to the working-year path; asset costs and mortgage payments before retirement are assumed paid from pay, as living costs are today.
+*   **Cons**: The plan can't show a couple who can't afford a purchase or a mortgage while working, and leftover pay is never saved.
+*   **Decision**: Rejected by author: working years get a full cash flow (AD15) with one flat amount for living costs (A7). An empty amount keeps the old rule (A8).
+
+#### Alternative AG: Living costs while working by category, or as a percentage of retirement spending
+
+*   **Pros**: By category matches how retirement spending is entered; a percentage needs no new amount.
+*   **Cons**: By category doubles the Spending screen; a percentage ties working-year costs to a guess about retirement.
+*   **Decision**: Rejected by author in favour of one monthly amount that switches to the retirement amounts at the first retirement (A7).
+
+#### Alternative AH: Leave Spending as it is, or move amounts on migration
+
+*   **Pros**: Leaving it needs no code; moving amounts would clear double counting without the user doing anything.
+*   **Cons**: Leaving it double-counts every asset cost already in Spending. Moving amounts guesses wrongly when a category mixes asset and living costs ("Mortgage and rent", "Home and auto insurance") and can't split a group amount or a one-total plan.
+*   **Decision**: Rejected by author in favour of holding a matching category at $0 with its amount kept (AD14), and a notice with a confirming tick for group amounts and one total (A5).
+
+#### Alternative AI: Sale money saved in full, or used only for the sale's tax
+
+*   **Pros**: Simpler cash flow in the sale year.
+*   **Cons**: The plan would draw taxable RRIF money for the year's spending while depositing the sale money to the TFSA, raising lifetime tax for no reason.
+*   **Decision**: Rejected by author: sale money pays the sale's tax and the year's needs first, and the rest is saved (AD16).
+
+#### Alternative AJ: Skip or refuse a purchase that savings can't cover
+
+*   **Pros**: No shortfall line for purchases.
+*   **Cons**: Skipping hides the problem; refusing blocks the whole plan over one year.
+*   **Decision**: Rejected by author: the purchase always happens, funded through the withdrawal strategy, and any money missing shows as a labelled purchase shortfall (AD17).
+
+#### Alternative AK: Simpler mortgages
+
+*   **Pros**: Monthly compounding, or only a payment and an end year, needs fewer inputs.
+*   **Cons**: Monthly compounding overstates interest on a Canadian mortgage, and a payment-only mortgage gives no balance to pay off on a sale or at death.
+*   **Decision**: Rejected by author in favour of the statement's balance, rate and fixed payment, with interest compounded twice a year (AD18).
+
+#### Alternative AL: Rental losses floored at zero
+
+*   **Pros**: Net rent is never negative, so the tax code never sees negative income.
+*   **Cons**: It overstates tax for a rental with a large mortgage, which is the usual case in its first years.
+*   **Decision**: Rejected by author: a rental loss reduces the owner's other income (AD19).
+
+#### Alternative AM: The user picks the principal residence
+
+*   **Pros**: A couple with a cottage that gained more than the home could designate it.
+*   **Cons**: The real choice is made year by year with a formula. A plain switch would let a user mark a property that doesn't qualify.
+*   **Decision**: Rejected by author in favour of the home always being the principal residence, with the cottage designation shown as a comparison on the Estate tab (AD20).
+
+#### Alternative AN: Vehicles as falling value only, or no vehicles
+
+*   **Pros**: Far less code: a vehicle almost never has a taxable gain.
+*   **Cons**: Its real cost, replacing it every few years, would stay invisible.
+*   **Decision**: Rejected by author: a vehicle is replaced every N years, each replacement a purchase net of the old vehicle's value (AD21).
+
+#### Alternative AO: Probate on gross values, or with every loan deducted
+
+*   **Pros**: One rule for every asset kind.
+*   **Cons**: Gross values overstate probate when there's a mortgage; deducting every loan understates it, because Ontario deducts only debts secured on real property.
+*   **Decision**: Rejected by author in favour of Ontario's rule (AD22).
+
+#### Alternative AP: A larger cap, or a cap per kind
+
+*   **Pros**: Room for more property and vehicles.
+*   **Cons**: Each asset adds work every year of every run, and the 100 tip runs are already near the 2-second target.
+*   **Decision**: Rejected by author in favour of 6 assets in all (A4).
+
+#### Alternative AQ: Additive version 1 schema, or changing version 1 before release
+
+*   **Pros**: No migration code.
+*   **Cons**: An additive change leaves two places for the home; changing version 1 strands exports already made.
+*   **Decision**: Rejected by author in favour of version 2 with a migration that gives identical results (AD11).
+
 ## Non-Functional Requirements
 
 *   **Privacy and security:**
@@ -1277,9 +1676,16 @@ The second full review (2026-11-19) was triaged with the author on 2026-11-24; i
 | B5-3 | Closed 2026-11-26. The author's stage 5 review is built, and the ten config keys it added are validated with the other twelve unvalidated entries (all 86 are now validated). The tax treatment of payroll contributions is sourced: CRA's list of deductions and credits puts lines 30800 (base CPP) and 31200 (EI premiums) under federal non-refundable tax credits and line 22215 (enhanced CPP, CPP2) under net income as a deduction. The author then moved `federal.oas.base_at_65` to the October–December 2026 amount ($762.50, was $742.31 for January–March); the reference test holds the fixture's build-time value (`AS_BUILT` in `referencePlan.test.ts`), since fixture files are not rebuilt without the author | Done |
 | B5-4 | The author's second stage 5 review (2026-11-25) is built (every item in [stage5-review-2.md](../reviews/2026-11-25/stage5-review-2.md)). The hand check behind AR2-R1 found two engine conventions the author may want to look at: foreign dividends in sheltered accounts lose withholding tax (about 0.2% a year with an equity-heavy mix), and each year's yield is credited before the price return, so it compounds within the year (about +0.04% a year) | Author review, before `stage-5` |
 | B5-5 | Decided by the author (2026-11-26, AR2-L1): a LIRA set to become a LIF at 71 cannot pay for spending until then; the 71 default stays, and stage 6 adds the "Money locked in a LIRA" warning (Warning triggers) | Stage 6 |
+| BA-1 | No capital cost allowance or recapture on rentals; tax on a rental differs from a T776 that claims it | Future improvement |
+| BA-2 | The home is always the principal residence and a cottage always taxable; the "plus one" year formula and designating by year are not modelled (the Estate tab shows only the cottage comparison) | Future improvement |
+| BA-3 | No probate at the first death; no property outside Ontario | Future improvement |
+| BA-4 | No land transfer tax, HST, commissions or legal fees on sales and purchases | Future improvement |
+| BA-5 | Joint ownership is 50/50 only; no owners outside the couple | Future improvement |
+| BA-6 | Mortgages keep their payment to the end: no renewals, HELOCs, reverse mortgages or refinancing | Future improvement |
+| BA-7 | The rule citations in Death and estate were written from memory while drafting; each is read from its source page and recorded in `config/SOURCES.md` before step 5 is built | Stage A, step 1 |
 | SR-4 | Open question O20 (O24, O27 and O28 resolved 2026-11-24; O31 withdrawn) | Before the URL is shared beyond testers |
 
-The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`); stages 0 to 3 are done. The working rules for agents (whole-function rewrites, protected files, units) are in [file 13](#13-agentsmd-and-claudemd-exists-stage-0), `AGENTS.md`.
+The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`, and `stage-assets` for Stage A); stages 0 to 3 are done. The working rules for agents (whole-function rewrites, protected files, units) are in [file 13](#13-agentsmd-and-claudemd-exists-stage-0), `AGENTS.md`.
 
 **Stage order:**
 
@@ -1291,6 +1697,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 | 3 | Deaths and estate (`project/death.ts`); reference plan test | — |
 | 4 | Variants, the strategy runs, comparisons, results, Worker | Speed check of the stage 3 engine on the reference machine (done 2026-11-24; [Performance](#performance)) |
 | 5 | Store, screens (six tabs and Settings), live recalculation, change summary; the plan schema from file 43, which the readiness check uses | O24, O27, O28 (resolved 2026-11-24) |
+| A | Assets (the Assets amendment; [Stage A files](#stage-a-assets-files)) | `stage-5` tagged (done 2026-11-26); OA1 and OA6 answered; BA-7 rule sources read |
 | 6 | Warnings and computed tips | — |
 | 7 | Saving, export/import, sample plan | — |
 | 8 | Testing with the author and two friends | Paid-tool comparison done; speed check passed |
@@ -1925,9 +2332,273 @@ The files stage 2 may create or change. Anything not listed here is out of bound
     *   **CUJ 2 (`cross-tab.spec.ts`):** click each strategy card on Withdrawals. The cards, chart and breakdown keep their positions; after selecting one, the Results tab shows "Updating" and then "What your last change did" with lifetime tax and clawback years.
     *   **CUJ 3 (`placement.spec.ts`):** change the preset. The comparison shows lifetime tax and the after-tax legacy for the preset and the baseline.
     *   **CUJ 4 (`first-death.spec.ts`):** with targets 78 and 94, the rows after 78 show one spouse not alive, the survivor benefits started, and the survivor percentage applied.
-    *   **CUJ 5 (`resume.spec.ts`):** export, clear storage, import. The inputs are identical. A file with `schemaVersion: 2` is refused with both versions named.
+    *   **CUJ 5 (`resume.spec.ts`):** export, clear storage, import. The inputs are identical. A file with `schemaVersion: 3` is refused with both versions named (version 2 since Stage A; a version 1 file is migrated).
     *   **CUJ 6 (`settings.spec.ts`):** change the OAS clawback threshold in Settings. It is marked changed with the default beside it, the header reads "1 value changed", results update, the change survives export and import, and Reset restores the default. Once every bundled default is validated (2026-11-26), this journey checks that no config notice shows; the unit tests mark one default unchecked to test the notice and the Settings filter.
     *   **`no-network.spec.ts`:** a full session makes no request outside the app's own origin.
+
+#### Stage A (Assets) files
+
+##### Stage placement
+
+*   The work is one stage, **Stage A (Assets)**, built after the `stage-5` tag and before stage 6 (warnings and tips). It is tagged `stage-assets`. Stages 6–8 keep their numbers, so the existing tags and references stay valid.
+*   **Order inside the stage,** each step ending with `npm run typecheck && npm run lint && npm test` passing:
+    1.  the design merge and the rule sources;
+    2.  the plan file (v2 and the migration);
+    3.  the engine asset module;
+    4.  the solver and working-year changes;
+    5.  death and estate;
+    6.  results;
+    7.  state;
+    8.  screens;
+    9.  the second reference plan and the tax cases;
+    10. end-to-end tests and timing.
+*   **Out of this stage:** stage 6 builds the "Money locked in a LIRA" warning (AR2-L1) and any asset warnings. Stage 7 builds autosave, which calls the migration from step 2.
+
+##### Documentation and rules (step 1)
+
+###### SA1. `./docs/designs/retirement-planner.md` (Modify)
+
+*   **Type / Scope**: The master design.
+*   **Proposed Changes**: Done on 2026-11-26: the Assets amendment was drafted with the author and merged into each section of this document (headings marked "Stage A"), with CUJ 7, the OA questions, decisions A2–A10, alternatives Z–AQ and Known gaps BA-1 to BA-7. Why: there is one master spec (author, 2026-11-26).
+
+###### SA2. `./concepts_brief.md` (Modify)
+
+*   **Type / Scope**: The master brief.
+*   **Proposed Changes**: Mark the Assets recommendations AR1–AR9 as settled in the design, with the decision each became. Why: the brief and the design must not disagree.
+
+###### SA3. `./config/SOURCES.md` (Modify)
+
+*   **Type / Scope**: Source list.
+*   **Proposed Changes**: A new "Rules without numbers" section. Each rule gets the URL and locator of the source page it was read from: the principal residence exemption, personal-use losses, interest on money borrowed to earn rent, rental losses against other income, mortgage compounding, and the probate deduction for encumbrances on real property. No config entries change. Why: BA-7, and the rule that nothing comes from memory.
+
+###### SA4. `./docs/units-and-conventions.md` (Modify)
+
+*   **Type / Scope**: Units document.
+*   **Proposed Changes**: Add the three new amount kinds: original cost as paid (never deflated); mortgage amounts as on the statement (nominal at the plan start, never indexed); and growth modes resolved to one nominal rate. Why: the prototype failed on mixed units, so every new kind is written down before code.
+
+###### SA5. `./AGENTS.md` (Modify)
+
+*   **Type / Scope**: Agent rules.
+*   **Proposed Changes**: One rule: only `src/engine/assets/` changes asset state, and asset kinds are defined only in `assets/kinds.ts`. Why: decision A2.
+
+##### Plan file (step 2)
+
+###### SA6. `./src/engine/types.ts` (Modify)
+
+*   **Type / Scope**: Engine types.
+*   **Proposed Changes**: Add `RealAssetInput`, `RealAssetState`, `RealAssetYear`, `PlanInputs.realAssets`, `schemaVersion: 1 | 2`, the new `spending` fields, `PlanState.realAssets`, the `YearRow.realAssets` record with `assetCashInNom`, `assetCashOutNom` and `purchaseShortfallNom`, `IncomeBySourceNom.rent`, and the new `Result.estate` fields. Normalized inputs keep `estate.homeValueNom` for v1-shaped inputs. Why: the Data contracts.
+
+###### SA7. `./src/state/persistence/migrate.ts` (Create)
+
+*   **Type / Scope**: Pure function.
+*   **Proposed Changes**: `migrateV1toV2(draft: unknown): PlanDraftV2`, following the Persistence rules. It is idempotent on v2 input. Why: AD11, G15.
+
+###### SA8. `./src/state/persistence/planSchema.ts`, `./exportImport.ts` (Modify)
+
+*   **Type / Scope**: Zod schema, import and export.
+*   **Proposed Changes**:
+    *   The schema takes `schemaVersion: 2`, the `realAssets` array (at most 6) with each kind's required fields and ranges, and the new spending fields. Refinements: a sale year after the purchase year; a sale year no later than the second death year; at most one home held in any year; a mortgage payment above the first month's interest.
+    *   `importPlan` runs the migration before the shape check, accepts versions 1 and 2, and refuses anything newer.
+    *   `EXPORT_SCHEMA_VERSION` becomes 2.
+
+    Why: Persistence.
+
+###### SA9. `./src/state/draft.ts`, `./readiness.ts`, `./labels.ts`, `./changeSummary.ts`, `./defaults.ts` (Modify)
+
+*   **Type / Scope**: State helpers.
+*   **Proposed Changes**:
+    *   `draft.ts`: `setAt` and `deleteAt` address `realAssets.<id>` by id, as they do accounts.
+    *   `readiness.ts`: maps the new fields and the missing original cost to readable messages, and links each to the Assets tab.
+    *   `labels.ts`: names every new path ("Cottage: sale year").
+    *   `changeSummary.ts`: names asset edits.
+    *   `defaults.ts`: an empty plan has `realAssets: []` and schema version 2.
+
+    Why: these files route every input path.
+
+##### Engine asset module (step 3)
+
+###### SA10. `./src/engine/assets/kinds.ts`, `./mortgage.ts`, `./ownership.ts`, `./tax.ts`, `./step.ts`, `./README.md` (Create)
+
+*   **Type / Scope**: Engine module.
+*   **Proposed Changes**:
+    *   `kinds.ts`: the five kinds, their flags (`principalResidence`, `personalUse`, `incomeProducing`, `depreciating`) and which fields each shows.
+    *   `mortgage.ts`: `monthlyRate(ratePct)`, compounded twice a year; `runYear(balance, rateMonthly, payment)` returning interest, principal and the end balance, with the last payment capped.
+    *   `ownership.ts`: `ownerShares(owner)` and `byOwner(amount, shares)`.
+    *   `tax.ts`: `gainOnSale(asset, value)` with the home exempt, personal-use losses floored at zero, and rental and investment losses returned as negative gains.
+    *   `step.ts`: `startOfYear` (events and the first-death handover), `income` (per-spouse taxable net rent and gains, and cash in and out), `endOfYear` (growth, mortgages, replacement scheduling) and `atSecondDeath` (deemed gains, estate value, probate base, the cottage comparison).
+
+    Why: A2.
+
+###### SA11. `./src/engine/units.ts`, `./project/initialState.ts` (Modify)
+
+*   **Type / Scope**: Normalizing and the first state.
+*   **Proposed Changes**: `normalizeInputs` converts asset values, prices, rent and costs to plan-start dollars, resolves growth modes to one rate (from the config's inflation and any override), and keeps the original cost and mortgage amounts as they are. `initialState` builds `PlanState.realAssets`. Why: Units and conventions.
+
+##### Solver and working years (step 4)
+
+###### SA12. `./src/engine/solver/startOfYear.ts`, `./yearSolve.ts`, `./incomeAssembly.ts` (Modify)
+
+*   **Type / Scope**: Year solver.
+*   **Proposed Changes**:
+    *   `startOfYear.ts` calls `assets.startOfYear` after the first-death transfers.
+    *   `incomeAssembly.ts` adds net rent (which may be negative) to `otherOrdinary`, and asset gains to realized gains, per owner share.
+    *   `yearSolve.ts`: the solve target adds asset cash out; after-tax cash adds asset cash in; the shortfall goes to purchases first; sale money is deposited to its owner in the same `placeSurplus` call; `assets.endOfYear` runs after price returns.
+
+    Why: the year solver amendment.
+
+###### SA13. `./src/engine/withdraw/surplus.ts` (Modify)
+
+*   **Type / Scope**: Deposits.
+*   **Proposed Changes**: `placeSurplus` takes an optional list of `{ amount, shares }` parts, so sale money reaches its owner while all parts share TFSA room. Why: AD16, decision A2.
+
+###### SA14. `./src/engine/project/workingYear.ts`, `./spendingNeed.ts` (Modify)
+
+*   **Type / Scope**: Working years.
+*   **Proposed Changes**: When `workingMonthlyToday` is set, the working-year cash flow from the Technical Plan applies; when it is empty, today's path runs unchanged (A8). `spendingNeed` returns the working-year need × the inflation factor (× the survivor percentage after a death) before the first retirement, and 0 when the amount is empty. Why: AD15, A7, A8.
+
+###### SA15. `./src/engine/invariants.ts` (Modify)
+
+*   **Type / Scope**: Accounting checks.
+*   **Proposed Changes**: The asset, mortgage and sold-asset checks, and the household identities with asset cash and the working-year cash flow. Why: Verification.
+
+##### Death, estate and results (steps 5–6)
+
+###### SA16. `./src/engine/project/death.ts`, `./src/engine/jurisdiction/types.ts`, `./ontario.ts` (Modify)
+
+*   **Type / Scope**: Death and estate.
+*   **Proposed Changes**:
+    *   `death.ts`: the first-death handover of assets; deemed asset gains on the final return; asset values less mortgages in the estate; the probate base from `assets.atSecondDeath`.
+    *   `Jurisdiction.probate` takes a breakdown (non-registered, real property, real-property mortgages, other assets), so the deduction for encumbrances on real property lives in `ontario.ts`.
+
+    Why: AD22, and the rule against Ontario-specific values in engine code.
+
+###### SA17. `./src/engine/results/compare.ts`, `./src/engine/index.ts`, `./src/engine/simulate/simulate.ts` (Modify)
+
+*   **Type / Scope**: Results.
+*   **Proposed Changes**: `estateSummary` adds `propertyToday`, `mortgagesToday` and `cottageDesignation`. The rows' `incomeBySourceNom.rent` and `purchaseShortfallNom` reach the strategies and the `Result`. `goals()` counts working years with living costs entered (A9): `yearsTotal` and `yearsCovered` start at the plan start in that case, and Goal 1 still ignores `purchaseShortfallNom`. Why: Results.
+
+##### State (step 7)
+
+###### SA18. `./src/state/store.ts`, `./categories.ts` (Modify)
+
+*   **Type / Scope**: Store and spending categories.
+*   **Proposed Changes**:
+    *   New actions: `addRealAsset(kind)`, `removeRealAsset(id)`, `setAssetCostHold()` (recomputes the AD14 holds from the assets' costs, keeping each category's amount in `heldForAssets`), and `confirmAssetCostsExcluded(on)`.
+    *   `categories.ts` maps each asset cost line to its category: mortgage → `mortgage_rent`, property tax → `property_tax`, a vehicle loan → `auto_payment`, and insurance → `home_auto_insurance`, held only when the home and every vehicle carry insurance (A10).
+    *   `TabId` gains `assets`.
+
+    Why: AD14, A5.
+
+##### Screens (step 8)
+
+###### SA19. `./src/ui/tabs/AssetsTab.tsx` (Create)
+
+*   **Type / Scope**: React tab.
+*   **Proposed Changes**: The Assets list and editor described in Screens. Its fields are driven by `engine/assets/kinds.ts`. It has growth's three modes with the plan's inflation rate, the shortcuts, the sold-only-in-the-year-set note, and the 6-asset limit. Why: G11.
+
+###### SA20. `./src/ui/App.tsx`, `./src/ui/tabs/SpendingTab.tsx`, `./EstateTab.tsx`, `./WithdrawalsTab.tsx`, `./ResultsTab.tsx` (Modify)
+
+*   **Type / Scope**: Screens.
+*   **Proposed Changes**:
+    *   `App.tsx`: Assets in `TABS` between Savings and Spending.
+    *   `SpendingTab.tsx`: the "Counted on Assets" holds, the A5 notice and tick, and "Living costs while working".
+    *   `EstateTab.tsx`: the home field becomes a pointer to Assets; property, mortgages and the cottage comparison line.
+    *   `WithdrawalsTab.tsx`: the breakdown's 14 rows and the "Rent" source.
+    *   `ResultsTab.tsx`: the purchase-shortfall line, and `tabFor` sends `realAssets.*` paths to Assets.
+
+    Why: Screens.
+
+###### SA21. `./src/ui/charts/data.ts`, `./charts.tsx`, `./IncomeChart.tsx`, `./src/ui/results/MissingSections.tsx`, `./src/ui/common.tsx`, `./src/ui/styles.css` (Modify)
+
+*   **Type / Scope**: Charts and shared UI.
+*   **Proposed Changes**:
+    *   `data.ts` and `charts.tsx`: the "Property less mortgages" band; the property and mortgages bars in the Estate waterfall.
+    *   `IncomeChart.tsx`: the "Rent" source and its colour.
+    *   `MissingSections.tsx`: Assets in `TAB_NAMES`.
+    *   `common.tsx`: colour entries.
+    *   `styles.css`: the asset table, which follows the Savings table.
+
+    Why: Screens.
+
+###### SA22. `./src/state/README.md`, `./src/engine/README.md`, `./src/engine/project/README.md`, `./src/engine/solver/README.md`, `./src/engine/results/README.md`, `./src/ui/README.md` (Modify)
+
+*   **Type / Scope**: Folder READMEs.
+*   **Proposed Changes**: Describe the new module, files and functions. Why: the folder README rule.
+
+##### Tests (steps 2–10)
+
+###### SA23. `./tests/unit/migrate.test.ts`, `./tests/unit/assetsMortgage.test.ts`, `./tests/unit/assetsStep.test.ts`, `./tests/unit/assetsTax.test.ts` (Create)
+
+*   **Type / Scope**: Unit tests.
+*   **Proposed Changes**:
+    *   `migrate.test.ts`: v1 with and without a home; an unfinished draft; idempotence; a v1 test plan's `Result` equal after migration.
+    *   `assetsMortgage.test.ts`: $100,000 at 6% with $1,000 a month, with first-month interest worked out by hand from the twice-a-year rule; the payoff year; the last payment capped; a payment at or below interest refused.
+    *   `assetsStep.test.ts`: sales before purchases; a downsize; a vehicle replaced twice; "sell at the first death"; the joint handover.
+    *   `assetsTax.test.ts`: the home exempt; personal-use losses at zero; a rental loss carried forward; an investment "other" loss allowed.
+
+    Why: Verification.
+
+###### SA24. `./tests/unit/yearSolve.test.ts`, `./workingYear.test.ts`, `./death.test.ts`, `./invariants.test.ts`, `./surplus.test.ts`, `./spendingNeed.test.ts`, `./compare.test.ts`, `./store.test.ts`, `./planState.test.ts`, `./exportImport.test.ts`, `./ui.test.tsx`, `./chartData.test.ts`, `./helpers/draftPlan.ts`, `./helpers/couplePlan.ts` (Modify)
+
+*   **Type / Scope**: Unit tests.
+*   **Proposed Changes**: Cases for:
+    *   net rent in step 3, and a sale paying the year first;
+    *   a purchase shortfall;
+    *   the working-year cash flow, and the A8 rule unchanged;
+    *   the probate base with a mortgage, and with a vehicle loan;
+    *   the cottage comparison;
+    *   the new invariants;
+    *   sale money to its owner;
+    *   the working-year need;
+    *   the new estate fields;
+    *   the store actions and holds;
+    *   the v2 schema and refinements;
+    *   import of v1 and v2;
+    *   the Assets, Spending, Estate, Withdrawals and Results screens;
+    *   the new band.
+
+    The helpers gain an asset-holding plan. Why: coverage thresholds (engine 90%, state 80%, UI 70%).
+
+###### SA25. `./tests/property/assets.test.ts` (Create)
+
+*   **Type / Scope**: Property tests.
+*   **Proposed Changes**: The five property tests listed in Verification. Why: G10.
+
+###### SA26. `./tests/fixtures/reference-plan-assets/` (Create: `inputs.json`, `calculator/`, `expected-rows.csv`, `NOTES.md`)
+
+*   **Type / Scope**: Protected fixture, new.
+*   **Proposed Changes**: Built by a separate session from the amended master design only, as G10 requires. The household comes from open question OA1. Once committed, the files are protected like every fixture. Why: G10 (extended).
+
+###### SA27. `./tests/reference/referencePlanAssets.test.ts` (Create)
+
+*   **Type / Scope**: Reference test.
+*   **Proposed Changes**: Like `referencePlan.test.ts`, with the `realAssets` record flattened as `realAssets.<id>.<field>` after `estate.<field>`. The existing reference test is unchanged. Why: G10.
+
+###### SA28. `./tests/fixtures/tax-cases-assets.json` (Create) and `./tests/unit/taxContext.ts` (Modify)
+
+*   **Type / Scope**: Tax fixture, new.
+*   **Proposed Changes**: A rental loss against pension income, and a sale-year gain that triggers the OAS clawback, each checked against an outside calculator within $1. The existing `tax-cases.json` is not changed. Why: G10.
+
+###### SA29. `./tests/e2e/assets.spec.ts` (Create) and `./tests/e2e/helpers.ts` (Modify)
+
+*   **Type / Scope**: Browser journey.
+*   **Proposed Changes**: CUJ 7: add a home, downsize it, and see the Withdrawals breakdown, Balances and the legacy change. The helper gains `addAsset`. Why: the CUJ.
+
+###### SA30. Performance check (by hand; no file)
+
+*   **Type / Scope**: Timing, as the master design's Performance section prescribes (timed by hand on the reference machine, recorded in that section).
+*   **Proposed Changes**: Time a plan with 6 assets: results within 1 second and the 100 tip runs within 2 seconds. Record the figures under Performance with the date. If a target is missed, apply that section's remedies. Why: A4.
+
+##### Stage A verification
+
+*   **Compilation/Build**: `npm run typecheck` and `npm run build`.
+*   **Unit and property tests**: `npm test`, which includes both reference tests and both tax-case files.
+*   **Static analysis and linting**: `npm run lint` and `npx prettier --check .`.
+*   **Test coverage**: engine 90%, state and worker 80%, UI 70%, as configured.
+*   **End-to-end**: `PW_CHANNEL=msedge npx playwright test`, all journeys including CUJ 7.
+*   **Config**: `npm run config:check` stays at 86 keys, all validated (no new keys).
+*   **Timing**: the SA30 check, timed by hand on the reference machine.
+*   **Manual**: import the author's exported plan (in `private/`). It loads with its home as an asset and gives the same results as before. Then add a cottage and a mortgage and check one year's breakdown by hand.
 
 ### Verification Plan
 

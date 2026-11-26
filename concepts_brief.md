@@ -400,14 +400,20 @@ The tab is a thin list of presets over one general asset model with a few tax fl
     - the Estate chart gains property and mortgage bars;
     - the Estate tab's home field becomes a pointer to Assets.
 
-Carried into `/egm-draft` as recommendations, not yet decided by the author:
+Recommendations carried into `/egm-draft`, and how the design settled them (2026-11-26; the design's "Stage A" sections hold the detail):
 
-1. **Amend the design together:** Non-Goals (selling a home, mobile wording), O16 (other income), G1 (tab count), Success Criteria, and Known gaps (CCA, probate only at the second death, Ontario property only, one principal residence without the "plus one" year formula).
-2. **Build the engine part as one function** that turns assets into yearly amounts: need, money in per owner, taxable income per spouse, estate value, probate base and gain at death. Asset kinds become presets over four flags, and the year solver reads only those amounts.
-3. **Keep the protected reference plan unchanged.** The engine still reads the old home field, and asset detail lives in a new part of the year row. A second reference plan with assets is built blind from the amended design, with tax cases for a rental loss and for a sale-year gain that triggers the clawback.
-4. **Keep asset costs out of the spending need,** so phases, the survivor percentage and Goal 1 don't apply to them. They get their own lane in the year solve and in the household balance check.
-5. **Sale money goes to its owner** (50/50 for a joint asset) and shares TFSA room with that year's other surplus. A joint asset passes to the survivor at the first death with no probate and no deemed sale.
-6. **Cap the number of assets** (for example at 6) and add a timing case. The 100 tip runs are already near the 2-second target.
-7. **Consider two shortcuts:** "downsize in year Y to $X" (a sale and a purchase together) and "sell at the first death".
-8. **Settle the screen's look:** a mockup for the Assets tab, or a statement that the Savings layout applies.
-9. **Declare out of scope:** land transfer tax, HST, commissions, property outside Ontario, tenants-in-common shares other than 50/50, and HELOCs and reverse mortgages.
+1. **Amend the design together.** Done: the Assets amendment is merged into [the design](docs/designs/retirement-planner.md), and its Non-Goals, G1, G10 and Known gaps (BA-1 to BA-7) are updated.
+2. **Build the engine part as one function.** Replaced by the author: a stepped module (design decision A2). Asset state lives in the yearly state, and only `src/engine/assets/` changes it.
+3. **Keep the protected reference plan unchanged.** Adopted, with a second reference plan and new tax cases as new fixtures.
+4. **Keep asset costs out of the spending need.** Adopted. Asset costs ignore phases and the survivor percentage, and a purchase shortfall stays out of Goal 1. Changed by the author: Goal 1 counts working years when living costs while working are entered (design decision A9).
+5. **Sale money goes to its owner,** and a joint asset passes to the survivor at the first death. Adopted.
+6. **Cap the number of assets.** Adopted at 6 (design decision A4).
+7. **Two shortcuts.** Adopted: both (design decision A3).
+8. **Settle the screen's look.** Still open (design question OA6).
+9. **Declare out of scope.** Adopted, as Non-Goals and Known gaps.
+
+Also settled while drafting:
+
+- Decision 15 is amended: when "living costs while working" is empty (every migrated version 1 plan), working years keep the old rule (design decision A8).
+- "Home and auto insurance" is held at $0 only once the home and every vehicle carry their insurance on Assets (design decision A10).
+- Still open: which test household the second reference plan uses (design question OA1).
