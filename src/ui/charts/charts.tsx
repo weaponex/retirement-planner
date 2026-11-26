@@ -146,7 +146,7 @@ export function EstateWaterfall({ steps, goal }: { steps: WaterfallStep[]; goal:
           tickLine={false}
           axisLine={false}
         />
-        <Tooltip formatter={tip} />
+        {/* No tooltip: each bar shows its value (AR2-R2). */}
         <Bar
           isAnimationActive={false}
           dataKey="base"

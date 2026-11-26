@@ -148,6 +148,11 @@ export interface InvestingInputs {
   returnOverride?: Partial<Record<AssetClass, number>>;
   feeLevel: FeeLevel;
   customFee?: number;
+  /**
+   * The account whose mix every account follows (AR2-S1). Screens only: the
+   * store copies the mix into each account, so the engine reads the accounts.
+   */
+  mixFromAccount?: string;
 }
 
 export interface WithdrawalInputs {

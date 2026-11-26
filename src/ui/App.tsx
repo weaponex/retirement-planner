@@ -3,7 +3,8 @@
 // the Results badge; the welcome screen for an empty plan; the footer
 // disclaimer; and the first-run dialog.
 import { useEffect, useState } from 'react';
-import { usePlan } from '../state/react';
+import { exportPlan } from '../state/persistence/exportPlan';
+import { usePlan, usePlanStore } from '../state/react';
 import type { TabId } from '../state/store';
 import { bundledConfig } from './config';
 import { DISCLAIMER } from './content/disclaimer';
@@ -94,6 +95,33 @@ function Welcome({ onStart }: { onStart(): void }) {
   );
 }
 
+/** Saves the plan as a file (AR2-X1): the browser downloads it; nothing is sent anywhere. */
+function ExportButton() {
+  const store = usePlanStore();
+  return (
+    <button
+      type="button"
+      className="btn"
+      title="Save this plan as a file on this computer. The file is not encrypted."
+      onClick={() => {
+        const file = exportPlan(store.getState().inputs, {
+          appVersion: __APP_VERSION__,
+          disclaimer: DISCLAIMER,
+          now: new Date(),
+        });
+        const url = URL.createObjectURL(new Blob([file.text], { type: 'application/json' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = file.name;
+        link.click();
+        URL.revokeObjectURL(url);
+      }}
+    >
+      Export
+    </button>
+  );
+}
+
 function View() {
   const view = usePlan((s) => s.view);
   switch (view) {
@@ -174,9 +202,7 @@ export function App() {
             <button type="button" className="btn" disabled title={STAGE_7}>
               Import
             </button>
-            <button type="button" className="btn" disabled title={STAGE_7}>
-              Export
-            </button>
+            <ExportButton />
             <button type="button" className="btn" onClick={() => setView('settings')}>
               Settings
             </button>

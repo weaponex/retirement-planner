@@ -51,14 +51,18 @@ export interface BalanceRow {
   tfsa: number;
 }
 
-/** End-of-year balances by account type: the id's type prefix decides the group. */
+/**
+ * End-of-year balances by account type: the id's type prefix decides the group.
+ * A balance at the end of a year is in the dollars of the start of the next
+ * one, so it is converted with the next year's deflator (AR2-R1).
+ */
 export function balanceRows(rows: YearRow[], toToday: ToToday): BalanceRow[] {
   return rows.map((r) => {
     const out: BalanceRow = { year: r.year, registered: 0, nonreg: 0, tfsa: 0 };
     for (const [id, v] of Object.entries(r.balancesEndNom)) {
       const type = id.split('-')[0];
       const group = type === 'tfsa' ? 'tfsa' : type === 'nonreg' ? 'nonreg' : 'registered';
-      out[group] += toToday(v, r.year);
+      out[group] += toToday(v, r.year + 1);
     }
     return out;
   });

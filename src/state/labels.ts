@@ -59,6 +59,7 @@ const OTHER: Record<string, string> = {
   'investing.rebalance': 'Rebalance once a year',
   'investing.feeLevel': 'Fee level',
   'investing.customFee': 'Custom fee',
+  'investing.mixFromAccount': 'One mix for every account',
   'withdrawal.strategyId': 'Withdrawal strategy',
   'withdrawal.bracketLevel': 'Bracket level',
   accounts: 'Accounts',

@@ -1,5 +1,5 @@
 // Withdrawals (design: Screens, Withdrawals tab; mockup Withdrawals): CPP and
-// OAS start ages, conversions and splitting, then the strategy cards, the
+// OAS start ages and conversions (splitting is in Settings, AR2-W1), then the strategy cards, the
 // options row, the income chart with its year slider and the breakdown.
 import { useMemo, useState } from 'react';
 import { rebaseConfig } from '../../engine/config/load';
@@ -195,20 +195,6 @@ function SetupSections() {
           Latest conversion: the end of the year you turn <b>{latest}</b>. RRIF minimum at {latest}{' '}
           is <b>{minAtLatest !== undefined ? percent(minAtLatest, 2) : '—'}</b>, rising each year.
         </Strip>
-      </Section>
-      <Section
-        title="Pension income splitting"
-        summary={[
-          <b key="a">Automatic</b>,
-          `Up to ${percent(num('federal.split.max_share'))} · RRIF and LIF from ${num('federal.split.min_age_rrif')}`,
-        ]}
-      >
-        <p className="intro">
-          Done for you each year: up to <b>{percent(num('federal.split.max_share'))}</b> of eligible
-          pension income moves to the spouse where it lowers the household’s tax. RRIF and LIF
-          income counts from age <b>{num('federal.split.min_age_rrif')}</b>; workplace pensions at
-          any age.
-        </p>
       </Section>
     </>
   );

@@ -81,7 +81,9 @@ describe('toDisplay', () => {
     expect(first!.spendNeedToday).toBe(4000);
     expect(second!.spendNeedToday).toBeCloseTo(4000 / (1 + inflation), 9);
     expect(second!.spouse[0].withdrawals['rrsp-0-1']).toBeCloseTo(2000 / (1 + inflation), 9);
-    expect(second!.balancesEndToday['rrsp-0-1']).toBeCloseTo(10_000 / (1 + inflation), 9);
+    // Year-end balances are converted at the end of their year (AR2-R1).
+    expect(first!.balancesEndToday['rrsp-0-1']).toBeCloseTo(10_000 / (1 + inflation), 9);
+    expect(second!.balancesEndToday['rrsp-0-1']).toBeCloseTo(10_000 / (1 + inflation) ** 2, 9);
     expect(second!.spouse[0].age).toBe(70);
     expect(second!.spouse[0].splitShare).toBe(0.25);
     expect(second!.year).toBe(2027);

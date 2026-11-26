@@ -9,7 +9,7 @@ the app shell, six tabs, Settings, the result views and charts. Screens read the
 ## Interface
 
 - `App.tsx`: the header (the household's names, the tax-year chip, Load sample plan, Import,
-  Export and Settings; on Settings its own header with Back to plan), the config notice, the tab
+  Export, which downloads the plan as a file (AR2-X1), and Settings; on Settings its own header with Back to plan), the config notice, the tab
   bar with the Results badge, the welcome screen for an empty plan, the footer disclaimer and the
   first-run dialog. `TABS`.
 - `tabs/`: `HouseholdTab`, `SavingsTab`, `SpendingTab`, `WithdrawalsTab`, `EstateTab`, `ResultsTab`.

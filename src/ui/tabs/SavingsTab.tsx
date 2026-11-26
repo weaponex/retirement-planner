@@ -89,6 +89,8 @@ function details(a: Account): string {
 function AccountMix({ a }: { a: Account }) {
   const chooseAccountMix = usePlan((s) => s.chooseAccountMix);
   const setInput = usePlan((s) => s.setInput);
+  const shareMix = usePlan((s) => s.shareAccountMix);
+  const shared = usePlan((s) => s.inputs.investing.mixFromAccount === a.id);
   const mix = (a.mix ?? {}) as Mix;
   const total = mixTotal(mix);
   const setShare = (c: AssetClass, v: number) => {
@@ -106,6 +108,20 @@ function AccountMix({ a }: { a: Account }) {
         value={a.mixId ?? 'balanced'}
         onChange={(v) => chooseAccountMix(a.id, v)}
       />
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={shared}
+          onChange={(e) => shareMix(a.id, e.target.checked)}
+        />
+        Use this mix for every account, workplace DC pensions included
+      </label>
+      {shared && (
+        <p className="note">
+          Every account follows this mix. Changing another account’s mix turns this off; each
+          account then keeps the mix it has.
+        </p>
+      )}
       <div>
         <MixBar mix={mix} />
         <div className="mix-totals">{mixTotals(mix)}</div>
@@ -187,7 +203,6 @@ function BalanceCell({ a, label }: { a: Account; label: string }) {
 
 function AccountEditor({ a }: { a: Account }) {
   const setInput = usePlan((s) => s.setInput);
-  const removeAccount = usePlan((s) => s.removeAccount);
   const p = `accounts.${a.id}`;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -232,11 +247,6 @@ function AccountEditor({ a }: { a: Account }) {
         </div>
       )}
       <AccountMix a={a} />
-      <div>
-        <button type="button" className="link" onClick={() => removeAccount(a.id)}>
-          Remove this account
-        </button>
-      </div>
     </div>
   );
 }
@@ -292,6 +302,8 @@ function AccountsSection() {
   const all = usePlan((s) => s.inputs.accounts);
   const accounts = useMemo(() => all.filter((a) => !a.dcPension), [all]);
   const names = [useSpouseName(0), useSpouseName(1)];
+  const removeAccount = usePlan((s) => s.removeAccount);
+  const sharedFrom = usePlan((s) => s.inputs.investing.mixFromAccount);
   const [editing, setEditing] = useState<string | undefined>();
   const [adding, setAdding] = useState(false);
   const total = accounts.reduce((s, a) => s + (a.balanceToday ?? 0), 0);
@@ -319,23 +331,10 @@ function AccountsSection() {
         `Saving ${money(saving)} a year`,
       ].filter(Boolean)}
     >
-      <div className="row">
-        <button type="button" className="btn" onClick={() => setAdding(!adding)}>
-          Add account
-        </button>
-        <span className="note">
-          Enter each balance in today’s dollars. Edit an account to change its mix, yearly saving
-          and the rest. A workplace DC pension goes under Workplace pensions.
-        </span>
-      </div>
-      {adding && (
-        <AddAccount
-          onDone={(id) => {
-            setAdding(false);
-            setEditing(id);
-          }}
-        />
-      )}
+      <p className="note">
+        Enter each balance in today’s dollars. Edit an account to change its mix, yearly saving and
+        the rest. A workplace DC pension goes under Workplace pensions.
+      </p>
       {accounts.length > 0 && (
         <table className="table">
           <thead>
@@ -349,7 +348,7 @@ function AccountsSection() {
               <th scope="col">Details</th>
               <th scope="col">
                 <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden' }}>
-                  Edit
+                  Edit or remove
                 </span>
               </th>
             </tr>
@@ -371,6 +370,7 @@ function AccountsSection() {
                     <span className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
                       <MixBar mix={(a.mix ?? {}) as Mix} small />
                       {MIX_NAMES[a.mixId ?? 'balanced']}
+                      {sharedFrom === a.id && ' · used for every account'}
                     </span>
                   </td>
                   <td>
@@ -378,7 +378,7 @@ function AccountsSection() {
                     {(a.annualContributionToday ?? 0) > 0 &&
                       ` · saving ${money(a.annualContributionToday ?? 0)} a year`}
                   </td>
-                  <td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
                     <button
                       type="button"
                       className="link"
@@ -387,6 +387,18 @@ function AccountsSection() {
                       onClick={() => setEditing(open ? undefined : a.id)}
                     >
                       {open ? 'Close' : 'Edit'}
+                    </button>
+                    <button
+                      type="button"
+                      className="link"
+                      style={{ marginLeft: 12 }}
+                      aria-label={`Remove ${names[a.owner]}'s ${TYPE_NAMES[a.type]}`}
+                      onClick={() => {
+                        if (open) setEditing(undefined);
+                        removeAccount(a.id);
+                      }}
+                    >
+                      Remove
                     </button>
                   </td>
                 </tr>,
@@ -404,6 +416,19 @@ function AccountsSection() {
             })}
           </tbody>
         </table>
+      )}
+      <div>
+        <button type="button" className="btn" onClick={() => setAdding(!adding)}>
+          Add account
+        </button>
+      </div>
+      {adding && (
+        <AddAccount
+          onDone={(id) => {
+            setAdding(false);
+            setEditing(id);
+          }}
+        />
       )}
     </Section>
   );
@@ -632,13 +657,16 @@ function ReturnRow({ c }: { c: AssetClass }) {
   );
 }
 
-/** The balance-weighted mix of every account, for the household's expected return. */
-function useHouseholdMix(): Mix {
+/**
+ * The balance-weighted mix of every account, for the portfolio's expected
+ * return (AR2-S4); undefined while every balance is $0.
+ */
+function useHouseholdMix(): Mix | undefined {
   const accounts = usePlan((s) => s.inputs.accounts);
   const fallback = usePlan((s) => s.inputs.investing.mix);
   return useMemo(() => {
     const total = accounts.reduce((s, a) => s + (a.balanceToday ?? 0), 0);
-    if (total <= 0) return fallback;
+    if (total <= 0) return undefined;
     const mix = {} as Mix;
     for (const c of ASSET_CLASSES) {
       mix[c] =
@@ -655,14 +683,19 @@ function ReturnsSection() {
   const setInput = usePlan((s) => s.setInput);
   const levels = planObject<Record<string, number>>(planConfig(overrides), 'planning.fee_levels');
   const mix = useHouseholdMix();
-  const r = expectedReturn({ ...investing, mix }, overrides);
+  const r = expectedReturn({ ...investing, mix: mix ?? investing.mix }, overrides);
+  const noBalance = 'Needs an account balance';
   return (
     <Section
       title="Returns and fees"
       summary={[
-        <>
-          <b>{percent(r.gross, 1)}</b> a year before fees, across all accounts
-        </>,
+        mix ? (
+          <>
+            <b>{percent(r.gross, 1)}</b> a year before fees, across all accounts
+          </>
+        ) : (
+          'Expected return needs an account balance'
+        ),
         `Fees ${percent(r.fee, 2)}`,
         investing.rebalance ? 'Rebalanced yearly' : 'Not rebalanced',
       ]}
@@ -680,11 +713,11 @@ function ReturnsSection() {
       <div className="tiles">
         <div className="tile">
           <p className="label">Expected return, before fees</p>
-          <p className="value num">{percent(r.gross, 2)} a year</p>
+          <p className="value num">{mix ? `${percent(r.gross, 2)} a year` : noBalance}</p>
         </div>
         <div className="tile">
           <p className="label">After fees</p>
-          <p className="value num">{percent(r.net, 2)} a year</p>
+          <p className="value num">{mix ? `${percent(r.net, 2)} a year` : noBalance}</p>
         </div>
         <div className="tile">
           <p className="label">Inflation</p>
@@ -701,24 +734,26 @@ function ReturnsSection() {
             returns, so this matters.
           </p>
         </div>
-        <SegmentedChoice<FeeLevel>
-          legend="Yearly fees"
-          hideLegend
-          options={[
-            ...(Object.keys(FEE_NAMES) as Exclude<FeeLevel, 'custom'>[]).map((k) => ({
-              value: k,
-              label: `${FEE_NAMES[k]} · ${percent(levels[k] ?? 0, 2)}`,
-            })),
-            { value: 'custom' as const, label: 'Custom' },
-          ]}
-          value={investing.feeLevel}
-          onChange={(v) => setInput('investing.feeLevel', v)}
-        />
-        {investing.feeLevel === 'custom' && (
-          <div style={{ maxWidth: 200 }}>
-            <PercentInput path="investing.customFee" label="Yearly fee" stored="fraction" />
-          </div>
-        )}
+        <div className="row" style={{ alignItems: 'center' }}>
+          <SegmentedChoice<FeeLevel>
+            legend="Yearly fees"
+            hideLegend
+            options={[
+              ...(Object.keys(FEE_NAMES) as Exclude<FeeLevel, 'custom'>[]).map((k) => ({
+                value: k,
+                label: `${FEE_NAMES[k]} · ${percent(levels[k] ?? 0, 2)}`,
+              })),
+              { value: 'custom' as const, label: 'Custom' },
+            ]}
+            value={investing.feeLevel}
+            onChange={(v) => setInput('investing.feeLevel', v)}
+          />
+          {investing.feeLevel === 'custom' && (
+            <div className="inline-fee">
+              <PercentInput path="investing.customFee" label="Yearly fee" stored="fraction" />
+            </div>
+          )}
+        </div>
         <p className="note">
           Applied to all your investments. The values behind each choice are set in{' '}
           <EditLink ruleKey="planning.fee_levels" label="Settings" />.

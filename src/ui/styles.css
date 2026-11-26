@@ -1430,3 +1430,22 @@ fieldset:disabled .choice-card {
   flex-direction: column;
   gap: 4px;
 }
+
+/* The custom yearly fee beside the fee choices (AR2-S5). */
+.inline-fee {
+  width: 160px;
+}
+.inline-fee .field {
+  margin: 0;
+}
+/* The choice beside it names the box, so its label is for screen readers only. */
+.inline-fee .field > label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.inline-fee .message:empty {
+  display: none;
+}

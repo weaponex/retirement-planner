@@ -162,7 +162,15 @@ function rowToday(value: unknown, f: number, isMoney: boolean): unknown {
 /**
  * Converts rows back to today's dollars for the screens: each row's money
  * fields are divided by the deflator for its year index (row i is year index i).
+ * Year-end balances are in the dollars of the next year's start, so they use
+ * the deflator for index i + 1 (AR2-R1).
  */
 export function toDisplay(rows: YearRow[], deflator: Deflator): DisplayRow[] {
-  return rows.map((row, i) => rowToday(row, deflator(i), false) as DisplayRow);
+  return rows.map((row, i) => {
+    const out = rowToday(row, deflator(i), false) as DisplayRow;
+    const end = deflator(i + 1);
+    out.balancesEndToday = rowToday(row.balancesEndNom, end, true) as Record<string, number>;
+    for (const [id, a] of Object.entries(row.accounts)) out.accounts[id]!.endToday = a.endNom / end;
+    return out;
+  });
 }

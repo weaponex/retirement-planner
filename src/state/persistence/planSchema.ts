@@ -117,6 +117,7 @@ export const planSchema = z
         returnOverride: z.record(z.enum(ASSET_CLASSES), z.number().min(-0.5).max(0.5)).optional(),
         feeLevel: z.enum(['index_etf', 'robo', 'advisor', 'custom']),
         customFee: z.number().min(0).max(MAX_FEE).optional(),
+        mixFromAccount: z.string().optional(),
       })
       .strict(),
     withdrawal: z

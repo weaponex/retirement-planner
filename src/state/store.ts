@@ -51,6 +51,11 @@ export interface PlanState {
   addDcPension(owner: Owner): void;
   /** Sets an account's mix to a starting mix, or marks it custom (AR-S3). */
   chooseAccountMix(id: string, mixId: 'conservative' | 'balanced' | 'growth' | 'custom'): void;
+  /**
+   * Turns on or off "Use this mix for every account" for account `id` (AR2-S1).
+   * On: every account takes its mix and follows it. Off: each keeps its mix.
+   */
+  shareAccountMix(id: string, on: boolean): void;
   /** Sets a group's own monthly amount, clearing its categories; null clears it (AR-P1). */
   setGroupAmount(groupId: string, categoryIds: readonly string[], value: number | null): void;
   removeAccount(id: string): void;
@@ -77,6 +82,8 @@ export interface StoreOptions {
 }
 
 export type PlanStore = StoreApi<PlanState>;
+
+type DraftAccount = PlanDraft['accounts'][number];
 
 const SPOUSE_KEYS = /^spouses\.(\d)\.(birthYear|sexAtBirth)$/;
 
@@ -131,6 +138,40 @@ export function createPlanStore(options: StoreOptions): PlanStore {
       if (r.ready) timer = setTimeout(send, RUN_DELAY_MS);
     }
 
+    /**
+     * After account `id`'s mix changed (AR2-S1): when it is the account every
+     * mix follows, copies its mix to every account; when another account
+     * follows, that account leaves the shared mix and the toggle turns off.
+     */
+    function syncMixes(inputs: PlanDraft, id: string): PlanDraft {
+      const from = inputs.investing.mixFromAccount;
+      if (from === undefined) return inputs;
+      if (from !== id) return deleteAt(inputs, 'investing.mixFromAccount');
+      return copyMix(inputs, id);
+    }
+
+    /** `a` with the mix of `src`. */
+    function mixOf(a: DraftAccount, src: DraftAccount): DraftAccount {
+      const out = { ...a };
+      if (src.mixId !== undefined) out.mixId = src.mixId;
+      if (src.mix !== undefined) out.mix = { ...src.mix };
+      return out;
+    }
+
+    /** Gives every account the mix of account `id`. */
+    function copyMix(inputs: PlanDraft, id: string): PlanDraft {
+      const src = inputs.accounts.find((a) => a.id === id);
+      if (!src) return inputs;
+      const accounts = inputs.accounts.map((a) => (a.id === id ? a : mixOf(a, src)));
+      return { ...inputs, accounts };
+    }
+
+    /** A new account follows the shared mix while the toggle is on. */
+    function withSharedMix(inputs: PlanDraft, account: DraftAccount): DraftAccount {
+      const src = inputs.accounts.find((a) => a.id === inputs.investing.mixFromAccount);
+      return src ? mixOf(account, src) : account;
+    }
+
     function nextAccountId(type: AccountType, owner: Owner): string {
       const taken = new Set(get().inputs.accounts.map((a) => a.id));
       let n = 1;
@@ -171,6 +212,9 @@ export function createPlanStore(options: StoreOptions): PlanStore {
           }
         }
         inputs = fillLifeExpectancy(setAt(inputs, path, value), path);
+        // An account's mix may be the one every account follows (AR2-S1).
+        const mix = /^accounts\.([^.]+)\.(mix|mixId)(\.|$)/.exec(path);
+        if (mix) inputs = syncMixes(inputs, mix[1]!);
         change(inputs, path);
       },
       clearInput(path) {
@@ -208,15 +252,20 @@ export function createPlanStore(options: StoreOptions): PlanStore {
         change(inputs, 'spending.mode');
       },
       addAccount(type, owner) {
-        const account = newAccount(type, owner, nextAccountId(type, owner), cfg);
-        change({ ...get().inputs, accounts: [...get().inputs.accounts, account] }, 'accounts');
+        const inputs = get().inputs;
+        const account = withSharedMix(
+          inputs,
+          newAccount(type, owner, nextAccountId(type, owner), cfg),
+        );
+        change({ ...inputs, accounts: [...inputs.accounts, account] }, 'accounts');
       },
       addDcPension(owner) {
-        const account = {
+        const inputs = get().inputs;
+        const account = withSharedMix(inputs, {
           ...newAccount('lira', owner, nextAccountId('lira', owner), cfg),
           dcPension: true,
-        };
-        change({ ...get().inputs, accounts: [...get().inputs.accounts, account] }, 'accounts');
+        });
+        change({ ...inputs, accounts: [...inputs.accounts, account] }, 'accounts');
       },
       chooseAccountMix(id, mixId) {
         const i = get().inputs.accounts.findIndex((a) => a.id === id);
@@ -224,7 +273,22 @@ export function createPlanStore(options: StoreOptions): PlanStore {
         let inputs = setAt(get().inputs, `accounts.${id}.mixId`, mixId);
         if (mixId !== 'custom')
           inputs = setAt(inputs, `accounts.${id}.mix`, startingMix(mixId, cfg));
-        change(inputs, `accounts.${id}.mixId`);
+        change(syncMixes(inputs, id), `accounts.${id}.mixId`);
+      },
+      shareAccountMix(id, on) {
+        const inputs = get().inputs;
+        if (!on) {
+          // Every account keeps the mix it has (AR2-S1).
+          if (inputs.investing.mixFromAccount === id) {
+            change(deleteAt(inputs, 'investing.mixFromAccount'), 'investing.mixFromAccount');
+          }
+          return;
+        }
+        if (!inputs.accounts.some((a) => a.id === id)) return;
+        change(
+          copyMix(setAt(inputs, 'investing.mixFromAccount', id), id),
+          'investing.mixFromAccount',
+        );
       },
       setGroupAmount(groupId, categoryIds, value) {
         let inputs = get().inputs;
@@ -241,8 +305,12 @@ export function createPlanStore(options: StoreOptions): PlanStore {
         change(inputs, `spending.groupsMonthlyToday.${groupId}`);
       },
       removeAccount(id) {
-        const accounts = get().inputs.accounts.filter((a) => a.id !== id);
-        change({ ...get().inputs, accounts }, 'accounts');
+        let inputs = get().inputs;
+        const accounts = inputs.accounts.filter((a) => a.id !== id);
+        if (inputs.investing.mixFromAccount === id) {
+          inputs = deleteAt(inputs, 'investing.mixFromAccount');
+        }
+        change({ ...inputs, accounts }, 'accounts');
       },
       addDbPension(owner) {
         const db: PlanDraft['dbPensions'][number] = {

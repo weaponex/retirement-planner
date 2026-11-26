@@ -68,7 +68,8 @@ Worker calls.
   `normalizeInputs` changes names, not amounts; indexing happens later through the deflator. DB
   amounts with `fixed` or `none` indexing are nominal already.
 - `[units.ts:toDisplay]` Row *i* is year index *i*; every `…Nom` field (and the per-account
-  `withdrawals`) is divided by `deflator(i)` and renamed `…Today`.
+  `withdrawals`) is divided by `deflator(i)` and renamed `…Today`; year-end balances
+  (`balancesEndNom`, each account's `endNom`) use `deflator(i + 1)` (AR2-R1).
 - Run order (design: Config contract): `applyRuleOverrides`, then `rebaseConfig`, then
   `normalizeInputs`.
 - `[invariants.ts]` Every year of every run is checked within `INVARIANT_TOLERANCE`: spending met

@@ -289,3 +289,59 @@ describe('the stage 5 review actions', () => {
     expect(store.getState().inputs.spending.groupsMonthlyToday).toEqual({});
   });
 });
+
+describe('the second stage 5 review: one mix for every account (AR2-S1)', () => {
+  const mixes = (store: ReturnType<typeof setup>['store']) =>
+    store.getState().inputs.accounts.map((a) => a.mixId);
+
+  it('copies the mix to every account and keeps them following it', () => {
+    const { store } = setup();
+    store.getState().chooseAccountMix('rrsp-0-1', 'growth');
+    store.getState().shareAccountMix('rrsp-0-1', true);
+    expect(store.getState().inputs.investing.mixFromAccount).toBe('rrsp-0-1');
+    expect(new Set(mixes(store))).toEqual(new Set(['growth']));
+    store.getState().chooseAccountMix('rrsp-0-1', 'custom');
+    store.getState().setInput('accounts.rrsp-0-1.mix.bonds', 50);
+    expect(store.getState().inputs.accounts.every((a) => a.mix!.bonds === 50)).toBe(true);
+    // New accounts and DC pensions follow it too.
+    store.getState().addAccount('tfsa', 1);
+    store.getState().addDcPension(0);
+    expect(
+      store
+        .getState()
+        .inputs.accounts.slice(-2)
+        .map((a) => a.mix!.bonds),
+    ).toEqual([50, 50]);
+  });
+
+  it('turns off when another account changes, and each keeps its mix', () => {
+    const { store } = setup();
+    store.getState().chooseAccountMix('rrsp-0-1', 'conservative');
+    store.getState().shareAccountMix('rrsp-0-1', true);
+    store.getState().chooseAccountMix('tfsa-0-1', 'growth');
+    expect(store.getState().inputs.investing.mixFromAccount).toBeUndefined();
+    expect(mixes(store)[0]).toBe('conservative');
+    expect(mixes(store)[1]).toBe('growth');
+    expect(mixes(store)[2]).toBe('conservative');
+    store.getState().chooseAccountMix('rrsp-0-1', 'balanced');
+    expect(mixes(store)[2]).toBe('conservative');
+  });
+
+  it('turns off by the toggle or by removing the account', () => {
+    const { store } = setup();
+    store.getState().shareAccountMix('missing', true);
+    expect(store.getState().inputs.investing.mixFromAccount).toBeUndefined();
+    store.getState().chooseAccountMix('lira-0-1', 'growth');
+    store.getState().shareAccountMix('lira-0-1', true);
+    store.getState().shareAccountMix('rrsp-0-1', false);
+    expect(store.getState().inputs.investing.mixFromAccount).toBe('lira-0-1');
+    store.getState().shareAccountMix('lira-0-1', false);
+    expect(store.getState().inputs.investing.mixFromAccount).toBeUndefined();
+    expect(new Set(mixes(store))).toEqual(new Set(['growth']));
+    store.getState().shareAccountMix('lira-0-1', true);
+    store.getState().removeAccount('lira-0-1');
+    expect(store.getState().inputs.investing.mixFromAccount).toBeUndefined();
+    store.getState().removeAccount('tfsa-0-1');
+    expect(store.getState().inputs.accounts).toHaveLength(6);
+  });
+});

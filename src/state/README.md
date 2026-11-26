@@ -16,7 +16,8 @@ last change sends a ready plan to the engine Worker. A reply for an older revisi
 - `store.ts`: `createPlanStore({ cfg, connect, now?, initial? })`; `statusOf(state)`
   (`incomplete`, `updating`, `up_to_date`, `error`); `RUN_DELAY_MS`; `inputAt`.
   Actions: `setInput`, `clearInput`, `setRule`, `resetRule`, `resetAllRules`, `loadPlan`, `chooseMix`,
-  `addDcPension`, `chooseAccountMix`, `setGroupAmount`,
+  `addDcPension`, `chooseAccountMix`, `shareAccountMix` (one mix for every account, AR2-S1),
+  `setGroupAmount`,
   `setSpendingMode`, `addAccount`, `removeAccount`, `addDbPension`, `removeDbPension`, `setView`.
 - `defaults.ts`: `emptyPlan(cfg, today)` (eight $0 accounts, CPP and OAS at 70),
   `newAccount`, `STARTING_ACCOUNT_TYPES`, `defaultLifeExpectancy(sex, age, cfg)`, `startingMix`.
@@ -24,6 +25,7 @@ last change sends a ready plan to the engine Worker. A reply for an older revisi
 - `labels.ts`: `fieldLabel(path, draft)`. `categories.ts`: the 29 persisted category ids, the group ids and `groupOf`.
 - `mix.ts`: `setMixShare` (the sliders), `mixTotal`. `format.ts`: money and percent formats.
 - `persistence/planSchema.ts`: the zod schema with the input ranges and the caps.
+- `persistence/exportPlan.ts`: `exportPlan(inputs, meta)`, the export file (AR2-X1, ahead of stage 7).
 - `react.ts`: `PlanStoreContext`, `usePlan(selector)`.
 
 ## Invariants

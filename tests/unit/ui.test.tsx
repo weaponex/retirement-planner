@@ -182,8 +182,11 @@ describe('Savings', () => {
     fireEvent.change(screen.getByLabelText('Original cost'), { target: { value: '60000' } });
     expect(store.getState().inputs.accounts[3]!.originalCostToday).toBe(60_000);
     expect(screen.getByText(/Original cost \$60,000/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Remove this account' }));
+    // Removed from its row, open or closed (AR2-S3).
+    fireEvent.click(screen.getByRole('button', { name: "Remove Spouse 1's Non-registered" }));
     expect(store.getState().inputs.accounts.some((a) => a.id === 'nonreg-0-1')).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: "Remove Spouse 2's TFSA" }));
+    expect(store.getState().inputs.accounts.some((a) => a.id === 'tfsa-1-1')).toBe(false);
   });
 
   it('adds an account of a chosen type and owner', () => {
@@ -316,8 +319,8 @@ describe('Withdrawals', () => {
     open('Converting RRSP and LIRA');
     fireEvent.change(screen.getByLabelText('Alex: RRSP to RRIF at'), { target: { value: '65' } });
     expect(store.getState().inputs.accounts[0]!.conversionAge).toBe(65);
-    open('Pension income splitting');
-    expect(screen.getByText(/Done for you each year/)).toBeTruthy();
+    // Splitting is only in Settings (AR2-W1).
+    expect(screen.queryByRole('button', { name: /^Pension income splitting/ })).toBeNull();
     settle();
     const cards = screen.getAllByRole('radio', { name: /Registered last|Fill lower|Early RRSP/ });
     expect(cards).toHaveLength(3);
@@ -549,5 +552,57 @@ describe('the stage 5 review screens', () => {
     const income = screen.getByLabelText('Year', { selector: '#income-year' });
     fireEvent.change(income, { target: { value: '2031' } });
     expect(screen.getByText(/· Tax \$[\d,]+ · Spending need/)).toBeTruthy();
+  });
+});
+
+describe('the second stage 5 review screens', () => {
+  it('uses one account mix for every account from its toggle', () => {
+    const { store } = renderApp();
+    fireEvent.click(screen.getByRole('button', { name: 'Start your plan' }));
+    nav('Savings');
+    fireEvent.click(screen.getByRole('button', { name: "Edit Spouse 1's RRSP" }));
+    fireEvent.click(screen.getByLabelText('Growth'));
+    fireEvent.click(screen.getByLabelText(/Use this mix for every account/));
+    expect(screen.getByText(/Every account follows this mix/)).toBeTruthy();
+    expect(screen.getByText(/· used for every account/)).toBeTruthy();
+    expect(store.getState().inputs.accounts.every((a) => a.mixId === 'growth')).toBe(true);
+    fireEvent.click(screen.getByLabelText(/Use this mix for every account/));
+    expect(store.getState().inputs.investing.mixFromAccount).toBeUndefined();
+  });
+
+  it('puts Add account under the table and the custom fee beside the choices', () => {
+    renderApp(completePlan());
+    nav('Savings');
+    const table = screen.getAllByRole('table')[0]!;
+    const add = screen.getByRole('button', { name: 'Add account' });
+    expect(table.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    open('Returns and fees');
+    fireEvent.click(screen.getByLabelText('Custom'));
+    const fee = screen.getByLabelText('Yearly fee');
+    expect(fee.closest('.inline-fee')?.parentElement?.className).toBe('row');
+  });
+
+  it('says the expected return needs a balance while every balance is $0', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: 'Start your plan' }));
+    nav('Savings');
+    expect(screen.getByText('Expected return needs an account balance')).toBeTruthy();
+    open('Returns and fees');
+    expect(screen.getAllByText('Needs an account balance')).toHaveLength(2);
+  });
+
+  it('exports the plan as a file', () => {
+    const { store } = renderApp(completePlan());
+    const created: Blob[] = [];
+    URL.createObjectURL = (b: Blob) => (created.push(b), 'blob:plan');
+    URL.revokeObjectURL = () => {};
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    fireEvent.click(screen.getByRole('button', { name: 'Export' }));
+    expect(click).toHaveBeenCalledOnce();
+    const link = click.mock.contexts[0] as HTMLAnchorElement;
+    expect(link.download).toMatch(/^retirement-plan-\d{4}-\d{2}-\d{2}\.json$/);
+    expect(created).toHaveLength(1);
+    expect(store.getState().inputs.spouses[0].name).toBe('Alex');
+    click.mockRestore();
   });
 });
