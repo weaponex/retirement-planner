@@ -14,8 +14,11 @@ the app shell, six tabs, Settings, the result views and charts. Screens read the
   bar with the Results badge, the welcome screen for an empty plan, the footer disclaimer and the
   first-run dialog. `TABS`.
 - `tabs/`: `HouseholdTab`, `SavingsTab`, `SpendingTab`, `WithdrawalsTab`, `EstateTab`, `ResultsTab`.
-- `settings/SettingsScreen.tsx`: every rule value by section, credits and returns as tables;
-  single values can be changed (Enter or leaving the field applies). `settings/names.ts`:
+- `settings/SettingsScreen.tsx`: a section list with badges, the filters and search, and one
+  section at a time (AR2-T1); `SECTIONS` places every shown key once (`HIDDEN` leaves out the
+  placement presets); `FILTER_UNCHECKED` is the focus value that opens the unchecked list.
+  Credits and returns are tables; single values can be changed (Enter or leaving the field
+  applies). `settings/names.ts`:
   `RULE_NAMES`, `ruleName` (plain names, never config keys).
 - `results/`: `MissingSections` (what is missing, by tab, AR-W4), `Goals`, `UpdatingState` and
   `StatusLine`, `ResultsBadge`, `ChangeSummaryLine`,

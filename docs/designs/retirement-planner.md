@@ -626,6 +626,7 @@ The author's planning choices, stored in `planning.json` and `warnings.json`, ea
 | Legacy goal missed | Below goal | Plan |
 | Bridge years | Shortfall before both spouses' CPP and OAS have started | Plan |
 | Survivor tax jump | Survivor's average tax rate up more than 5 points vs the last year as a couple | Plan |
+| Money locked in a LIRA (AR2-L1) | Spending is short in a year while a LIRA (or a DC pension held as one) has not yet become a LIF. The warning names the account, the locked balance and the latest conversion age that would cover the shortfall. The 71 default stays (AR-S4) | Plan |
 | Optimistic returns | Any override above its limit | Inputs |
 
 **Nudge steps:**
@@ -989,8 +990,10 @@ A status line reads "Up to date · updates as you edit", "Updating…", or, for 
 
 #### Settings
 
-*   Opened from the header, not a tab. Sections: income tax (federal and Ontario brackets, credits, surtax, tax reduction, Health Premium), OAS, CPP, investing assumptions (returns, inflation, fee levels), accounts and pensions (TFSA, RRIF conversion age, splitting, probate, the RRIF minimum table, the LIF maximum table).
-*   Each value shows its default, its source, and whether it has been changed; changed values have "Reset". Single values can be changed; tables and the other keys listed in the [Config contract](#config-contract) are shown read-only.
+*   Opened from the header, not a tab. Laid out by the author's review (AR2-T1, 2026-11-26):
+    *   **A section list** on the left shows one section at a time; on a phone it becomes a menu above the section. Each entry has badges counting its changed values and its values not yet checked against the source. Sections, grouped by what they affect: Income tax (brackets, credits, surtax, tax reduction, Health Premium), Payroll deductions (CPP, CPP2 and EI while working), Canada Pension Plan (amounts, start age, survivor), Old Age Security (amount, years in Canada, clawback), RRSP, RRIF, LIRA and LIF (conversion, the RRIF minimum and LIF maximum tables, pension splitting, the TFSA limit), Investments (returns and yields, inflation, withholding, fee levels), Estate (probate), and Planner defaults (read-only reference; the placement presets are not shown).
+    *   **Filters and search** across all sections: "All", "Changed" and "Not checked yet", with counts, and a search by name. A filter or a search lists the matching values grouped by section. The config notice's "See Settings" opens the "Not checked yet" list; an Edit link on another tab opens the section holding its value.
+    *   **One row per value:** its plain name (never a config key), the value, then the default if changed, "Grows with inflation", the source and a "Not checked yet" badge, and Reset when changed. Single values can be changed; tables and the other keys listed in the [Config contract](#config-contract) are shown read-only. Wide tables scroll inside their section.
 
 
 ## Alternatives Considered
@@ -1273,7 +1276,7 @@ The second full review (2026-11-19) was triaged with the author on 2026-11-24; i
 | B5-1 | The Config contract says fee levels can be changed in Settings, but only single-value (`number`) keys can be overridden, and `planning.fee_levels` is one structured value, so Settings shows it read-only. The Custom fee covers other fees. Decide: split it into three number keys, or keep it read-only and change the contract's wording | Stage 7 |
 | B5-3 | The author's stage 5 review (2026-11-25) is built (every item in [stage5-review.md](../reviews/2026-11-25/stage5-review.md)). Ten new config keys it added are not yet validated: `federal.payroll.cpp.ympe`, `.basic_exemption`, `.rate`, `.base_rate`, `federal.payroll.cpp2.ceiling`, `.rate`, `federal.payroll.ei.max_insurable`, `.rate`, `federal.cpp.average_at_65`, `federal.oas.residence.from_age`. The tax treatment of payroll contributions (base CPP and EI as credits at the lowest rates, the enhanced CPP and CPP2 as a deduction; lines 30800, 31200, 22215) needs the author's check; the line 31200 page was not read | Author validation, before `stage-5` |
 | B5-4 | The author's second stage 5 review (2026-11-25) is built (every item in [stage5-review-2.md](../reviews/2026-11-25/stage5-review-2.md)). The hand check behind AR2-R1 found two engine conventions the author may want to look at: foreign dividends in sheltered accounts lose withholding tax (about 0.2% a year with an equity-heavy mix), and each year's yield is credited before the price return, so it compounds within the year (about +0.04% a year) | Author review, before `stage-5` |
-| B5-5 | Open, from the author's plan: a LIRA (or DC pension) set to become a LIF at 71 cannot pay for spending until then, so a plan whose other savings run out first falls short with money locked (the 71 default, AR-S4). Choices put to the author: default a LIRA's conversion to the owner's retirement age (55 at the earliest), a stage 6 warning, or both. The Settings screen's layout is also being redesigned at the author's request; a proposal comes first | Author decision |
+| B5-5 | Decided by the author (2026-11-26, AR2-L1): a LIRA set to become a LIF at 71 cannot pay for spending until then; the 71 default stays, and stage 6 adds the "Money locked in a LIRA" warning (Warning triggers) | Stage 6 |
 | SR-4 | Open question O20 (O24, O27 and O28 resolved 2026-11-24; O31 withdrawn) | Before the URL is shared beyond testers |
 
 The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`); stages 0 to 3 are done. The working rules for agents (whole-function rewrites, protected files, units) are in [file 13](#13-agentsmd-and-claudemd-exists-stage-0), `AGENTS.md`.

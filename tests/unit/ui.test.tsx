@@ -31,6 +31,13 @@ const open = (title: string) =>
   fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${title}`) }));
 /** Lets the 500 ms pause pass, so the store sends the run. */
 const settle = () => act(() => vi.advanceTimersByTime(RUN_DELAY_MS));
+/** Opens a Settings section from the section list (AR2-T1). */
+const section = (title: string) =>
+  fireEvent.click(
+    within(screen.getByRole('navigation', { name: 'Rule sections' })).getByRole('button', {
+      name: new RegExp(`^${title}`),
+    }),
+  );
 const spouse = (i: number) => screen.getByRole('region', { name: `Spouse ${i + 1}` });
 
 describe('the app shell', () => {
@@ -443,6 +450,7 @@ describe('Settings', () => {
   it('changes a rule value, rejects a bad one, resets it, and resets all', () => {
     const { store } = renderApp(completePlan());
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    section('Old Age Security');
     const key = 'federal.oas.recovery.threshold';
     const row = document.querySelector(`[data-key="${key}"]`) as HTMLElement;
     const input = within(row).getByLabelText('Clawback starts above');
@@ -462,6 +470,7 @@ describe('Settings', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Back to plan' }));
     expect(screen.getByRole('button', { name: /1 value changed/ })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    section('Old Age Security');
     const rowNow = () => document.querySelector(`[data-key="${key}"]`) as HTMLElement;
     const inputNow = () => within(rowNow()).getByLabelText('Clawback starts above');
     expect((inputNow() as HTMLInputElement).value).toBe('50,000');
@@ -484,23 +493,28 @@ describe('Settings', () => {
     };
     const { store } = renderApp(d);
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    section('Estate');
     const probate = document.querySelector('[data-key="ontario.probate.rate"]') as HTMLElement;
     expect(within(probate).getByText(/set against 2025 defaults/)).toBeTruthy();
     const probateInput = within(probate).getByLabelText('Probate rate, percent');
     fireEvent.change(probateInput, { target: { value: '1.5' } });
     fireEvent.blur(probateInput);
     expect(store.getState().inputs.ruleOverrides).toEqual({});
+    section('Investments');
     const inflation = document.querySelector('[data-key="market.inflation"]') as HTMLElement;
     fireEvent.change(within(inflation).getByLabelText('Inflation, percent'), {
       target: { value: '3' },
     });
     fireEvent.keyDown(within(inflation).getByLabelText('Inflation, percent'), { key: 'Enter' });
     expect(store.getState().inputs.ruleOverrides!['market.inflation']!.value).toBe(0.03);
-    expect(screen.getAllByText('Federal brackets').length).toBeGreaterThan(0);
-    expect(screen.getByText(/RRIF and LIF minimum withdrawal/)).toBeTruthy();
-    expect(screen.getByRole('columnheader', { name: 'Federal' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Change returns on the Savings tab' }));
     expect(store.getState().view).toBe('savings');
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    section('Income tax');
+    expect(screen.getAllByText('Federal brackets').length).toBeGreaterThan(0);
+    expect(screen.getByRole('columnheader', { name: 'Federal' })).toBeTruthy();
+    section('RRSP, RRIF, LIRA and LIF');
+    expect(screen.getByText(/RRIF and LIF minimum withdrawal/)).toBeTruthy();
   });
 
   it('scrolls to a rule an Edit link points to', () => {
@@ -645,5 +659,62 @@ describe('Import (AR2-X2)', () => {
     expect(screen.getByText(/bad.json is not a plan file/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('the Settings layout (AR2-T1)', () => {
+  const open = () => fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+
+  it('shows one section at a time, with badges, and names every value', () => {
+    renderApp(completePlan());
+    open();
+    const nav = screen.getByRole('navigation', { name: 'Rule sections' });
+    expect(
+      within(nav)
+        .getByRole('button', { name: /^Income tax/ })
+        .getAttribute('aria-current'),
+    ).toBe('page');
+    section('Payroll deductions');
+    expect(screen.getByRole('heading', { name: 'Payroll deductions' })).toBeTruthy();
+    expect(screen.getByLabelText('EI: employee rate, percent')).toBeTruthy();
+    expect(screen.queryByText(/federal\.payroll/)).toBeNull();
+    expect(screen.getAllByText('Not checked yet').length).toBeGreaterThan(0);
+    section('Planner defaults');
+    expect(screen.queryByText('Placement presets')).toBeNull();
+    fireEvent.change(within(nav).getByLabelText('Section'), { target: { value: 'cpp' } });
+    expect(screen.getByRole('heading', { name: 'Canada Pension Plan' })).toBeTruthy();
+  });
+
+  it('filters by changed and unchecked values and searches across sections', () => {
+    const d = {
+      ...completePlan(),
+      ruleOverrides: { 'ontario.probate.rate': { value: 0.02, defaultTaxYear: 2026 } },
+    };
+    renderApp(d);
+    open();
+    fireEvent.click(screen.getByRole('button', { name: 'Changed · 1' }));
+    expect(screen.getByRole('region', { name: 'Estate' })).toBeTruthy();
+    expect(document.querySelectorAll('.settings-main .rule')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: /^Not checked yet · \d+/ }));
+    expect(screen.getByRole('region', { name: 'Payroll deductions' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'All' }));
+    fireEvent.change(screen.getByLabelText('Search rules'), { target: { value: 'clawback' } });
+    expect(screen.getByRole('region', { name: 'Old Age Security' })).toBeTruthy();
+    expect(screen.getByLabelText('Clawback starts above')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Search rules'), { target: { value: 'zzz' } });
+    expect(screen.getByText('No rule matches.')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Search rules'), { target: { value: 'surtax' } });
+    expect(screen.getAllByText(/of Ontario tax above/).length).toBeGreaterThan(0);
+  });
+
+  it('opens the section of a linked rule, and the unchecked values from the notice', () => {
+    const { store } = renderApp(completePlan());
+    act(() => store.getState().setView('settings', 'ontario.probate.rate'));
+    expect(screen.getByRole('heading', { name: 'Estate' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to plan' }));
+    fireEvent.click(screen.getByRole('button', { name: 'See Settings' }));
+    expect(
+      screen.getByRole('button', { name: /^Not checked yet · \d+/ }).getAttribute('aria-pressed'),
+    ).toBe('true');
   });
 });

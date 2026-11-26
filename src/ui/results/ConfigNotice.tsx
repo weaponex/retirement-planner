@@ -2,6 +2,7 @@
 import { usePlan } from '../../state/react';
 import { configStatus } from '../../engine/config/load';
 import { bundledConfig } from '../config';
+import { FILTER_UNCHECKED } from '../settings/SettingsScreen';
 
 export function useConfigStatus() {
   const overrides = usePlan((s) => s.inputs.ruleOverrides);
@@ -30,7 +31,7 @@ export function ConfigNotice() {
       {status.outOfDate && `The default values are from tax year ${status.taxYear}. `}
       {unvalidated > 0 &&
         `${unvalidated} default value${unvalidated === 1 ? ' has' : 's have'} not been checked against the source yet. `}
-      <button type="button" className="link" onClick={() => setView('settings')}>
+      <button type="button" className="link" onClick={() => setView('settings', FILTER_UNCHECKED)}>
         See Settings
       </button>
     </div>

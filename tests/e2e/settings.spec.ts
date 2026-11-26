@@ -1,6 +1,6 @@
 // CUJ 6 (design file 60): change the OAS clawback threshold in Settings. It is
 // marked changed with the default beside it, the header counts it, results
-// update, and Reset restores the default. Export and import join in stage 7.
+// update, and Reset restores the default. The rule is in the OAS section (AR2-T1).
 import { expect, test } from '@playwright/test';
 import { enterCouple, openApp, waitForResults } from './helpers';
 
@@ -14,6 +14,10 @@ test('a changed rule value is marked, counted and can be reset', async ({ page }
   await expect(page.getByRole('note')).toContainText('not been checked against the source');
 
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page
+    .getByRole('navigation', { name: 'Rule sections' })
+    .getByRole('button', { name: /^Old Age Security/ })
+    .click();
   const row = page.locator(`[data-key="${KEY}"]`);
   await row.getByLabel('Clawback starts above').fill('50000');
   await row.getByLabel('Clawback starts above').press('Enter');
@@ -27,6 +31,10 @@ test('a changed rule value is marked, counted and can be reset', async ({ page }
   await expect(page.getByText(/Last change: A rule value in Settings/)).toBeVisible();
 
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page
+    .getByRole('navigation', { name: 'Rule sections' })
+    .getByRole('button', { name: /^Old Age Security/ })
+    .click();
   await page.locator(`[data-key="${KEY}"]`).getByRole('button', { name: 'Reset' }).click();
   await page.getByRole('button', { name: 'Back to plan' }).click();
   await expect(page.getByRole('button', { name: /Tax year \d+ · default values/ })).toBeVisible();

@@ -25,6 +25,9 @@ function shown(value: unknown, unit: string): string {
   return unit.startsWith('CAD') ? value.toLocaleString('en-CA') : String(value);
 }
 
+/** The focus value that opens Settings on the values not yet checked. */
+export const FILTER_UNCHECKED = 'filter:unchecked';
+
 const pctOf = (v: unknown) => `${Number((Number(v) * PERCENT).toFixed(2))}%`;
 
 /** The input for one single value: shows the value in use; Enter or leaving the field applies it. */
@@ -56,7 +59,7 @@ function RuleInput({ k, label }: { k: string; label: string }) {
   };
   const unitText = d.unit === 'rate' ? '%' : d.unit === 'CAD_per_month' ? '/ month' : undefined;
   return (
-    <>
+    <span className="rule-value">
       <span className="with-unit">
         {d.unit.startsWith('CAD') && <span className="unit">$</span>}
         <input
@@ -77,7 +80,7 @@ function RuleInput({ k, label }: { k: string; label: string }) {
           {p}
         </span>
       ))}
-    </>
+    </span>
   );
 }
 
@@ -128,14 +131,19 @@ export function RuleField({
         ) : indexed ? (
           'Grows with inflation'
         ) : null}
-        {d.validation.status !== 'validated' && <> · not yet checked against the source</>}
+
         {url && (
           <>
-            {' · '}
+            {override || indexed ? ' · ' : ''}
             <a href={url} target="_blank" rel="noopener noreferrer">
               Source
             </a>
           </>
+        )}
+        {d.validation.status !== 'validated' && (
+          <span className="badge-unchecked" title="Not yet checked against the source">
+            Not checked yet
+          </span>
         )}
       </span>
     </div>
@@ -192,27 +200,6 @@ function ReadOnly({ k, text }: { k: string; text: string }) {
       <span className="label">{ruleName(k)}</span>
       <span>{text}</span>
     </div>
-  );
-}
-
-function Card({
-  title,
-  intro,
-  children,
-}: {
-  title: string;
-  intro?: string | undefined;
-  children: ReactNode;
-}) {
-  const id = `set-${title.replace(/\s/g, '-')}`;
-  return (
-    <section className="card" aria-labelledby={id}>
-      <h2 className="card-title" id={id}>
-        {title}
-      </h2>
-      {intro && <p className="intro">{intro}</p>}
-      {children}
-    </section>
   );
 }
 
@@ -373,186 +360,278 @@ function ReturnsTable() {
   );
 }
 
+const pick = (prefix: string) => ALL_KEYS.filter((k) => k.startsWith(prefix));
+
 const INCOME_TAX = [
-  'federal.credits.basic',
-  'federal.credits.basic_min',
-  'ontario.credits.basic',
-  'federal.credits.age.amount',
-  'ontario.credits.age.amount',
-  'federal.credits.age.min_age',
-  'federal.credits.age.reduction_threshold',
-  'federal.credits.age.reduction_rate',
-  'ontario.credits.age.reduction_threshold',
-  'ontario.credits.age.reduction_rate',
-  'federal.credits.pension.amount',
-  'ontario.credits.pension.amount',
-  'federal.credits.pension.min_age_rrif',
-  'federal.dividend.eligible.gross_up',
-  'federal.dividend.eligible.credit_rate',
-  'ontario.dividend.eligible.credit_rate',
-  'federal.capital_gains.inclusion_rate',
-  'ontario.tax_reduction.basic',
+  'federal.tax.brackets',
+  'ontario.tax.brackets',
+  ...CREDITS.flatMap((r) => [r.fed, r.ont]).flatMap((c) =>
+    Array.isArray(c) ? c.map(([k]) => k) : [],
+  ),
+  'ontario.surtax.thresholds',
+  'ontario.surtax.rates',
+  'ontario.health_premium.schedule',
 ];
-const OAS = [
-  'federal.oas.base_at_65',
-  'federal.oas.recovery.threshold',
-  'federal.oas.recovery.rate',
-  'federal.oas.deferral.per_month',
-  'federal.oas.deferral.max_months',
-  'federal.oas.increase_age',
-  'federal.oas.increase_rate',
-  'federal.oas.residence.full_years',
-  'federal.oas.residence.min_years',
-];
-const CPP = [
-  'federal.cpp.max_at_65',
+const PAYROLL = pick('federal.payroll.');
+const CPP_AMOUNTS = ['federal.cpp.average_at_65', 'federal.cpp.max_at_65'];
+const CPP_START = [
   'federal.cpp.start.earliest',
   'federal.cpp.start.latest',
   'federal.cpp.adjust.early_per_month',
   'federal.cpp.adjust.late_per_month',
-  'federal.cpp.survivor.pct_65_plus',
-  'federal.cpp.survivor.flat_under_65',
-  'federal.cpp.survivor.pct_under_65',
-  'federal.cpp.survivor.max_combined',
 ];
-const SAVINGS = [...ALL_KEYS.filter((k) => k.startsWith('market.')), 'planning.override_margin'];
-const SAVINGS_FIELDS = ['market.foreign_withholding_rate', 'planning.override_margin'];
-const ACCOUNTS = [
-  'federal.tfsa.annual_limit',
+const CPP_SURVIVOR = pick('federal.cpp.survivor.');
+const OAS_AMOUNT = [
+  'federal.oas.base_at_65',
+  'federal.oas.deferral.per_month',
+  'federal.oas.deferral.max_months',
+  'federal.oas.increase_age',
+  'federal.oas.increase_rate',
+];
+const OAS_RESIDENCE = pick('federal.oas.residence.');
+const OAS_CLAWBACK = pick('federal.oas.recovery.');
+const CONVERSION = [
   'federal.rrif.latest_conversion_age',
-  'federal.split.max_share',
-  'federal.split.min_age_rrif',
-  'ontario.probate.rate',
-  'ontario.probate.threshold',
-  'ontario.lif.unlock_share',
   'federal.rrif.min_factor_base_age',
+  'ontario.lif.unlock_share',
 ];
-const TABLES = [
-  'federal.tax.brackets',
-  'ontario.tax.brackets',
-  'ontario.surtax.thresholds',
-  'ontario.surtax.rates',
-  'ontario.health_premium.schedule',
-  'planning.fee_levels',
+const SPLITTING = pick('federal.split.');
+const MARKET_TABLE = pick('market.').filter((k) => k !== 'market.foreign_withholding_rate');
+const INVESTMENT_FIELDS = ['market.foreign_withholding_rate', 'planning.override_margin'];
+const ESTATE = ['ontario.probate.threshold', 'ontario.probate.rate'];
+/** Not shown: the placement presets left the screens with AR-S3. */
+export const HIDDEN = ['planning.presets'];
+
+type SectionId =
+  'tax' | 'payroll' | 'cpp' | 'oas' | 'registered' | 'investments' | 'estate' | 'planner';
+
+interface SectionDef {
+  id: SectionId;
+  title: string;
+  intro: string;
+  keys: string[];
+}
+
+const PLACED = [
+  ...INCOME_TAX,
+  ...PAYROLL,
+  ...CPP_AMOUNTS,
+  ...CPP_START,
+  ...CPP_SURVIVOR,
+  ...OAS_AMOUNT,
+  ...OAS_RESIDENCE,
+  ...OAS_CLAWBACK,
+  ...CONVERSION,
   'federal.rrif.min_factor',
   'ontario.lif.max_factor',
+  ...SPLITTING,
+  'federal.tfsa.annual_limit',
+  ...MARKET_TABLE,
+  ...INVESTMENT_FIELDS,
+  'planning.fee_levels',
+  ...ESTATE,
+  ...HIDDEN,
 ];
-/** Everything not placed in a section above: the planner's own values. */
-export const PLANNING = ALL_KEYS.filter(
-  (k) => ![...INCOME_TAX, ...OAS, ...CPP, ...SAVINGS, ...ACCOUNTS, ...TABLES].includes(k),
-);
+/** Everything not placed in another section: the planner's own design values. */
+export const PLANNER = ALL_KEYS.filter((k) => !PLACED.includes(k));
 
-export function SettingsScreen() {
-  const setView = usePlan((s) => s.setView);
-  const overrides = usePlan((s) => s.inputs.ruleOverrides);
-  const resetAllRules = usePlan((s) => s.resetAllRules);
-  const year = bundledConfig().taxYear;
-  const changed = Object.keys(overrides ?? {});
-  const fees = (defaultsByKey()['planning.fee_levels']?.value ?? {}) as Record<string, number>;
-  const field = (k: string) => <RuleField key={k} k={k} />;
+/** The sections in the order the list shows them (AR2-T1). */
+export const SECTIONS: SectionDef[] = [
+  {
+    id: 'tax',
+    title: 'Income tax',
+    intro: 'Federal and Ontario brackets, credits, the Ontario surtax and health premium.',
+    keys: INCOME_TAX,
+  },
+  {
+    id: 'payroll',
+    title: 'Payroll deductions',
+    intro: 'CPP, CPP2 and EI taken from pay while working, for take-home pay and the tax rate.',
+    keys: PAYROLL,
+  },
+  {
+    id: 'cpp',
+    title: 'Canada Pension Plan',
+    intro: 'How much CPP pays, when it can start, and what a survivor gets.',
+    keys: [...CPP_AMOUNTS, ...CPP_START, ...CPP_SURVIVOR],
+  },
+  {
+    id: 'oas',
+    title: 'Old Age Security',
+    intro: 'The amount, delaying it, years in Canada, and the clawback.',
+    keys: [...OAS_AMOUNT, ...OAS_RESIDENCE, ...OAS_CLAWBACK],
+  },
+  {
+    id: 'registered',
+    title: 'RRSP, RRIF, LIRA and LIF',
+    intro: 'Conversion, minimum and maximum withdrawals, pension splitting and the TFSA limit.',
+    keys: [
+      ...CONVERSION,
+      'federal.rrif.min_factor',
+      'ontario.lif.max_factor',
+      ...SPLITTING,
+      'federal.tfsa.annual_limit',
+    ],
+  },
+  {
+    id: 'investments',
+    title: 'Investments',
+    intro: 'Starting returns and yields by asset class, inflation, withholding and fee levels.',
+    keys: [...MARKET_TABLE, ...INVESTMENT_FIELDS, 'planning.fee_levels'],
+  },
+  {
+    id: 'estate',
+    title: 'Estate',
+    intro: 'Ontario probate (the estate administration tax).',
+    keys: ESTATE,
+  },
+  {
+    id: 'planner',
+    title: 'Planner defaults',
+    intro: 'The planner’s own starting choices, shown for reference; they cannot be changed here.',
+    keys: PLANNER.filter((k) => !HIDDEN.includes(k)),
+  },
+];
+
+const sectionOf = (k: string) => SECTIONS.find((s) => s.keys.includes(k))?.id;
+
+type Filter = 'all' | 'changed' | 'unchecked';
+
+const unchecked = (k: string) => defaultsByKey()[k]?.validation.status !== 'validated';
+
+function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="content">
-      <div className="settings-head">
-        <div style={{ flex: '1 1 480px' }}>
-          <h1 className="display">Tax and benefit rules</h1>
-          <p className="intro" style={{ marginTop: 6 }}>
-            These start at {year} values from CRA, Service Canada and Ontario. Change any of them to
-            try a different assumption; your changes are saved with your plan. In later years,
-            amounts marked “Grows with inflation” rise at your inflation rate.
+    <div className="rule-group">
+      <h3 className="rule-group-title">{title}</h3>
+      <div className="rule-list">{children}</div>
+    </div>
+  );
+}
+
+function tableText(k: string): string {
+  if (k === 'ontario.surtax.thresholds' || k === 'ontario.surtax.rates') return surtaxText();
+  if (k === 'ontario.health_premium.schedule') return healthPremiumText();
+  return 'A table; open its section to see it';
+}
+
+/** A key on its own row: its field, or a one-line summary for a table. */
+function KeyRow({ k }: { k: string }) {
+  if (typeof defaultsByKey()[k]?.value === 'number' || isOverridable(k)) {
+    return <RuleField k={k} />;
+  }
+  return <ReadOnly k={k} text={tableText(k)} />;
+}
+
+function FeeLevels() {
+  const fees = (defaultsByKey()['planning.fee_levels']?.value ?? {}) as Record<string, number>;
+  return (
+    <div className="rule" data-key="planning.fee_levels">
+      <span className="label">{ruleName('planning.fee_levels')}</span>
+      <table className="rule-table">
+        <tbody>
+          <tr>
+            <td>Index ETFs (default)</td>
+            <td>{pctOf(fees.index_etf ?? 0)}</td>
+          </tr>
+          <tr>
+            <td>Robo-advisor</td>
+            <td>{pctOf(fees.robo ?? 0)}</td>
+          </tr>
+          <tr>
+            <td>Mutual funds with an advisor</td>
+            <td>{pctOf(fees.advisor ?? 0)}</td>
+          </tr>
+        </tbody>
+      </table>
+      <span className="note">
+        Shown read-only for now; “Custom” on the Savings tab takes any fee.
+      </span>
+    </div>
+  );
+}
+
+function SectionBody({ id }: { id: SectionId }) {
+  const setView = usePlan((s) => s.setView);
+  const rows = (keys: string[]) => keys.map((k) => <KeyRow key={k} k={k} />);
+  switch (id) {
+    case 'tax':
+      return (
+        <>
+          <p className="note">Bracket starts grow with inflation.</p>
+          <div className="scroll-x">
+            <div className="grid-2">
+              <BracketTable k="federal.tax.brackets" />
+              <BracketTable k="ontario.tax.brackets" />
+            </div>
+          </div>
+          <div className="scroll-x">
+            <CreditsTable />
+          </div>
+        </>
+      );
+    case 'payroll':
+      return <Group title="Contributions while working">{rows(PAYROLL)}</Group>;
+    case 'cpp':
+      return (
+        <>
+          <Group title="Amounts">{rows(CPP_AMOUNTS)}</Group>
+          <Group title="Start age">{rows(CPP_START)}</Group>
+          <Group title="Survivor">{rows(CPP_SURVIVOR)}</Group>
+        </>
+      );
+    case 'oas':
+      return (
+        <>
+          <Group title="Amount">{rows(OAS_AMOUNT)}</Group>
+          <Group title="Years in Canada">{rows(OAS_RESIDENCE)}</Group>
+          <Group title="Clawback">{rows(OAS_CLAWBACK)}</Group>
+        </>
+      );
+    case 'registered':
+      return (
+        <>
+          <Group title="Conversion">{rows(CONVERSION)}</Group>
+          <div className="scroll-x">
+            <div className="grid-2">
+              <AgeGrid
+                k="federal.rrif.min_factor"
+                prefix={`Under the table’s first age: 1 ÷ (${String(defaultsByKey()['federal.rrif.min_factor_base_age']?.value)} − age). From then:`}
+              />
+              <AgeGrid
+                k="ontario.lif.max_factor"
+                prefix={`By age at the start of the year. ${pctOf(defaultsByKey()['ontario.lif.unlock_share']?.value)} one-time unlock when a LIRA becomes a LIF.`}
+              />
+            </div>
+          </div>
+          <Group title="Pension income splitting">{rows(SPLITTING)}</Group>
+          <Group title="TFSA">{rows(['federal.tfsa.annual_limit'])}</Group>
+        </>
+      );
+    case 'investments':
+      return (
+        <>
+          <p className="note">
+            Starting values for the Savings tab (FP Canada {bundledConfig().taxYear}). Changing them
+            here changes the default; your own entries on the Savings tab still win.{' '}
+            <button type="button" className="link" onClick={() => setView('savings')}>
+              Change returns on the Savings tab
+            </button>
           </p>
-        </div>
-        <div className="row">
-          <button
-            type="button"
-            className="btn"
-            disabled={changed.length === 0}
-            onClick={resetAllRules}
-          >
-            Reset all to {year} defaults
-          </button>
-        </div>
-      </div>
-      {changed.length > 0 && (
-        <p className="notice" style={{ margin: 0, maxWidth: 'none' }}>
-          You’ve changed {changed.length} value{changed.length === 1 ? '' : 's'} from{' '}
-          {changed.length === 1 ? 'its default' : 'their defaults'}:{' '}
-          {changed.map(ruleName).join(', ')}.{' '}
-          <button type="button" className="link" onClick={resetAllRules}>
-            {changed.length === 1 ? 'Reset it' : 'Reset them'}
-          </button>
-        </p>
-      )}
-      <Card
-        title="Income tax"
-        intro="Bracket starts grow with inflation. Type a new value into any box to change it."
-      >
-        <div className="grid-2">
-          <BracketTable k="federal.tax.brackets" />
-          <BracketTable k="ontario.tax.brackets" />
-        </div>
-        <CreditsTable />
-      </Card>
-      <Card title="Old Age Security">
-        <div className="rule-grid">{OAS.map(field)}</div>
-      </Card>
-      <Card title="Canada Pension Plan">
-        <div className="rule-grid">{CPP.map(field)}</div>
-      </Card>
-      <Card
-        title="Savings assumptions"
-        intro={`Starting values for the Savings tab (FP Canada ${year}). Changing them here changes the default; your own entries on the Savings tab still win.`}
-      >
-        <ReturnsTable />
-        <p className="note" style={{ margin: 0 }}>
-          <button type="button" className="link" onClick={() => setView('savings')}>
-            Change returns on the Savings tab
-          </button>
-        </p>
-        <div className="rule-grid">{SAVINGS_FIELDS.map(field)}</div>
-        <div className="rule" data-key="planning.fee_levels">
-          <span className="label">{ruleName('planning.fee_levels')}</span>
-          <table className="rule-table">
-            <tbody>
-              <tr>
-                <td>Index ETFs (default)</td>
-                <td>{pctOf(fees.index_etf ?? 0)}</td>
-              </tr>
-              <tr>
-                <td>Robo-advisor</td>
-                <td>{pctOf(fees.robo ?? 0)}</td>
-              </tr>
-              <tr>
-                <td>Mutual funds with an advisor</td>
-                <td>{pctOf(fees.advisor ?? 0)}</td>
-              </tr>
-            </tbody>
-          </table>
-          <span className="note">
-            Shown read-only for now; “Custom” on the Savings tab takes any fee.
-          </span>
-        </div>
-      </Card>
-      <Card title="Accounts and pensions">
-        <div className="rule-grid">{ACCOUNTS.map(field)}</div>
-        <div className="grid-2">
-          <AgeGrid
-            k="federal.rrif.min_factor"
-            prefix={`Under the table’s first age: 1 ÷ (${String(defaultsByKey()['federal.rrif.min_factor_base_age']?.value)} − age). From then:`}
-          />
-          <AgeGrid
-            k="ontario.lif.max_factor"
-            prefix={`By age at the start of the year. ${pctOf(defaultsByKey()['ontario.lif.unlock_share']?.value)} one-time unlock when a LIRA becomes a LIF.`}
-          />
-        </div>
-      </Card>
-      <Card
-        title="Planning values"
-        intro="The planner’s own starting choices, shown for reference."
-      >
-        <div className="rule-grid">
-          {PLANNING.map((k) =>
+          <div className="scroll-x">
+            <ReturnsTable />
+          </div>
+          <Group title="Other">{rows(INVESTMENT_FIELDS)}</Group>
+          <FeeLevels />
+        </>
+      );
+    case 'estate':
+      return <Group title="Probate">{rows(ESTATE)}</Group>;
+    default:
+      return (
+        <Group title="Reference">
+          {SECTIONS.at(-1)!.keys.map((k) =>
             isOverridable(k) ? (
-              field(k)
+              <RuleField key={k} k={k} />
             ) : (
               <ReadOnly
                 key={k}
@@ -565,8 +644,195 @@ export function SettingsScreen() {
               />
             ),
           )}
+        </Group>
+      );
+  }
+}
+
+function Counts({ changed, notChecked }: { changed: number; notChecked: number }) {
+  return (
+    <span className="nav-counts">
+      {changed > 0 && (
+        <span className="badge-changed" title={`${changed} changed`}>
+          {changed}
+        </span>
+      )}
+      {notChecked > 0 && (
+        <span className="badge-unchecked" title={`${notChecked} not checked yet`}>
+          {notChecked}
+        </span>
+      )}
+    </span>
+  );
+}
+
+const FILTERS: [Filter, string][] = [
+  ['all', 'All'],
+  ['changed', 'Changed'],
+  ['unchecked', 'Not checked yet'],
+];
+
+export function SettingsScreen() {
+  const overrides = usePlan((s) => s.inputs.ruleOverrides);
+  const resetAllRules = usePlan((s) => s.resetAllRules);
+  const focus = usePlan((s) => s.focus);
+  const year = bundledConfig().taxYear;
+  const changed = Object.keys(overrides ?? {});
+  const [section, setSection] = useState<SectionId>('tax');
+  const [filter, setFilter] = useState<Filter>('all');
+  const [query, setQuery] = useState('');
+
+  // A link to a rule opens its section; the config notice opens the unchecked values.
+  useEffect(() => {
+    if (!focus) return;
+    if (focus === FILTER_UNCHECKED) {
+      setFilter('unchecked');
+      return;
+    }
+    const s = sectionOf(focus);
+    if (s) {
+      setSection(s);
+      setFilter('all');
+      setQuery('');
+    }
+  }, [focus]);
+
+  const open = (id: SectionId) => {
+    setSection(id);
+    setFilter('all');
+    setQuery('');
+  };
+  const isChanged = (k: string) => changed.includes(k);
+  const q = query.trim().toLowerCase();
+  const matches = (s: SectionDef, k: string) =>
+    (filter === 'all' || (filter === 'changed' ? isChanged(k) : unchecked(k))) &&
+    (q === '' || ruleName(k).toLowerCase().includes(q) || s.title.toLowerCase().includes(q));
+  const listing = filter !== 'all' || q !== '';
+  const counts: Record<Filter, number | undefined> = {
+    all: undefined,
+    changed: changed.length,
+    unchecked: SECTIONS.flatMap((s) => s.keys).filter(unchecked).length,
+  };
+  const current = SECTIONS.find((s) => s.id === section)!;
+  const found = SECTIONS.map((s) => ({ s, keys: s.keys.filter((k) => matches(s, k)) })).filter(
+    (x) => x.keys.length > 0,
+  );
+
+  return (
+    <div className="content settings">
+      <div className="settings-head">
+        <div style={{ flex: '1 1 480px' }}>
+          <h1 className="display">Tax and benefit rules</h1>
+          <p className="intro" style={{ marginTop: 6 }}>
+            These start at {year} values from CRA, Service Canada and Ontario. Change any of them to
+            try a different assumption; your changes are saved with your plan. In later years,
+            amounts marked “Grows with inflation” rise at your inflation rate.
+          </p>
         </div>
-      </Card>
+        <button
+          type="button"
+          className="btn"
+          disabled={changed.length === 0}
+          onClick={resetAllRules}
+        >
+          Reset all to {year} defaults
+        </button>
+      </div>
+      {changed.length > 0 && (
+        <p className="notice" style={{ margin: 0, maxWidth: 'none' }}>
+          You’ve changed {changed.length} value{changed.length === 1 ? '' : 's'} from{' '}
+          {changed.length === 1 ? 'its default' : 'their defaults'}:{' '}
+          {changed.map(ruleName).join(', ')}.{' '}
+          <button type="button" className="link" onClick={resetAllRules}>
+            {changed.length === 1 ? 'Reset it' : 'Reset them'}
+          </button>
+        </p>
+      )}
+      <div className="settings-filters">
+        <span className="note">Show</span>
+        {FILTERS.map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            className={filter === id ? 'chip on' : 'chip'}
+            aria-pressed={filter === id}
+            onClick={() => setFilter(id)}
+          >
+            {label}
+            {counts[id] !== undefined && ` · ${counts[id]}`}
+          </button>
+        ))}
+        <span className="spacer" />
+        <input
+          type="search"
+          className="settings-search"
+          placeholder="Search rules"
+          aria-label="Search rules"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+      <div className="settings-body">
+        <nav className="settings-nav" aria-label="Rule sections">
+          <select
+            aria-label="Section"
+            value={section}
+            onChange={(e) => open(e.target.value as SectionId)}
+          >
+            {SECTIONS.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.title}
+              </option>
+            ))}
+          </select>
+          <ul>
+            {SECTIONS.map((s) => (
+              <li key={s.id}>
+                <button
+                  type="button"
+                  aria-current={!listing && section === s.id ? 'page' : undefined}
+                  onClick={() => open(s.id)}
+                >
+                  <span>{s.title}</span>
+                  <Counts
+                    changed={s.keys.filter(isChanged).length}
+                    notChecked={s.keys.filter(unchecked).length}
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="note nav-key">
+            <span className="badge-changed">n</span> changed{' '}
+            <span className="badge-unchecked">n</span> not checked yet
+          </p>
+        </nav>
+        <div className="settings-main">
+          {listing ? (
+            <>
+              {found.map(({ s, keys }) => (
+                <section key={s.id} className="card" aria-label={s.title}>
+                  <h2 className="card-title">{s.title}</h2>
+                  <div className="rule-list">
+                    {keys.map((k) => (
+                      <KeyRow key={k} k={k} />
+                    ))}
+                  </div>
+                </section>
+              ))}
+              {found.length === 0 && <p className="note">No rule matches.</p>}
+            </>
+          ) : (
+            <section className="card" aria-labelledby="settings-section-title">
+              <h2 className="card-title" id="settings-section-title">
+                {current.title}
+              </h2>
+              <p className="intro">{current.intro}</p>
+              <SectionBody id={current.id} />
+            </section>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

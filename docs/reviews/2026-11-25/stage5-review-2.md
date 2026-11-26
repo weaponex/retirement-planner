@@ -49,6 +49,12 @@ and overrides the mockups and earlier decisions in the design. `[x]` marks a bui
 - [x] **AR2-X2** Decided (2026-11-26): Import works now too, in the header and on the welcome
   screen. It refuses a file that is not a plan or is from a newer version, and asks before
   replacing an open plan.
-- [ ] **AR2-T1** Asked (2026-11-26): the Settings screen is reorganized; a layout proposal goes to
-  the author first.
-- [ ] **AR2-L1** Open (2026-11-26): what to do about a LIRA locked until 71 (Known gaps B5-5).
+- [x] **AR2-T1** Decided (2026-11-26, from the mockup): Settings becomes a section list on the left
+  (one section at a time, a menu on a phone) with badges for changed and unchecked values;
+  filters "All", "Changed" and "Not checked yet" and a search across sections; one row format
+  (name, value, default, inflation, source, unchecked badge, Reset); every key named; sections
+  Income tax, Payroll deductions, CPP, OAS, RRSP/RRIF/LIRA/LIF, Investments, Estate, Planner
+  defaults (read-only; placement presets removed); wide tables scroll inside their section.
+- [x] **AR2-L1** Decided (2026-11-26, answer 2): a LIRA keeps the 71 default; stage 6 adds a
+  warning when spending is short while money is locked in a LIRA, naming the conversion age that
+  would cover it (design: Warning triggers).
