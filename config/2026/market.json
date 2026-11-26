@@ -10,7 +10,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "market.cad_equity.yield": {
@@ -24,7 +26,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "market.us_equity.geometric_return": {
@@ -38,7 +42,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "market.us_equity.yield": {
@@ -68,7 +74,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "market.intl_equity.yield": {
@@ -98,7 +106,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "market.em_equity.yield": {
@@ -128,7 +138,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "market.bonds.yield": {
@@ -142,7 +154,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "market.cash.geometric_return": {
@@ -188,7 +202,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "market.foreign_withholding_rate": {
@@ -202,7 +218,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   }
 }

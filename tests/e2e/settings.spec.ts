@@ -10,8 +10,8 @@ test('a changed rule value is marked, counted and can be reset', async ({ page }
   await openApp(page);
   await enterCouple(page);
   await waitForResults(page);
-  // The bundled config still has unvalidated defaults, so the notice shows.
-  await expect(page.getByRole('note')).toContainText('not been checked against the source');
+  // Every bundled default is validated, so no config notice shows (the unit tests cover it).
+  await expect(page.getByRole('note')).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page

@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setAt } from '../../src/state/draft';
 import { RUN_DELAY_MS } from '../../src/state/store';
+import { bundledConfig } from '../../src/ui/config';
 import { completePlan } from './helpers/draftPlan';
 import { renderApp } from './helpers/renderApp';
 
@@ -15,7 +16,25 @@ beforeEach(() => {
     disconnect() {}
   } as unknown as typeof ResizeObserver;
 });
+/** Undoes markUnchecked after each test. */
+const restores: (() => void)[] = [];
+/**
+ * Marks one bundled default as not yet checked, for the tests of the notice
+ * and the Settings filter (every bundled default is validated).
+ */
+function markUnchecked(key: string) {
+  const v = bundledConfig().entries.get(key)!.validation as Record<string, string>;
+  const old = { ...v };
+  for (const k of Object.keys(v)) delete v[k];
+  v.status = 'unvalidated';
+  restores.push(() => {
+    delete v.status;
+    Object.assign(v, old);
+  });
+}
+
 afterEach(() => {
+  restores.splice(0).forEach((r) => r());
   cleanup();
   vi.useRealTimers();
   localStorage.clear();
@@ -56,6 +75,7 @@ describe('the app shell', () => {
   });
 
   it('shows the household names, the tax-year chip and the notice, both opening Settings', () => {
+    markUnchecked('federal.payroll.ei.rate');
     const { store } = renderApp(completePlan());
     expect(screen.getByText('Alex and Sam')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /Tax year \d+ · default values/ }));
@@ -666,6 +686,7 @@ describe('the Settings layout (AR2-T1)', () => {
   const open = () => fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
 
   it('shows one section at a time, with badges, and names every value', () => {
+    markUnchecked('federal.payroll.ei.rate');
     renderApp(completePlan());
     open();
     const nav = screen.getByRole('navigation', { name: 'Rule sections' });
@@ -686,6 +707,7 @@ describe('the Settings layout (AR2-T1)', () => {
   });
 
   it('filters by changed and unchecked values and searches across sections', () => {
+    markUnchecked('federal.payroll.ei.rate');
     const d = {
       ...completePlan(),
       ruleOverrides: { 'ontario.probate.rate': { value: 0.02, defaultTaxYear: 2026 } },
@@ -708,6 +730,7 @@ describe('the Settings layout (AR2-T1)', () => {
   });
 
   it('opens the section of a linked rule, and the unchecked values from the notice', () => {
+    markUnchecked('federal.payroll.ei.rate');
     const { store } = renderApp(completePlan());
     act(() => store.getState().setView('settings', 'ontario.probate.rate'));
     expect(screen.getByRole('heading', { name: 'Estate' })).toBeTruthy();
@@ -716,5 +739,15 @@ describe('the Settings layout (AR2-T1)', () => {
     expect(
       screen.getByRole('button', { name: /^Not checked yet · \d+/ }).getAttribute('aria-pressed'),
     ).toBe('true');
+  });
+});
+
+describe('every bundled default validated', () => {
+  it('shows no config notice and nothing left to check', () => {
+    renderApp(completePlan());
+    expect(screen.queryByRole('note')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(screen.getByRole('button', { name: 'Not checked yet · 0' })).toBeTruthy();
+    expect(screen.queryByText('Not checked yet')).toBeNull();
   });
 });

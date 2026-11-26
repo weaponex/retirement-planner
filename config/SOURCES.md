@@ -23,6 +23,12 @@ described. Author decisions, including the market yields (O30), are not fetched.
   show it (checked on 2026-11-18, values not recorded). OAS and CPP amounts now come from the
   ESDC quarterly table for January to March 2026, since the OAS payments page only shows the
   current quarter. Ontario probate was later read from e-Laws in a browser (2026-11-24) and validated by the author.
+- **Validated 2026-11-26:** the last 22 unvalidated entries (the eight `federal.payroll.*` keys,
+  `federal.cpp.average_at_65`, `federal.oas.residence.from_age`, the FP Canada returns and inflation,
+  the foreign withholding rate, the XIC and XBB yields, both life-expectancy tables and
+  `warnings.nudge_steps`) were re-read against these sources on 2026-11-26 and validated by
+  weaponex. All 86 entries are now validated. Still to decide: `federal.oas.base_at_65` is the
+  January–March 2026 amount ($742.31); Service Canada shows $762.50 for October–December 2026.
 - **Revised 2026-11-19 (SR-2):** six asset classes matching FP Canada's published classes
   (`cad_equity`, `us_equity`, `intl_equity`, `em_equity`, `bonds`, `cash`) replace the
   three-class list and the 60/30/10 global blend. Removed: `market.global_equity.components.*`,

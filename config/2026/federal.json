@@ -633,7 +633,9 @@
     },
     "fetchedOn": "2026-11-25",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "federal.payroll.cpp.basic_exemption": {
@@ -647,7 +649,9 @@
     },
     "fetchedOn": "2026-11-25",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "federal.payroll.cpp.rate": {
@@ -661,7 +665,9 @@
     },
     "fetchedOn": "2026-11-25",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "federal.payroll.cpp.base_rate": {
@@ -675,7 +681,9 @@
     },
     "fetchedOn": "2026-11-25",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "federal.payroll.cpp2.ceiling": {
@@ -689,7 +697,9 @@
     },
     "fetchedOn": "2026-11-25",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "federal.payroll.cpp2.rate": {
@@ -703,7 +713,9 @@
     },
     "fetchedOn": "2026-11-25",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "federal.payroll.ei.max_insurable": {
@@ -717,7 +729,9 @@
     },
     "fetchedOn": "2026-11-25",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "federal.payroll.ei.rate": {
@@ -731,7 +745,9 @@
     },
     "fetchedOn": "2026-11-25",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "federal.cpp.average_at_65": {
@@ -745,7 +761,9 @@
     },
     "fetchedOn": "2026-11-25",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "federal.oas.residence.from_age": {
@@ -759,7 +777,9 @@
     },
     "fetchedOn": "2026-11-25",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   }
 }

@@ -28,7 +28,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "planning.life_expectancy.male": {
@@ -60,7 +62,9 @@
     },
     "fetchedOn": "2026-11-18",
     "validation": {
-      "status": "unvalidated"
+      "status": "validated",
+      "by": "weaponex",
+      "on": "2026-11-26"
     }
   },
   "planning.shapes": {
