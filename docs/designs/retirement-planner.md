@@ -930,7 +930,7 @@ The profile of each spouse only: name, birth year and month, sex at birth, the a
 
 #### Savings tab
 
-*   Four sections that open and close, each with a one-line summary beside its title when closed; only Accounts is open at first (AR-S1):
+*   Four sections that open and close, each with a one-line summary beside its title when closed; all of them start closed, Accounts included (AR2-S6, which replaces AR-S1):
     *   **Accounts:** a new plan has an RRSP, TFSA, LIRA and non-registered account for each spouse at $0 (AR-S2). The table takes each balance directly and shows each account's mix; Edit opens its yearly saving, conversion age (71 by default), unlock, TFSA room, original cost for a non-registered account, and its mix: Conservative, Balanced (default), Growth or Custom shares (AR-S3). "Add account", below the table (AR2-S2), adds another; each row has Edit and Remove, so an account can be removed without opening it (AR2-S3). Each account's mix has a toggle, "Use this mix for every account, workplace DC pensions included" (AR2-S1): turned on, every account (and any added later) takes that mix and follows it; changing another account's mix turns it off; turned off, each account keeps the mix it has. No TFSA-limit strip (AR-S5). Summary: total, by type, yearly saving.
     *   **Workplace pensions:** "Add pension" with a type, defined benefit or defined contribution (AR-S6), and an owner. A DC pension is a value, yearly contributions until retiring, a LIF conversion age, the unlock and a mix; it is held as a LIRA. Summary: who, how much, from what age, bridge, survivor share.
     *   **Returns and fees:** each class's expected return (editable), tiles for the expected return of the whole portfolio before and after fees (each account's balance and mix with each class's return, AR2-S4; while every balance is $0 the tiles and the summary say a balance is needed) and for inflation, the fee level with the custom fee box on the same row as the choices (AR2-S5), and "Rebalance once a year". Summary: expected return, fee, rebalancing.
@@ -943,7 +943,7 @@ The profile of each spouse only: name, birth year and month, sex at birth, the a
 *   **Monthly and after tax:** the user enters what they would spend in a typical month early in retirement, after tax, in today's dollars, because that is how the author expects people to think about spending. Yearly totals are shown beside each phase.
 *   **A group's own amount (AR-P1):** each group takes one monthly amount for the whole group. Entering it clears the group's categories; entering a category clears it, so the group's total is then the sum of its categories. A group amount follows the phases' usual change.
 *   **Two ways to enter it:** "By category" (default) or "One total" (a single monthly amount). Switching keeps both sets of values, so switching back restores them. The first time the user switches to "One total", it starts from the sum of the categories.
-*   **Categories (O17), in six groups that open and close.** The ids are persisted and must not change once plans are saved:
+*   **Categories (O17), in six groups that open and close, all closed at first (AR2-S6).** The ids are persisted and must not change once plans are saved:
 
     | Group | Categories (id) |
     |---|---|

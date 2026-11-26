@@ -182,6 +182,7 @@ describe('Savings', () => {
     const { store } = renderApp();
     fireEvent.click(screen.getByRole('button', { name: 'Start your plan' }));
     nav('Savings');
+    open('Accounts');
     expect(screen.queryByText(/New TFSA room each year/)).toBeNull();
     const balance = screen.getByLabelText("Spouse 1's RRSP balance") as HTMLInputElement;
     fireEvent.focus(balance);
@@ -220,6 +221,7 @@ describe('Savings', () => {
     const { store } = renderApp();
     fireEvent.click(screen.getByRole('button', { name: 'Start your plan' }));
     nav('Savings');
+    open('Accounts');
     fireEvent.click(screen.getByRole('button', { name: 'Add account' }));
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'tfsa' } });
     fireEvent.change(screen.getAllByLabelText('Owner')[0]!, { target: { value: '1' } });
@@ -297,6 +299,7 @@ describe('Spending', () => {
   it('enters categories, a different later amount and the phases, with the O28 note', () => {
     const { store } = renderApp(setAt(completePlan(), 'spending.mode', 'by_category'));
     nav('Spending');
+    open('Home and utilities');
     fireEvent.change(screen.getByLabelText('Hydro'), { target: { value: '150' } });
     open('Food and drink');
     expect(screen.queryByLabelText('Hydro')).toBeNull();
@@ -551,6 +554,7 @@ describe('the stage 5 review screens', () => {
   it('takes one amount for a spending group and names it in the change summary', () => {
     const { store } = renderApp(setAt(completePlan(), 'spending.mode', 'by_category'));
     nav('Spending');
+    open('Home and utilities');
     fireEvent.change(screen.getByLabelText('Hydro'), { target: { value: '150' } });
     fireEvent.change(screen.getByLabelText('Home and utilities, one amount for the group'), {
       target: { value: '3000' },
@@ -614,6 +618,7 @@ describe('the second stage 5 review screens', () => {
     const { store } = renderApp();
     fireEvent.click(screen.getByRole('button', { name: 'Start your plan' }));
     nav('Savings');
+    open('Accounts');
     fireEvent.click(screen.getByRole('button', { name: "Edit Spouse 1's RRSP" }));
     fireEvent.click(screen.getByLabelText('Growth'));
     fireEvent.click(screen.getByLabelText(/Use this mix for every account/));
@@ -627,6 +632,7 @@ describe('the second stage 5 review screens', () => {
   it('puts Add account under the table and the custom fee beside the choices', () => {
     renderApp(completePlan());
     nav('Savings');
+    open('Accounts');
     const table = screen.getAllByRole('table')[0]!;
     const add = screen.getByRole('button', { name: 'Add account' });
     expect(table.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -766,5 +772,16 @@ describe('every bundled default validated', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     expect(screen.getByRole('button', { name: 'Not checked yet · 0' })).toBeTruthy();
     expect(screen.queryByText('Not checked yet')).toBeNull();
+  });
+});
+
+describe('closed sections (AR2-S6)', () => {
+  it('opens Savings and Spending with every section closed', () => {
+    renderApp(completePlan());
+    nav('Savings');
+    for (const b of screen.getAllByRole('button', { expanded: false })) expect(b).toBeTruthy();
+    expect(screen.queryByRole('button', { expanded: true })).toBeNull();
+    nav('Spending');
+    expect(screen.queryByRole('button', { expanded: true })).toBeNull();
   });
 });

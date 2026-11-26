@@ -16,6 +16,8 @@ and overrides the mockups and earlier decisions in the design. `[x]` marks a bui
   account's balance and mix and each class's expected return. This was already so; when every
   balance is $0 the tiles say a balance is needed instead of falling back to another mix
   (answer 2b). The summary line stays as it is (answer 4b).
+- [x] **AR2-S6** Decided (2026-11-26): the Savings and Spending tabs open with every section
+  closed, Accounts and the first spending group included (replaces AR-S1).
 - [x] **AR2-S5** Decided: the custom yearly fee box sits on the same row as the fee choices
   (answer 3a).
 

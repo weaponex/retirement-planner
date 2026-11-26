@@ -170,7 +170,7 @@ function GroupAmount({
 }
 
 function Groups({ sp }: { sp: Spending }) {
-  const [open, setOpen] = useState<string | null>(CATEGORY_GROUPS[0]!.id);
+  const [open, setOpen] = useState<string | null>(null);
   return (
     <div className="groups">
       {CATEGORY_GROUPS.map((g) => {

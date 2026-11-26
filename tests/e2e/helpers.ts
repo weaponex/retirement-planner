@@ -20,6 +20,11 @@ export async function tab(page: Page, name: string) {
   await page.getByRole('navigation', { name: 'Plan' }).getByRole('button', { name }).click();
 }
 
+/** Opens a closed section on the current tab (every section starts closed, AR2-S6). */
+export async function openSection(page: Page, title: string) {
+  await page.getByRole('button', { name: new RegExp(`^${title}`), expanded: false }).click();
+}
+
 /** Enters a minimal, complete plan: two retired spouses, born in Canada, an RRSP and one spending total. */
 export async function enterCouple(page: Page, c: Couple = {}) {
   const [b0, b1] = c.birthYears ?? [1961, 1963];
@@ -46,6 +51,7 @@ export async function enterCouple(page: Page, c: Couple = {}) {
   await page.getByLabel('Monthly spending in the active years').fill(String(c.monthly ?? 5000));
 
   await tab(page, 'Savings');
+  await openSection(page, 'Accounts');
   // Every plan starts with each spouse's RRSP, TFSA, LIRA and non-registered account.
   await page.getByLabel("Alex's RRSP balance").fill(String(c.rrsp ?? 500000));
 }

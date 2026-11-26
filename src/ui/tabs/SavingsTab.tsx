@@ -322,7 +322,6 @@ function AccountsSection() {
   return (
     <Section
       title="Accounts"
-      defaultOpen
       summary={[
         <>
           <b>{money(total)}</b> in {accounts.length} account{accounts.length === 1 ? '' : 's'}
