@@ -409,11 +409,11 @@ Recommendations carried into `/egm-draft`, and how the design settled them (2026
 5. **Sale money goes to its owner,** and a joint asset passes to the survivor at the first death. Adopted.
 6. **Cap the number of assets.** Adopted at 6 (design decision A4).
 7. **Two shortcuts.** Adopted: both (design decision A3).
-8. **Settle the screen's look.** Still open (design question OA6).
+8. **Settle the screen's look.** A mockup first, approved before the screen work (design question OA6).
 9. **Declare out of scope.** Adopted, as Non-Goals and Known gaps.
 
 Also settled while drafting:
 
 - Decision 15 is amended: when "living costs while working" is empty (every migrated version 1 plan), working years keep the old rule (design decision A8).
 - "Home and auto insurance" is held at $0 only once the home and every vehicle carry their insurance on Assets (design decision A10).
-- Still open: which test household the second reference plan uses (design question OA1).
+- The second reference plan uses a made-up couple built to exercise every feature once (design question OA1).

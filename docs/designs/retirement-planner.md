@@ -182,12 +182,12 @@ O1–O21 come from [concepts_brief.md](../../concepts_brief.md); O22–O23 arose
 | O29 | Rebalancing switched off | Resolved 2026-11-19 (author): holdings drift, no shape, placement at the plan start only ([Placement](#placement-and-the-growth-to-safety-shift-o4-o5)) |
 | O30 | Yields for the asset classes | Resolved 2026-11-19 (author): yields are author decisions, not fetched rule values ([Asset classes and returns](#asset-classes-and-returns-o3)) |
 | O31 | What "Let the planner pick" tries | Withdrawn 2026-11-24: the planner is cut from version 1 ([Future Improvements](#future-improvements)) |
-| OA1 | Which test household has a cottage, a rental, a mortgage in retirement, a planned downsize or a vehicle that matters, for the second reference plan and the tester sessions | **Open**; needed before the Assets stage's reference plan |
+| OA1 | Which test household has a cottage, a rental, a mortgage in retirement, a planned downsize or a vehicle that matters, for the second reference plan and the tester sessions | Resolved 2026-11-26 (author): a made-up couple built to exercise every feature once (a rental with a mortgage and a loss year, a cottage sold mid-plan, a joint home downsized, a vehicle replaced twice, living costs while working); real numbers never enter the repository |
 | OA2 | Architecture: how the engine handles assets (AR2) | Resolved 2026-11-26 (author): a stepped module ([Decisions for the Assets stage](#decisions-for-the-assets-stage-2026-11-26)) |
 | OA3 | Downsizing shortcut and "sell at the first death" (AR7) | Resolved 2026-11-26 (author): both |
 | OA4 | Cap on the number of assets, for speed (AR6) | Resolved 2026-11-26 (author): 6 |
 | OA5 | Spending group amounts and one-total mode, which can't be held at $0 per category when an asset carries the cost (AD14) | Resolved 2026-11-26 (author): a notice and a confirming tick |
-| OA6 | Screen look: a mockup for the Assets tab, or the Savings layout as stated (AR8) | **Open**; needed before the Assets stage's screen work |
+| OA6 | Screen look: a mockup for the Assets tab, or the Savings layout as stated (AR8) | Resolved 2026-11-26 (author): a mockup first, approved by the author before the screen work (Stage A step 8) |
 | OA7 | Working-year living costs: whether the phases and the survivor percentage apply before retirement, and how they meet the retirement spending at the first retirement | Resolved 2026-11-26 (author): one flat amount, switching at the first retirement |
 
 ## Critical User Journeys (CUJs)
@@ -1165,7 +1165,7 @@ Result.estate { ...v1 fields, propertyToday, mortgagesToday,
     *   a vehicle replaced twice;
     *   living costs while working.
 
-    The household comes from open question OA1.
+    The household is made up to exercise every feature once (OA1).
 *   **New tax cases:** a rental loss against pension income, and a sale-year gain that triggers the OAS clawback.
 *   **Timing:** a speed case with 6 assets; the 1-second results and 2-second tips targets still hold.
 
@@ -1257,7 +1257,7 @@ A status line reads "Up to date · updates as you edit", "Updating…", or, for 
 
 #### Assets tab and the changes to other tabs (Stage A)
 
-*   **Assets tab** (between Savings and Spending), laid out like the Savings Accounts list (open question OA6 settles whether a mockup is needed):
+*   **Assets tab** (between Savings and Spending), laid out like the Savings Accounts list, as drawn in the mockup the author approves before the screen work (OA6):
     *   one section, closed at first (AR2-S6);
     *   a table of assets (name, kind, owner, value, mortgage, and a line saying what happens: "Sold 2041", "Replaced every 10 years");
     *   Edit and Remove on each row, and "Add asset" below, with a kind menu.
@@ -1697,7 +1697,7 @@ The work is built in stages. Each stage ends with its tests passing in CI and a 
 | 3 | Deaths and estate (`project/death.ts`); reference plan test | — |
 | 4 | Variants, the strategy runs, comparisons, results, Worker | Speed check of the stage 3 engine on the reference machine (done 2026-11-24; [Performance](#performance)) |
 | 5 | Store, screens (six tabs and Settings), live recalculation, change summary; the plan schema from file 43, which the readiness check uses | O24, O27, O28 (resolved 2026-11-24) |
-| A | Assets (the Assets amendment; [Stage A files](#stage-a-assets-files)) | `stage-5` tagged (done 2026-11-26); OA1 and OA6 answered; BA-7 rule sources read |
+| A | Assets (the Assets amendment; [Stage A files](#stage-a-assets-files)) | `stage-5` tagged (done 2026-11-26); the Assets tab mockup approved (OA6) before step 8; BA-7 rule sources read |
 | 6 | Warnings and computed tips | — |
 | 7 | Saving, export/import, sample plan | — |
 | 8 | Testing with the author and two friends | Paid-tool comparison done; speed check passed |
@@ -2567,7 +2567,7 @@ The files stage 2 may create or change. Anything not listed here is out of bound
 ###### SA26. `./tests/fixtures/reference-plan-assets/` (Create: `inputs.json`, `calculator/`, `expected-rows.csv`, `NOTES.md`)
 
 *   **Type / Scope**: Protected fixture, new.
-*   **Proposed Changes**: Built by a separate session from the amended master design only, as G10 requires. The household comes from open question OA1. Once committed, the files are protected like every fixture. Why: G10 (extended).
+*   **Proposed Changes**: Built by a separate session from the amended master design only, as G10 requires. The household is made up to exercise every feature once (OA1). Once committed, the files are protected like every fixture. Why: G10 (extended).
 
 ###### SA27. `./tests/reference/referencePlanAssets.test.ts` (Create)
 
