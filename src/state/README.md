@@ -25,7 +25,8 @@ last change sends a ready plan to the engine Worker. A reply for an older revisi
 - `labels.ts`: `fieldLabel(path, draft)`. `categories.ts`: the 29 persisted category ids, the group ids and `groupOf`.
 - `mix.ts`: `setMixShare` (the sliders), `mixTotal`. `format.ts`: money and percent formats.
 - `persistence/planSchema.ts`: the zod schema with the input ranges and the caps.
-- `persistence/exportPlan.ts`: `exportPlan(inputs, meta)`, the export file (AR2-X1, ahead of stage 7).
+- `persistence/exportImport.ts`: `exportPlan(inputs, meta)` and `importPlan(text, fileName)`, the
+  export file and its check (AR2-X1, AR2-X2, ahead of stage 7).
 - `react.ts`: `PlanStoreContext`, `usePlan(selector)`.
 
 ## Invariants

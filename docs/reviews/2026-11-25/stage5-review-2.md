@@ -38,8 +38,17 @@ and overrides the mockups and earlier decisions in the design. `[x]` marks a bui
   identity (start + contributions + deposits + yield − withholding + price − draws = end) held every
   year (Known gaps B5-4).
 - [x] **AR2-R2** Decided: the Estate chart has no tooltip (its values are on the bars, AR-R2).
+- [x] **AR2-R3** Decided (2026-11-26): the Balances chart, its year line and its table show RRSP /
+  RRIF and LIRA / LIF as separate bands. The author's plan looked as if its RRSPs were never used:
+  they were empty by 67, and the band held the LIRAs, locked until 71.
 
 ## Asked during the review
 
 - [x] **AR2-X1** Decided: Export is built now, ahead of stage 7, so the author can share a plan for
-  debugging. It downloads the plan in the stage 7 envelope; Import still arrives with stage 7.
+  debugging. It downloads the plan in the stage 7 envelope.
+- [x] **AR2-X2** Decided (2026-11-26): Import works now too, in the header and on the welcome
+  screen. It refuses a file that is not a plan or is from a newer version, and asks before
+  replacing an open plan.
+- [ ] **AR2-T1** Asked (2026-11-26): the Settings screen is reorganized; a layout proposal goes to
+  the author first.
+- [ ] **AR2-L1** Open (2026-11-26): what to do about a LIRA locked until 71 (Known gaps B5-5).

@@ -547,7 +547,10 @@ describe('the stage 5 review screens', () => {
     nav('Results');
     const slider = screen.getByLabelText('Year', { selector: '#balances-year' });
     fireEvent.change(slider, { target: { value: '2030' } });
-    expect(screen.getByText(/RRSP \/ RRIF \/ LIF \$[\d,]+ · Non-registered/)).toBeTruthy();
+    // RRSP and LIRA balances are separate bands (AR2-R3).
+    expect(
+      screen.getByText(/RRSP \/ RRIF \$[\d,]+ · LIRA \/ LIF \$[\d,]+ · Non-registered/),
+    ).toBeTruthy();
     fireEvent.click(screen.getByRole('tab', { name: 'Income by source' }));
     const income = screen.getByLabelText('Year', { selector: '#income-year' });
     fireEvent.change(income, { target: { value: '2031' } });
@@ -604,5 +607,43 @@ describe('the second stage 5 review screens', () => {
     expect(created).toHaveLength(1);
     expect(store.getState().inputs.spouses[0].name).toBe('Alex');
     click.mockRestore();
+  });
+});
+
+describe('Import (AR2-X2)', () => {
+  const choose = async (text: string, name = 'plan.json') => {
+    const input = screen.getAllByLabelText('Plan file to import')[0]!;
+    const file = new File([text], name, { type: 'application/json' });
+    await act(async () => {
+      fireEvent.change(input, { target: { files: [file] } });
+    });
+  };
+  const exported = () =>
+    JSON.stringify({ schemaVersion: 1, inputs: setAt(completePlan(), 'spouses.0.name', 'Robin') });
+
+  it('loads a plan from the welcome screen', async () => {
+    vi.useRealTimers();
+    const { store } = renderApp();
+    await choose(exported());
+    await vi.waitFor(() => expect(store.getState().inputs.spouses[0].name).toBe('Robin'));
+    expect(screen.getByRole('navigation', { name: 'Plan' })).toBeTruthy();
+  });
+
+  it('asks before replacing an open plan, and explains a refused file', async () => {
+    vi.useRealTimers();
+    const { store } = renderApp(completePlan());
+    await choose(exported());
+    await vi.waitFor(() => screen.getByRole('dialog', { name: 'Replace this plan?' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(store.getState().inputs.spouses[0].name).toBe('Alex');
+    await choose(exported());
+    await vi.waitFor(() => screen.getByRole('button', { name: 'Replace the plan' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Replace the plan' }));
+    expect(store.getState().inputs.spouses[0].name).toBe('Robin');
+    await choose('nope', 'bad.json');
+    await vi.waitFor(() => screen.getByRole('dialog', { name: 'The plan could not be imported' }));
+    expect(screen.getByText(/bad.json is not a plan file/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

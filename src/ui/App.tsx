@@ -2,8 +2,9 @@
 // household's names, the tax-year chip and the plan buttons; the tab bar with
 // the Results badge; the welcome screen for an empty plan; the footer
 // disclaimer; and the first-run dialog.
-import { useEffect, useState } from 'react';
-import { exportPlan } from '../state/persistence/exportPlan';
+import { useEffect, useRef, useState } from 'react';
+import type { PlanDraft } from '../state/draft';
+import { exportPlan, importPlan } from '../state/persistence/exportImport';
 import { usePlan, usePlanStore } from '../state/react';
 import type { TabId } from '../state/store';
 import { bundledConfig } from './config';
@@ -28,7 +29,7 @@ export const TABS: { id: TabId; label: string }[] = [
 ];
 
 const SEEN_KEY = 'rp.disclaimer.seen';
-const STAGE_7 = 'Saving and loading plans arrive in a later version';
+const STAGE_7 = 'The sample plan arrives in a later version';
 
 function seenDisclaimer(): boolean {
   try {
@@ -68,6 +69,86 @@ function FirstRunDialog({ onClose }: { onClose(): void }) {
   );
 }
 
+type ImportState =
+  | { kind: 'idle' }
+  | { kind: 'refused'; message: string }
+  | { kind: 'confirm'; name: string; inputs: PlanDraft };
+
+/**
+ * Loads an exported plan (AR2-X2). A plan already open is replaced only after
+ * the user confirms, since it is not saved anywhere else.
+ */
+function ImportButton({
+  label,
+  className,
+  onLoaded,
+}: {
+  label: string;
+  className: string;
+  onLoaded(): void;
+}) {
+  const loadPlan = usePlan((s) => s.loadPlan);
+  const empty = useEmptyPlan();
+  const input = useRef<HTMLInputElement>(null);
+  const [state, setState] = useState<ImportState>({ kind: 'idle' });
+  const load = (inputs: PlanDraft) => {
+    loadPlan(inputs);
+    setState({ kind: 'idle' });
+    onLoaded();
+  };
+  const close = () => setState({ kind: 'idle' });
+  return (
+    <>
+      <button type="button" className={className} onClick={() => input.current?.click()}>
+        {label}
+      </button>
+      <input
+        ref={input}
+        type="file"
+        accept=".json,application/json"
+        aria-label="Plan file to import"
+        style={{ display: 'none' }}
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          e.target.value = '';
+          if (!file) return;
+          const r = importPlan(await file.text(), file.name);
+          if (!r.ok) setState({ kind: 'refused', message: r.message });
+          else if (empty) load(r.inputs);
+          else setState({ kind: 'confirm', name: file.name, inputs: r.inputs });
+        }}
+      />
+      {state.kind !== 'idle' && (
+        <div className="dialog-backdrop">
+          <div role="dialog" aria-modal="true" aria-labelledby="import-title" className="dialog">
+            <h2 id="import-title">
+              {state.kind === 'refused' ? 'The plan could not be imported' : 'Replace this plan?'}
+            </h2>
+            {state.kind === 'refused' ? (
+              <p>{state.message}</p>
+            ) : (
+              <p>
+                {state.name} replaces the plan open now. The plan open now is not saved anywhere
+                else; Export it first to keep it.
+              </p>
+            )}
+            <div className="row">
+              {state.kind === 'confirm' && (
+                <button type="button" className="btn-primary" onClick={() => load(state.inputs)}>
+                  Replace the plan
+                </button>
+              )}
+              <button type="button" className="btn" onClick={close}>
+                {state.kind === 'confirm' ? 'Cancel' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function Welcome({ onStart }: { onStart(): void }) {
   return (
     <div className="welcome">
@@ -84,12 +165,11 @@ function Welcome({ onStart }: { onStart(): void }) {
         <button type="button" className="btn btn-large" disabled title={STAGE_7}>
           Load sample plan
         </button>
-        <button type="button" className="btn btn-large" disabled title={STAGE_7}>
-          Import a saved plan
-        </button>
+        <ImportButton label="Import a saved plan" className="btn btn-large" onLoaded={onStart} />
       </div>
       <p className="note">
-        The app cannot send what you enter over the network; your plan stays in this browser.
+        The app cannot send what you enter over the network; your plan stays in this browser. It is
+        not saved yet: Export it to keep a copy.
       </p>
     </div>
   );
@@ -199,9 +279,7 @@ export function App() {
             <button type="button" className="btn" disabled title={STAGE_7}>
               Load sample plan
             </button>
-            <button type="button" className="btn" disabled title={STAGE_7}>
-              Import
-            </button>
+            <ImportButton label="Import" className="btn" onLoaded={() => setStarted(true)} />
             <ExportButton />
             <button type="button" className="btn" onClick={() => setView('settings')}>
               Settings

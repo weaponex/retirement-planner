@@ -16,10 +16,15 @@ import {
   LabelList,
 } from 'recharts';
 import { money, moneyShort } from '../../state/format';
-import type { BalanceRow, TaxRow, WaterfallStep } from './data';
+import { BALANCE_GROUPS, type BalanceRow, type TaxRow, type WaterfallStep } from './data';
 
 const HEIGHT = 300;
-export const BALANCE_COLOURS = { registered: '#1E40AF', nonreg: '#D97706', tfsa: '#16A34A' };
+export const BALANCE_COLOURS = {
+  registered: '#1E40AF',
+  locked: '#7C3AED',
+  nonreg: '#D97706',
+  tfsa: '#16A34A',
+};
 export const SPOUSE_COLOURS = ['#3B6FD8', '#E8A33D'] as const;
 const GRID = '#EFEDE8';
 const AXIS = { fontSize: 11, fill: '#6B6964' };
@@ -65,12 +70,13 @@ export function BalancesChart({
           axisLine={false}
         />
         <Tooltip formatter={tip} />
-        {(['registered', 'nonreg', 'tfsa'] as const).map((k) => (
+        {BALANCE_GROUPS.map(({ id: k, name }) => (
           <Area
             key={k}
             isAnimationActive={false}
             type="linear"
             dataKey={k}
+            name={name}
             stackId="1"
             stroke={BALANCE_COLOURS[k]}
             fill={BALANCE_COLOURS[k]}

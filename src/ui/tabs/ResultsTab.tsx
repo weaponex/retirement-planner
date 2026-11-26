@@ -8,13 +8,16 @@ import { usePlan } from '../../state/react';
 import type { TabId } from '../../state/store';
 import { useSpouseName } from '../common';
 import {
+  BALANCE_GROUPS,
   balanceRows,
+  balanceTotal,
   estateSteps,
   firstDeathYear,
   incomeRows,
   SOURCES,
   SOURCE_NAMES,
   taxRows,
+  type BalanceRow,
   type IncomeRow,
 } from '../charts/data';
 import {
@@ -121,8 +124,7 @@ function Charts({ result }: { result: Result }) {
       estate: estateSteps(result.estate),
     };
   }, [result, strategyId, toToday]);
-  const total = (r: { registered: number; nonreg: number; tfsa: number } | undefined) =>
-    r ? r.registered + r.nonreg + r.tfsa : 0;
+  const total = balanceTotal;
   const incomeTax = data.tax.reduce((s, r) => s + r.spouse0 + r.spouse1, 0);
   const first = data.balances[0]?.year ?? 0;
   const last = data.balances.at(-1)?.year ?? first;
@@ -164,9 +166,10 @@ function Charts({ result }: { result: Result }) {
               rows={data.balances}
               columns={[
                 { label: 'Year', value: (r) => r.year },
-                { label: 'RRSP / RRIF / LIF', value: (r) => money(r.registered) },
-                { label: 'Non-registered', value: (r) => money(r.nonreg) },
-                { label: 'TFSA', value: (r) => money(r.tfsa) },
+                ...BALANCE_GROUPS.map((g) => ({
+                  label: g.name,
+                  value: (r: BalanceRow) => money(r[g.id]),
+                })),
               ]}
             />
           ) : (
@@ -182,22 +185,17 @@ function Charts({ result }: { result: Result }) {
               />
               {balanceAt && (
                 <p className="year-readout" aria-live="polite">
-                  <b>{shown}</b> · RRSP / RRIF / LIF {money(balanceAt.registered)} · Non-registered{' '}
-                  {money(balanceAt.nonreg)} · TFSA {money(balanceAt.tfsa)} · Total{' '}
-                  <b>{money(total(balanceAt))}</b>
+                  <b>{shown}</b> ·{' '}
+                  {BALANCE_GROUPS.map((g) => `${g.name} ${money(balanceAt[g.id])} · `).join('')}
+                  Total <b>{money(total(balanceAt))}</b>
                 </p>
               )}
-              <Legend
-                items={[
-                  ['RRSP / RRIF / LIF', BALANCE_COLOURS.registered],
-                  ['Non-registered', BALANCE_COLOURS.nonreg],
-                  ['TFSA', BALANCE_COLOURS.tfsa],
-                ]}
-              />
+              <Legend items={BALANCE_GROUPS.map((g) => [g.name, BALANCE_COLOURS[g.id]])} />
               <p className="note">
                 Balances at the end of each year. Total {money(total(data.balances[0]))} at the end
                 of {data.balances[0]?.year} and {money(total(data.balances.at(-1)))} at the second
-                death.
+                death. A LIRA cannot be drawn until it becomes a LIF, so the LIRA / LIF band shows
+                money that is locked until then.
               </p>
             </>
           ))}

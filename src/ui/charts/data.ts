@@ -47,9 +47,24 @@ export function incomeRows(rows: StrategyResult['rows'], toToday: ToToday): Inco
 export interface BalanceRow {
   year: number;
   registered: number;
+  /** LIRA and LIF: locked until the LIRA becomes a LIF (AR2-R3). */
+  locked: number;
   nonreg: number;
   tfsa: number;
 }
+
+export type BalanceGroup = Exclude<keyof BalanceRow, 'year'>;
+
+/** The Balances chart's bands, bottom to top, with their names (AR2-R3). */
+export const BALANCE_GROUPS: { id: BalanceGroup; name: string }[] = [
+  { id: 'registered', name: 'RRSP / RRIF' },
+  { id: 'locked', name: 'LIRA / LIF' },
+  { id: 'nonreg', name: 'Non-registered' },
+  { id: 'tfsa', name: 'TFSA' },
+];
+
+export const balanceTotal = (r: BalanceRow | undefined) =>
+  r ? r.registered + r.locked + r.nonreg + r.tfsa : 0;
 
 /**
  * End-of-year balances by account type: the id's type prefix decides the group.
@@ -58,10 +73,17 @@ export interface BalanceRow {
  */
 export function balanceRows(rows: YearRow[], toToday: ToToday): BalanceRow[] {
   return rows.map((r) => {
-    const out: BalanceRow = { year: r.year, registered: 0, nonreg: 0, tfsa: 0 };
+    const out: BalanceRow = { year: r.year, registered: 0, locked: 0, nonreg: 0, tfsa: 0 };
     for (const [id, v] of Object.entries(r.balancesEndNom)) {
       const type = id.split('-')[0];
-      const group = type === 'tfsa' ? 'tfsa' : type === 'nonreg' ? 'nonreg' : 'registered';
+      const group: BalanceGroup =
+        type === 'tfsa'
+          ? 'tfsa'
+          : type === 'nonreg'
+            ? 'nonreg'
+            : type === 'lira' || type === 'lif'
+              ? 'locked'
+              : 'registered';
       out[group] += toToday(v, r.year + 1);
     }
     return out;
