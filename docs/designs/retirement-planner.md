@@ -1257,6 +1257,7 @@ The second full review (2026-11-19) was triaged with the author on 2026-11-24; i
 |---|---|---|
 | M1 | `NormalizedInputs`, the engine state, the `YearRow` fields, the reference CSV columns and the `Result` contract are defined in [Data contracts](#data-contracts). Still open: the `warningFacts` content and the `Warning` type | Stage 6 |
 | B5-1 | The Config contract says fee levels can be changed in Settings, but only single-value (`number`) keys can be overridden, and `planning.fee_levels` is one structured value, so Settings shows it read-only. The Custom fee covers other fees. Decide: split it into three number keys, or keep it read-only and change the contract's wording | Stage 7 |
+| B5-3 | The author's stage 5 review (2026-11-25) changes Household, Savings, Spending, Withdrawals and Results, and reopens the stage 4 engine for one mix per account (placement dropped), gross pay with payroll deductions, the CPP estimate at its start age and DC pensions. Every item is in [stage5-review.md](../reviews/2026-11-25/stage5-review.md); this design is updated as each is built | `stage-5` tag |
 | SR-4 | Open question O20 (O24, O27 and O28 resolved 2026-11-24; O31 withdrawn) | Before the URL is shared beyond testers |
 
 The work is built in stages. Each stage ends with its tests passing in CI and a git tag (`stage-0` … `stage-8`); stages 0 to 3 are done. The working rules for agents (whole-function rewrites, protected files, units) are in [file 13](#13-agentsmd-and-claudemd-exists-stage-0), `AGENTS.md`.
